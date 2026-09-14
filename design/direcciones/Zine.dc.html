@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Courier+Prime:wght@400;700&display=swap">
+  <style>
+    body { margin: 0; font-family: "Courier Prime", Courier, monospace; }
+    a { color: #d92b1f; } a:hover { color: #000; }
+  </style>
+</helmet>
+
+<div style="width: 620px; height: 820px; position: relative; overflow: hidden; background: #e8e4d9; color: #12100e;">
+
+  <!-- trama de fotocopia -->
+  <div style="position: absolute; inset: 0; opacity: .5;
+              background-image: radial-gradient(#0000001f 1px, transparent 1.4px);
+              background-size: 4px 4px;"></div>
+  <!-- mancha de tóner -->
+  <div style="position: absolute; right: -60px; bottom: -70px; width: 300px; height: 300px; border-radius: 50%;
+              background: radial-gradient(circle, rgba(0,0,0,.14) 0%, rgba(0,0,0,0) 68%);"></div>
+
+  <div style="position: relative; padding: 34px 30px; height: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
+
+    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; letter-spacing: .1em;">
+      <span>N.º 001</span><span>APACHE-2.0</span>
+    </div>
+
+    <!-- titulo recortado, rotado -->
+    <div style="margin-top: 22px; transform: rotate(-2.4deg);">
+      <div style="display: inline-block; background: #12100e; color: #e8e4d9; font-family: 'Archivo Black', sans-serif;
+                  font-size: 84px; line-height: .86; letter-spacing: -.04em; padding: 6px 14px 10px;">lymi</div>
+    </div>
+
+    <div style="margin-top: 20px; transform: rotate(.7deg); max-width: 30ch;">
+      <span style="font-family: 'Archivo Black', sans-serif; font-size: 23px; line-height: 1.2; text-transform: uppercase;">
+        Los tokens dependen de la tarea,
+        <span style="background: #d92b1f; color: #e8e4d9; padding: 0 5px;">no del tamaño del repo</span>
+      </span>
+    </div>
+
+    <!-- cinta adhesiva -->
+    <div style="margin-top: 26px; position: relative; align-self: flex-start;">
+      <div style="position: absolute; top: -11px; left: 28px; width: 74px; height: 21px; transform: rotate(-5deg);
+                  background: rgba(216,206,182,.85); border-left: 1px dashed #b4a98d; border-right: 1px dashed #b4a98d;"></div>
+      <div style="border: 2px solid #12100e; padding: 14px 18px; background: #f2eee4; transform: rotate(-1.2deg);
+                  font-size: 13px; line-height: 1.55; max-width: 40ch;">
+        &laquo;Ahorra un 80%&raquo; <b>no es falsable</b>: quien lo dice elige la
+        línea base que le conviene. La nuestra es código de este repo. Córrela tú.
+      </div>
+    </div>
+
+    <div style="flex-grow: 1;"></div>
+
+    <!-- sello -->
+    <div style="display: flex; align-items: flex-end; gap: 16px;">
+      <div style="transform: rotate(-3.5deg); border: 5px solid #d92b1f; padding: 4px 16px 10px;">
+        <span style="font-family: 'Archivo Black', sans-serif; font-size: 82px; line-height: .82; color: #d92b1f;">−84%</span>
+      </div>
+      <span style="font-size: 12.5px; line-height: 1.5; padding-bottom: 12px; max-width: 16ch; font-weight: 700;">
+        TOKENS REMOTOS ↓<br>puerta aprobada ✓
+      </span>
+    </div>
+
+    <div style="margin-top: 24px; border-top: 3px solid #12100e; padding-top: 10px; display: flex; justify-content: space-between;
+                font-size: 11px; font-weight: 700; letter-spacing: .06em;">
+      <span>REPRODUCE: LYMI BENCH SNAKE</span>
+      <span style="color: #d92b1f;">CF5CC2 / 270B0F</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":620,"height":820}}'>
+class Component extends DCLogic {}
+</script>
+</body>
+</html>

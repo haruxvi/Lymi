@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Noto+Sans+JP:wght@500&family=JetBrains+Mono:wght@500&display=swap">
+  <style>
+    body { margin: 0; font-family: "Bricolage Grotesque", system-ui, sans-serif; }
+    a { color: #ff5fa2; } a:hover { color: #ffb0d0; }
+  </style>
+</helmet>
+
+<div style="width: 620px; height: 820px; position: relative; overflow: hidden; background: radial-gradient(130% 80% at 20% 0%, #4a1e6e 0%, #2b1147 38%, #180a2c 72%, #0e0619 100%); color: #f4ecff;">
+
+  <!-- resplandores -->
+  <div style="position: absolute; left: -110px; top: 300px; width: 420px; height: 420px; border-radius: 50%; background: radial-gradient(circle, rgba(255,95,162,.34) 0%, rgba(255,95,162,0) 70%);"></div>
+  <div style="position: absolute; right: -130px; top: -60px; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(94,214,255,.28) 0%, rgba(94,214,255,0) 70%);"></div>
+
+  <!-- destellos -->
+  <svg width="620" height="820" viewBox="0 0 620 820" style="position: absolute; inset: 0;" aria-hidden="true">
+    <g fill="#ffe6f4" opacity=".85">
+      <path d="M486 96l5 14 14 5-14 5-5 14-5-14-14-5 14-5z"></path>
+      <path d="M96 240l3.5 10 10 3.5-10 3.5-3.5 10-3.5-10-10-3.5 10-3.5z"></path>
+      <path d="M552 470l4 11 11 4-11 4-4 11-4-11-11-4 11-4z"></path>
+      <path d="M64 686l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"></path>
+    </g>
+  </svg>
+
+  <div style="position: relative; padding: 30px 34px; display: flex; flex-direction: column; height: 100%; box-sizing: border-box;">
+
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <span style="font-family: 'Noto Sans JP', sans-serif; font-size: 14px; letter-spacing: .2em; color: #c79ce8;">ライミ</span>
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .14em; color: #9a7fb8;">v0.0.1</span>
+    </div>
+
+    <!-- wordmark con brillo cromado -->
+    <div style="margin-top: 26px; font-weight: 800; font-size: 96px; line-height: .88; letter-spacing: -.045em;
+                background: linear-gradient(178deg, #ffffff 8%, #ffd9ec 34%, #ff5fa2 58%, #b06ce8 82%);
+                -webkit-background-clip: text; background-clip: text; color: transparent;
+                filter: drop-shadow(0 5px 22px rgba(255,95,162,.5));">lymi</div>
+
+    <div style="margin-top: 20px; font-weight: 600; font-size: 25px; line-height: 1.26; letter-spacing: -.02em; max-width: 15ch; text-wrap: balance;">
+      Los tokens dependen de la <span style="color: #7fe6b0;">tarea</span>, no del <span style="color: #ff5fa2;">tamaño del repo</span>.
+    </div>
+
+    <!-- badge tipo sticker -->
+    <div style="margin-top: 26px; align-self: flex-start; padding: 9px 18px; border-radius: 999px;
+                background: linear-gradient(160deg, #ff7fb6, #d94fe0); box-shadow: 0 6px 20px rgba(217,79,224,.42), inset 0 1px 0 rgba(255,255,255,.55);
+                font-weight: 800; font-size: 13.5px; letter-spacing: .04em; color: #2a0a1f;">
+      local-first · sin humo
+    </div>
+
+    <div style="flex-grow: 1;"></div>
+
+    <!-- cifra héroe -->
+    <div style="display: flex; align-items: flex-end; gap: 18px;">
+      <span style="font-weight: 800; font-size: 108px; line-height: .8; letter-spacing: -.06em;
+                   background: linear-gradient(170deg, #b6ffd9, #34d98c);
+                   -webkit-background-clip: text; background-clip: text; color: transparent;
+                   filter: drop-shadow(0 4px 20px rgba(52,217,140,.42));">−84<span style="font-size: 54px;">%</span></span>
+      <span style="font-size: 14px; line-height: 1.45; color: #c9b6de; padding-bottom: 10px; max-width: 17ch;">tokens remotos frente al agente ingenuo</span>
+    </div>
+
+    <div style="margin-top: 22px; padding: 13px 16px; border-radius: 14px; background: rgba(255,255,255,.07); backdrop-filter: blur(6px);
+                display: flex; gap: 16px; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #c9b6de;">
+      <span style="color: #7fe6b0;">■ local gratis</span>
+      <span style="color: #ff5fa2;">■ remoto se paga</span>
+      <span style="margin-left: auto;">0 fugas</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":620,"height":820}}'>
+class Component extends DCLogic {}
+</script>
+</body>
+</html>

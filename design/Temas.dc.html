@@ -1,0 +1,409 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;700&family=Noto+Sans+JP:wght@700&family=JetBrains+Mono:wght@400;700&display=swap">
+  <style data-estilos>
+/* generado por design/estilos/sincronizar.mjs: editar design/estilos/, no aqui */
+/* lymi · risografía — tokens y componentes compartidos por todas las pantallas.
+   Fuente de verdad de los estilos. `node design/estilos/sincronizar.mjs` copia
+   este archivo (mas la hoja de cada pantalla) dentro de cada artboard: el canvas
+   ejecuta cada .dc.html aislado y no puede cargar hojas externas. */
+
+:root {
+  --papel: #191324;
+  --papel-hondo: #130e1b;
+  --superficie: #1b1526;
+  --panel: #221a31;
+  --borde: #3a3050;
+  --linea: #2c2340;
+  --tinta: #14101c;
+
+  --rosa: #ff48a0;
+  --rosa-tinta: #c2256f;
+  --menta: #5ef2a8;
+  --menta-tinta: #0f8f5c;
+  --crema: #f5eee0;
+  --cinta: rgba(245, 238, 224, .55);
+
+  --texto: #f5eee0;
+  --texto-suave: #cfc5df;
+  --lila: #a89cbd;
+  --gris: #6f6484;
+  --gris-tinta: #4a3e5c;
+
+  --display: 'Archivo Black', Impact, sans-serif;
+  --cuerpo: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --jp: 'Noto Sans JP', sans-serif;
+}
+
+body { margin: 0; background: var(--papel); font-family: var(--cuerpo); }
+a { color: var(--menta); }
+a:hover { color: var(--rosa); }
+
+/* ---------- lienzo ---------- */
+
+.pantalla { position: relative; display: flex; width: 1440px; height: 900px; overflow: hidden; background: var(--papel); color: var(--texto); }
+.columna { position: relative; display: flex; flex-direction: column; flex-grow: 1; min-width: 0; min-height: 0; }
+.espaciador { flex-grow: 1; }
+.grano { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: .13; mix-blend-mode: overlay; }
+
+/* ---------- tipografía ---------- */
+
+.display { font-family: var(--display); }
+.mono { font-family: var(--mono); }
+.titulo { font-family: var(--display); font-size: 24px; text-transform: uppercase; }
+.rotulo { font-family: var(--mono); font-weight: 700; font-size: 10.5px; letter-spacing: .14em; color: var(--gris); }
+.suave { color: var(--lila); }
+.tenue { color: var(--gris); }
+.derecha { text-align: right; }
+
+/* ---------- marca con desregistro de segunda tinta ---------- */
+
+.desregistro { position: relative; font-family: var(--display); line-height: .8; letter-spacing: -.06em; }
+.desregistro > span { position: absolute; left: 0; top: 0; }
+.desregistro > .sombra { color: var(--menta); mix-blend-mode: screen; opacity: .9; transform: translate(var(--dx, 5px), var(--dy, 4px)); }
+.desregistro > .frente { color: var(--rosa); }
+
+/* ---------- riel de navegación ---------- */
+
+.riel { display: flex; flex-direction: column; align-items: center; gap: 14px; flex-shrink: 0; width: 64px; padding-top: 18px; background: var(--papel-hondo); border-right: 3px solid var(--panel); }
+.riel-marca { width: 30px; height: 36px; font-size: 34px; line-height: 1; letter-spacing: 0; --dx: 3px; --dy: 3px; }
+.riel-marca > .sombra { opacity: 1; }
+.riel-sep { width: 26px; height: 3px; margin: 6px 0; background: var(--borde); }
+.riel-item { width: 26px; height: 26px; border: 2px solid var(--borde); }
+.riel-item.activo { background: var(--crema); border-color: var(--crema); transform: rotate(-6deg); }
+
+/* ---------- trama de puntos ---------- */
+
+.trama { position: absolute; pointer-events: none; opacity: .35; background-size: 8px 8px; -webkit-mask-image: radial-gradient(closest-side, #000, transparent); mask-image: radial-gradient(closest-side, #000, transparent); }
+.trama-rosa { background-image: radial-gradient(circle, var(--rosa) 1.3px, transparent 1.5px); }
+.trama-menta { background-image: radial-gradient(circle, var(--menta) 1.2px, transparent 1.4px); background-size: 7px 7px; }
+
+/* ---------- etiquetas, sellos, cinta y hojas de papel ---------- */
+
+.etiqueta { align-self: flex-start; padding: 3px 10px; font-family: var(--mono); font-weight: 700; font-size: 11px; letter-spacing: .14em; color: var(--tinta); transform: rotate(-2deg); }
+.etiqueta.rosa { background: var(--rosa); }
+.etiqueta.menta { background: var(--menta); }
+.etiqueta.crema { background: var(--crema); }
+
+.sello { display: inline-block; padding: 3px 12px 4px; border: 3px solid currentColor; font-family: var(--display); font-size: 14px; transform: rotate(-4deg); }
+.sello.rosa { color: var(--rosa); }
+.sello.menta { color: var(--menta); }
+
+.sello-grande { --sello: var(--menta); position: relative; align-self: flex-start; padding: 6px 18px 12px; border: 6px solid var(--sello); transform: rotate(-4deg); }
+.sello-grande.rosa { --sello: var(--rosa); }
+.sello-grande-trama { position: absolute; inset: 0; opacity: .3; background-image: radial-gradient(circle, var(--sello) 1.2px, transparent 1.4px); background-size: 6px 6px; }
+.sello-grande-cifra { position: relative; font-family: var(--display); font-size: 82px; line-height: .8; color: var(--sello); }
+
+.cinta { position: absolute; width: 90px; height: 24px; background: var(--cinta); border-left: 1px dashed rgba(20, 16, 28, .3); border-right: 1px dashed rgba(20, 16, 28, .3); }
+
+.hoja { position: relative; background: var(--crema); color: var(--tinta); }
+
+/* ---------- tiers: menta es tu GPU, rosa se paga ---------- */
+
+.tier-local { --tier: var(--menta); }
+.tier-remoto,
+.tier-efecto { --tier: var(--rosa); }
+.tier-gratis,
+.tier-indice { --tier: var(--crema); }
+.tier-texto { color: var(--tier); }
+.tier-fondo { background: var(--tier); }
+
+.pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: var(--tier, var(--crema)); color: var(--tinta); font-family: var(--mono); font-weight: 700; font-size: 10.5px; }
+
+/* ---------- botones ---------- */
+
+.boton { padding: 9px 16px; font-family: var(--display); font-size: 12.5px; }
+.boton.primario { background: var(--rosa); color: var(--tinta); transform: rotate(-2deg); }
+.boton.menta { background: var(--menta); color: var(--tinta); }
+.boton.crema { background: var(--crema); color: var(--tinta); }
+.boton.tinta { background: var(--tinta); color: var(--menta); }
+.boton.contorno { padding: 7px 14px; border: 2px solid currentColor; }
+
+/* ---------- barra del ledger: chrome permanente ---------- */
+
+.ledger { display: flex; align-items: center; gap: 34px; flex-shrink: 0; height: 76px; padding: 0 28px; background: var(--papel-hondo); border-top: 3px solid var(--rosa); }
+.ledger .etiqueta { align-self: center; padding: 3px 9px; letter-spacing: .18em; }
+.ledger > * { white-space: nowrap; }
+
+/* Sellos, pastillas y etiquetas son una sola pieza impresa: nunca parten en dos lineas. */
+.sello,
+.sello-grande,
+.pill,
+.etiqueta { white-space: nowrap; }
+.ledger-dato { display: flex; flex-direction: column; }
+.ledger-rotulo { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--gris); }
+.ledger-cifra { font-family: var(--display); font-size: 28px; line-height: 1; }
+.ledger-cifra.local { color: var(--menta); }
+.ledger-cifra.remoto { color: var(--rosa); }
+.ledger-sello { padding: 4px 12px 5px; font-size: 15px; }
+.medidor-dato { gap: 6px; }
+.medidor { width: 160px; height: 14px; padding: 2px; border: 2px solid var(--crema); }
+.medidor-relleno { height: 100%; background-color: rgba(94, 242, 168, .25); background-image: radial-gradient(circle, var(--menta) 1.4px, transparent 1.6px); background-size: 4px 4px; }
+
+.ledger.compacto { gap: 26px; height: 62px; padding: 0 24px; }
+.ledger.compacto .ledger-cifra { font-size: 20px; line-height: 1.2; }
+.ledger.compacto .ledger-cifra small { font-family: var(--mono); font-size: 10px; color: var(--gris); }
+.ledger.compacto .sello { padding: 2px 10px 3px; font-size: 13px; }
+
+/* Apariencia */
+
+.controles { display: flex; flex-direction: column; gap: 22px; flex-shrink: 0; width: 470px; padding: 26px; overflow: hidden; background: var(--papel-hondo); border-right: 3px solid var(--panel); }
+.temas-titulo { font-size: 26px; }
+.temas-ruta { margin-top: 4px; font-size: 11.5px; }
+.controles .etiqueta { display: inline-block; }
+
+.rejilla-temas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.tarjeta-tema { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 3px solid var(--linea); cursor: pointer; }
+.tarjeta-tema svg { flex-shrink: 0; }
+.tarjeta-tema-nombre { font-size: 13px; font-weight: 700; color: var(--lila); }
+.tarjeta-tema.activa { background: var(--panel); border-color: var(--crema); }
+.tarjeta-tema.activa .tarjeta-tema-nombre { color: var(--texto); }
+.mezcla { mix-blend-mode: screen; }
+
+.texturas { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.textura { display: grid; grid-template-columns: 120px 1fr 48px; gap: 12px; align-items: center; font-size: 13.5px; }
+.textura-marco { height: 8px; padding: 2px; border: 2px solid var(--borde); }
+.textura-marco svg { display: block; }
+.textura-valor { font-family: var(--mono); font-size: 12px; text-align: right; }
+
+.tipos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tipo { padding: 9px 12px; border: 2px solid var(--borde); }
+.tipo .rotulo { font-size: 10px; letter-spacing: .12em; }
+.tipo-muestra { margin-top: 2px; font-size: 14px; }
+.tipo-muestra.mono { margin-top: 3px; font-weight: 700; font-size: 13px; }
+
+.temas-vista { gap: 24px; padding: 26px 30px; }
+.vista-cabecera { display: flex; align-items: baseline; gap: 12px; }
+.vista-slug { font-family: var(--mono); font-weight: 700; font-size: 12px; color: var(--rosa); }
+
+/* La vista previa es SVG: los colores del tema llegan como atributos fill/stroke,
+   que cambian con el clic sin meter valores dinamicos dentro de style="". */
+.vista-svg { display: block; width: 100%; height: auto; }
+.vista-logo { font-family: var(--display); font-size: 120px; letter-spacing: -.06em; }
+.vista-pill { font-family: var(--mono); font-weight: 700; font-size: 12px; }
+.vista-cifra { font-family: var(--display); font-size: 24px; }
+.vista-sello { font-family: var(--display); font-size: 13px; }
+
+.toml { display: flex; flex-direction: column; flex-grow: 1; min-height: 0; background: var(--tinta); }
+.toml-cabecera { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 3px solid var(--panel); }
+.toml-archivo { font-family: var(--mono); font-weight: 700; font-size: 11.5px; color: var(--lila); }
+.toml-acciones { display: flex; gap: 8px; }
+.toml-boton { padding: 4px 11px; border: 2px solid var(--borde); font-family: var(--mono); font-size: 11px; }
+.toml-boton.primario { background: var(--menta); border-color: var(--menta); color: var(--tinta); font-weight: 700; }
+.toml-cuerpo { padding: 12px 18px; overflow: hidden; font-family: var(--mono); font-size: 12.5px; line-height: 1.75; }
+.toml-linea { white-space: pre; color: var(--texto); }
+.toml-linea.comentario { color: var(--gris); }
+.toml-linea.remoto { color: var(--rosa); }
+.toml-linea.local { color: var(--menta); }
+  </style>
+</helmet>
+
+<div class="pantalla">
+
+  <nav class="riel">
+    <div class="riel-marca desregistro"><span class="sombra">l</span><span class="frente">l</span></div>
+    <div class="riel-sep"></div>
+    <sc-for list="{{rail}}" as="r" hint-placeholder-count="7">
+      <div class="riel-item {{r.clase}}"></div>
+    </sc-for>
+  </nav>
+
+  <!-- controles -->
+  <aside class="controles">
+    <div>
+      <div class="titulo temas-titulo">Apariencia</div>
+      <div class="mono tenue temas-ruta">~/.config/lymi/theme.toml · lo que tocas aquí se escribe ahí</div>
+    </div>
+
+    <section>
+      <span class="etiqueta rosa">TINTAS RISO</span>
+      <div class="rejilla-temas">
+        <sc-for list="{{tintas}}" as="p" hint-placeholder-count="4">
+          <div class="tarjeta-tema {{p.clase}}" onClick="{{ p.pick }}">
+            <svg width="46" height="28" viewBox="0 0 46 28" aria-hidden="true">
+              <circle cx="14" cy="14" r="14" fill="{{p.remoto}}" class="mezcla"></circle>
+              <circle cx="32" cy="14" r="14" fill="{{p.local}}" class="mezcla"></circle>
+            </svg>
+            <span class="tarjeta-tema-nombre">{{p.nombre}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section>
+      <span class="etiqueta menta">PALETAS DE LA COMUNIDAD</span>
+      <div class="rejilla-temas">
+        <sc-for list="{{comunidad}}" as="p" hint-placeholder-count="4">
+          <div class="tarjeta-tema {{p.clase}}" onClick="{{ p.pick }}">
+            <svg width="44" height="26" viewBox="0 0 44 26" aria-hidden="true">
+              <rect x="0" width="11" height="26" fill="{{p.papel}}"></rect>
+              <rect x="11" width="11" height="26" fill="{{p.remoto}}"></rect>
+              <rect x="22" width="11" height="26" fill="{{p.local}}"></rect>
+              <rect x="33" width="11" height="26" fill="{{p.texto}}"></rect>
+            </svg>
+            <span class="tarjeta-tema-nombre">{{p.nombre}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section>
+      <span class="etiqueta crema">TEXTURA</span>
+      <div class="texturas">
+        <sc-for list="{{texturas}}" as="x" hint-placeholder-count="3">
+          <div class="textura">
+            <span>{{x.nombre}}</span>
+            <div class="textura-marco">
+              <svg width="100%" height="8" aria-hidden="true"><rect width="{{x.w}}" height="8" fill="url(#tramaTema)"></rect></svg>
+            </div>
+            <span class="textura-valor">{{x.v}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <div class="tipos">
+      <div class="tipo">
+        <div class="rotulo">DISPLAY</div>
+        <div class="tipo-muestra display">Archivo Black</div>
+      </div>
+      <div class="tipo">
+        <div class="rotulo">DATOS</div>
+        <div class="tipo-muestra mono">JetBrains Mono</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- vista previa + toml -->
+  <main class="columna temas-vista">
+    <div class="vista-cabecera">
+      <span class="rotulo">VISTA PREVIA</span>
+      <span class="vista-slug">{{slug}}</span>
+    </div>
+
+    <svg class="vista-svg" viewBox="0 0 790 386" role="img" aria-label="Vista previa del tema">
+      <defs>
+        <pattern id="tramaTema" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="1.4" fill="{{remoto}}"></circle></pattern>
+        <clipPath id="recorteVista"><rect width="780" height="375"></rect></clipPath>
+      </defs>
+
+      <!-- sombra dura del acento -->
+      <rect x="10" y="11" width="780" height="375" fill="{{remoto}}"></rect>
+
+      <g clip-path="url(#recorteVista)">
+        <rect width="780" height="375" fill="{{papel}}"></rect>
+        <circle cx="660" cy="70" r="190" fill="url(#tramaTema)" opacity=".45"></circle>
+
+        <rect width="150" height="375" fill="{{panel}}"></rect>
+        <rect x="14" y="18" width="84" height="14" fill="{{texto}}" transform="rotate(-2 56 25)"></rect>
+        <rect x="14" y="44" width="108" height="8" fill="{{gris}}" opacity=".5"></rect>
+        <rect x="14" y="58" width="76" height="8" fill="{{gris}}" opacity=".5"></rect>
+        <rect x="14" y="72" width="96" height="8" fill="{{gris}}" opacity=".5"></rect>
+
+        <g transform="rotate(-2.5 360 110)">
+          <text x="196" y="150" class="vista-logo mezcla" fill="{{local}}">lymi</text>
+          <text x="190" y="145" class="vista-logo" fill="{{remoto}}">lymi</text>
+        </g>
+
+        <rect x="200" y="190" width="74" height="26" rx="13" fill="{{local}}"></rect>
+        <text x="237" y="207" text-anchor="middle" class="vista-pill" fill="{{papel}}">LOCAL</text>
+        <rect x="284" y="190" width="86" height="26" rx="13" fill="{{remoto}}"></rect>
+        <text x="327" y="207" text-anchor="middle" class="vista-pill" fill="{{papel}}">REMOTO</text>
+
+        <rect x="150" y="311" width="630" height="64" fill="{{panel}}"></rect>
+        <rect x="150" y="311" width="630" height="3" fill="{{remoto}}"></rect>
+        <text x="172" y="352" class="vista-cifra" fill="{{local}}">84.2k</text>
+        <text x="272" y="352" class="vista-cifra" fill="{{remoto}}">3.1k</text>
+        <text x="352" y="352" class="vista-cifra" fill="{{texto}}">$0.014</text>
+        <g transform="rotate(-4 700 343)">
+          <rect x="650" y="330" width="100" height="26" fill="none" stroke="{{local}}" stroke-width="3"></rect>
+          <text x="700" y="348" text-anchor="middle" class="vista-sello" fill="{{local}}">EGRESS 0</text>
+        </g>
+      </g>
+    </svg>
+
+    <div class="toml">
+      <div class="toml-cabecera">
+        <span class="toml-archivo">theme.toml</span>
+        <div class="toml-acciones">
+          <span class="toml-boton">importar</span>
+          <span class="toml-boton primario">compartir</span>
+        </div>
+      </div>
+      <div class="toml-cuerpo">
+        <sc-for list="{{toml}}" as="ln" hint-placeholder-count="12">
+          <div class="toml-linea {{ln.clase}}">{{ln.t}}</div>
+        </sc-for>
+      </div>
+    </div>
+  </main>
+
+  <svg class="grano" width="1440" height="900" aria-hidden="true">
+    <filter id="grano"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"></feTurbulence></filter>
+    <rect width="1440" height="900" filter="url(#grano)" fill="#ffffff"></rect>
+  </svg>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const TINTAS = [
+      { id: 'riso-rosa-menta', nombre: 'Rosa + menta', papel: '#191324', panel: '#221a31', remoto: '#ff48a0', local: '#5ef2a8', texto: '#f5eee0', gris: '#a89cbd' },
+      { id: 'riso-federal', nombre: 'Amarillo + azul', papel: '#13162b', panel: '#1c2140', remoto: '#ffd23f', local: '#58c4ff', texto: '#f3efe4', gris: '#9aa3c7' },
+      { id: 'riso-naranja-lila', nombre: 'Naranja + lila', papel: '#1d1216', panel: '#2a1a20', remoto: '#ff6c2f', local: '#b7a4ff', texto: '#f6ede3', gris: '#b39aa4' },
+      { id: 'riso-papel-claro', nombre: 'Papel claro', papel: '#f1ebdf', panel: '#e3d8c6', remoto: '#e0245e', local: '#0a8f5b', texto: '#1b1422', gris: '#6c6272' },
+    ];
+    const COMUNIDAD = [
+      { id: 'catppuccin-mocha', nombre: 'Catppuccin Mocha', papel: '#1e1e2e', panel: '#313244', remoto: '#fab387', local: '#a6e3a1', texto: '#cdd6f4', gris: '#9399b2' },
+      { id: 'gruvbox-dark', nombre: 'Gruvbox Dark', papel: '#282828', panel: '#3c3836', remoto: '#fe8019', local: '#b8bb26', texto: '#ebdbb2', gris: '#a89984' },
+      { id: 'tokyo-night', nombre: 'Tokyo Night', papel: '#1a1b26', panel: '#24283b', remoto: '#ff9e64', local: '#9ece6a', texto: '#c0caf5', gris: '#787c99' },
+      { id: 'rose-pine', nombre: 'Rosé Pine', papel: '#191724', panel: '#26233a', remoto: '#eb6f92', local: '#9ccfd8', texto: '#e0def4', gris: '#908caa' },
+    ];
+    const activo = (this.state && this.state.tema) || 'riso-rosa-menta';
+    const t = [...TINTAS, ...COMUNIDAD].find((p) => p.id === activo) || TINTAS[0];
+    const tarjeta = (p) => ({
+      ...p,
+      pick: () => this.setState({ tema: p.id }),
+      clase: p.id === activo ? 'activa' : '',
+    });
+    const linea = (texto, clase = '') => ({ t: texto, clase });
+    return {
+      ...t,
+      slug: t.id,
+      rail: [0, 1, 2, 3, 4, 5, 6].map((i) => ({ clase: i === 6 ? 'activo' : '' })),
+      tintas: TINTAS.map(tarjeta),
+      comunidad: COMUNIDAD.map(tarjeta),
+      texturas: [
+        { nombre: 'Grano', w: '40%', v: '0.13' },
+        { nombre: 'Trama', w: '60%', v: '8 px' },
+        { nombre: 'Desregistro', w: '30%', v: '5 px' },
+      ],
+      toml: [
+        linea('# ~/.config/lymi/theme.toml', 'comentario'),
+        linea('name = "' + t.id + '"'),
+        linea('[tinta]', 'comentario'),
+        linea('papel  = "' + t.papel + '"'),
+        linea('panel  = "' + t.panel + '"'),
+        linea('texto  = "' + t.texto + '"'),
+        linea('remoto = "' + t.remoto + '"   # se paga', 'remoto'),
+        linea('local  = "' + t.local + '"   # tu GPU, gratis', 'local'),
+        linea('[textura]', 'comentario'),
+        linea('grano = 0.13'),
+        linea('trama = 8'),
+        linea('desregistro = 5'),
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

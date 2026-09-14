@@ -1,0 +1,63 @@
+/* Sesión activa · plan/apply */
+
+.sesion-trama { right: -40px; top: 60px; width: 380px; height: 300px; }
+
+.cabecera { position: relative; display: flex; align-items: center; gap: 18px; flex-shrink: 0; height: 84px; padding: 0 34px; border-bottom: 3px solid var(--panel); }
+.cabecera-textos { display: flex; flex-direction: column; gap: 4px; }
+.sesion-titulo { font-size: 23px; letter-spacing: -.01em; }
+.cabecera-meta { font-size: 11.5px; }
+
+.transcripcion { position: relative; display: flex; flex-direction: column; flex-grow: 1; min-height: 0; padding: 26px 34px 0; }
+.tarea { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+.tarea .etiqueta { flex-shrink: 0; padding: 3px 9px; }
+.tarea-texto { max-width: 62ch; margin: 0; font-size: 16px; line-height: 1.55; }
+.codigo { padding: 1px 6px; background: var(--panel); font-family: var(--mono); font-size: 14.5px; }
+
+.pasos { display: flex; flex-direction: column; margin: 0 0 0 8px; padding: 0; list-style: none; border-left: 3px dashed var(--borde); }
+.paso { position: relative; display: grid; grid-template-columns: 150px 1fr; gap: 18px; padding: 0 0 18px 22px; }
+.paso-marca { position: absolute; left: -9px; top: 4px; width: 14px; height: 14px; }
+.paso-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.paso-meta .pill { letter-spacing: .1em; }
+.paso-costo { font-size: 12px; }
+.paso-titulo { font-weight: 700; font-size: 15.5px; }
+.paso-detalle { max-width: 60ch; margin-top: 3px; font-size: 13.5px; line-height: 1.55; color: var(--lila); }
+
+.parche { width: 640px; margin: 8px 0 0 30px; padding: 20px 22px 18px; box-shadow: 8px 9px 0 var(--menta); }
+.parche-cinta { left: 30px; top: -12px; width: 86px; transform: rotate(-5deg); }
+.parche-sello { position: absolute; right: 18px; top: 16px; padding: 2px 9px; background: var(--crema); font-size: 12px; transform: rotate(6deg); }
+.parche-titulo { font-family: var(--display); font-size: 17px; text-transform: uppercase; }
+.parche-resumen { margin-top: 4px; font-size: 13.5px; color: var(--gris-tinta); }
+.parche-archivos { display: flex; flex-direction: column; gap: 3px; margin-top: 12px; font-size: 12.5px; }
+.parche-archivos span { white-space: pre; }
+.parche-acciones { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+.parche-acciones .boton { font-size: 13px; }
+.parche-acciones .boton.tinta { padding: 9px 18px; }
+.parche-acciones .boton.contorno { padding: 7px 16px; color: var(--tinta); }
+.parche-rechazar { padding: 9px 10px; color: var(--rosa-tinta); }
+.parche-deshacer { font-size: 11px; color: var(--gris-tinta); }
+
+.sesion-ledger { margin-top: 22px; }
+.medidor-sesion { width: 150px; }
+.medidor-sesion .medidor-relleno { width: 62%; }
+
+.panel-ledger { display: flex; flex-direction: column; flex-shrink: 0; width: 380px; padding: 26px 26px 22px; background: var(--papel-hondo); border-left: 3px solid var(--panel); }
+.panel-ledger .sello-grande { margin: 22px 0 4px 4px; }
+.panel-nota { margin-top: 12px; font-size: 13.5px; color: var(--lila); }
+
+.comparacion { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.comparacion-fila { display: grid; grid-template-columns: 44px 1fr 50px; gap: 10px; align-items: center; }
+.comparacion-rotulo { font-family: var(--mono); font-size: 11px; color: var(--gris); }
+.comparacion-cifra { font-family: var(--mono); font-size: 12px; text-align: right; }
+.barra-base { height: 14px; background-image: radial-gradient(circle, var(--lila) 1.3px, transparent 1.5px); background-size: 4px 4px; }
+.barra-lymi { width: 13%; height: 14px; background: var(--menta); }
+
+.llamadas-titulo { margin-top: 26px; padding-bottom: 8px; border-bottom: 3px solid var(--panel); font-size: 11px; letter-spacing: .16em; }
+.llamadas { display: flex; flex-direction: column; }
+.llamada { display: grid; grid-template-columns: 10px 1fr auto; gap: 4px 12px; align-items: baseline; padding: 8px 0; border-bottom: 2px dotted var(--linea); }
+.llamada-punto { width: 10px; height: 10px; }
+.llamada-proposito { font-size: 13px; }
+.llamada-costo { font-family: var(--mono); font-size: 12px; }
+.llamada-modelo,
+.llamada-tokens { font-family: var(--mono); font-size: 10.5px; color: var(--gris); }
+.llamada-tokens { text-align: right; }
+.panel-pie { font-family: var(--mono); font-size: 11px; line-height: 1.6; color: var(--gris); }

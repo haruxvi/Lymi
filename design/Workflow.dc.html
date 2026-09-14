@@ -1,0 +1,517 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap">
+  <style data-estilos>
+/* generado por design/estilos/sincronizar.mjs: editar design/estilos/, no aqui */
+/* lymi · risografía — tokens y componentes compartidos por todas las pantallas.
+   Fuente de verdad de los estilos. `node design/estilos/sincronizar.mjs` copia
+   este archivo (mas la hoja de cada pantalla) dentro de cada artboard: el canvas
+   ejecuta cada .dc.html aislado y no puede cargar hojas externas. */
+
+:root {
+  --papel: #191324;
+  --papel-hondo: #130e1b;
+  --superficie: #1b1526;
+  --panel: #221a31;
+  --borde: #3a3050;
+  --linea: #2c2340;
+  --tinta: #14101c;
+
+  --rosa: #ff48a0;
+  --rosa-tinta: #c2256f;
+  --menta: #5ef2a8;
+  --menta-tinta: #0f8f5c;
+  --crema: #f5eee0;
+  --cinta: rgba(245, 238, 224, .55);
+
+  --texto: #f5eee0;
+  --texto-suave: #cfc5df;
+  --lila: #a89cbd;
+  --gris: #6f6484;
+  --gris-tinta: #4a3e5c;
+
+  --display: 'Archivo Black', Impact, sans-serif;
+  --cuerpo: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --jp: 'Noto Sans JP', sans-serif;
+}
+
+body { margin: 0; background: var(--papel); font-family: var(--cuerpo); }
+a { color: var(--menta); }
+a:hover { color: var(--rosa); }
+
+/* ---------- lienzo ---------- */
+
+.pantalla { position: relative; display: flex; width: 1440px; height: 900px; overflow: hidden; background: var(--papel); color: var(--texto); }
+.columna { position: relative; display: flex; flex-direction: column; flex-grow: 1; min-width: 0; min-height: 0; }
+.espaciador { flex-grow: 1; }
+.grano { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: .13; mix-blend-mode: overlay; }
+
+/* ---------- tipografía ---------- */
+
+.display { font-family: var(--display); }
+.mono { font-family: var(--mono); }
+.titulo { font-family: var(--display); font-size: 24px; text-transform: uppercase; }
+.rotulo { font-family: var(--mono); font-weight: 700; font-size: 10.5px; letter-spacing: .14em; color: var(--gris); }
+.suave { color: var(--lila); }
+.tenue { color: var(--gris); }
+.derecha { text-align: right; }
+
+/* ---------- marca con desregistro de segunda tinta ---------- */
+
+.desregistro { position: relative; font-family: var(--display); line-height: .8; letter-spacing: -.06em; }
+.desregistro > span { position: absolute; left: 0; top: 0; }
+.desregistro > .sombra { color: var(--menta); mix-blend-mode: screen; opacity: .9; transform: translate(var(--dx, 5px), var(--dy, 4px)); }
+.desregistro > .frente { color: var(--rosa); }
+
+/* ---------- riel de navegación ---------- */
+
+.riel { display: flex; flex-direction: column; align-items: center; gap: 14px; flex-shrink: 0; width: 64px; padding-top: 18px; background: var(--papel-hondo); border-right: 3px solid var(--panel); }
+.riel-marca { width: 30px; height: 36px; font-size: 34px; line-height: 1; letter-spacing: 0; --dx: 3px; --dy: 3px; }
+.riel-marca > .sombra { opacity: 1; }
+.riel-sep { width: 26px; height: 3px; margin: 6px 0; background: var(--borde); }
+.riel-item { width: 26px; height: 26px; border: 2px solid var(--borde); }
+.riel-item.activo { background: var(--crema); border-color: var(--crema); transform: rotate(-6deg); }
+
+/* ---------- trama de puntos ---------- */
+
+.trama { position: absolute; pointer-events: none; opacity: .35; background-size: 8px 8px; -webkit-mask-image: radial-gradient(closest-side, #000, transparent); mask-image: radial-gradient(closest-side, #000, transparent); }
+.trama-rosa { background-image: radial-gradient(circle, var(--rosa) 1.3px, transparent 1.5px); }
+.trama-menta { background-image: radial-gradient(circle, var(--menta) 1.2px, transparent 1.4px); background-size: 7px 7px; }
+
+/* ---------- etiquetas, sellos, cinta y hojas de papel ---------- */
+
+.etiqueta { align-self: flex-start; padding: 3px 10px; font-family: var(--mono); font-weight: 700; font-size: 11px; letter-spacing: .14em; color: var(--tinta); transform: rotate(-2deg); }
+.etiqueta.rosa { background: var(--rosa); }
+.etiqueta.menta { background: var(--menta); }
+.etiqueta.crema { background: var(--crema); }
+
+.sello { display: inline-block; padding: 3px 12px 4px; border: 3px solid currentColor; font-family: var(--display); font-size: 14px; transform: rotate(-4deg); }
+.sello.rosa { color: var(--rosa); }
+.sello.menta { color: var(--menta); }
+
+.sello-grande { --sello: var(--menta); position: relative; align-self: flex-start; padding: 6px 18px 12px; border: 6px solid var(--sello); transform: rotate(-4deg); }
+.sello-grande.rosa { --sello: var(--rosa); }
+.sello-grande-trama { position: absolute; inset: 0; opacity: .3; background-image: radial-gradient(circle, var(--sello) 1.2px, transparent 1.4px); background-size: 6px 6px; }
+.sello-grande-cifra { position: relative; font-family: var(--display); font-size: 82px; line-height: .8; color: var(--sello); }
+
+.cinta { position: absolute; width: 90px; height: 24px; background: var(--cinta); border-left: 1px dashed rgba(20, 16, 28, .3); border-right: 1px dashed rgba(20, 16, 28, .3); }
+
+.hoja { position: relative; background: var(--crema); color: var(--tinta); }
+
+/* ---------- tiers: menta es tu GPU, rosa se paga ---------- */
+
+.tier-local { --tier: var(--menta); }
+.tier-remoto,
+.tier-efecto { --tier: var(--rosa); }
+.tier-gratis,
+.tier-indice { --tier: var(--crema); }
+.tier-texto { color: var(--tier); }
+.tier-fondo { background: var(--tier); }
+
+.pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: var(--tier, var(--crema)); color: var(--tinta); font-family: var(--mono); font-weight: 700; font-size: 10.5px; }
+
+/* ---------- botones ---------- */
+
+.boton { padding: 9px 16px; font-family: var(--display); font-size: 12.5px; }
+.boton.primario { background: var(--rosa); color: var(--tinta); transform: rotate(-2deg); }
+.boton.menta { background: var(--menta); color: var(--tinta); }
+.boton.crema { background: var(--crema); color: var(--tinta); }
+.boton.tinta { background: var(--tinta); color: var(--menta); }
+.boton.contorno { padding: 7px 14px; border: 2px solid currentColor; }
+
+/* ---------- barra del ledger: chrome permanente ---------- */
+
+.ledger { display: flex; align-items: center; gap: 34px; flex-shrink: 0; height: 76px; padding: 0 28px; background: var(--papel-hondo); border-top: 3px solid var(--rosa); }
+.ledger .etiqueta { align-self: center; padding: 3px 9px; letter-spacing: .18em; }
+.ledger > * { white-space: nowrap; }
+
+/* Sellos, pastillas y etiquetas son una sola pieza impresa: nunca parten en dos lineas. */
+.sello,
+.sello-grande,
+.pill,
+.etiqueta { white-space: nowrap; }
+.ledger-dato { display: flex; flex-direction: column; }
+.ledger-rotulo { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--gris); }
+.ledger-cifra { font-family: var(--display); font-size: 28px; line-height: 1; }
+.ledger-cifra.local { color: var(--menta); }
+.ledger-cifra.remoto { color: var(--rosa); }
+.ledger-sello { padding: 4px 12px 5px; font-size: 15px; }
+.medidor-dato { gap: 6px; }
+.medidor { width: 160px; height: 14px; padding: 2px; border: 2px solid var(--crema); }
+.medidor-relleno { height: 100%; background-color: rgba(94, 242, 168, .25); background-image: radial-gradient(circle, var(--menta) 1.4px, transparent 1.6px); background-size: 4px 4px; }
+
+.ledger.compacto { gap: 26px; height: 62px; padding: 0 24px; }
+.ledger.compacto .ledger-cifra { font-size: 20px; line-height: 1.2; }
+.ledger.compacto .ledger-cifra small { font-family: var(--mono); font-size: 10px; color: var(--gris); }
+.ledger.compacto .sello { padding: 2px 10px 3px; font-size: 13px; }
+
+/* Workflow · lienzo de nodos */
+
+.paleta { display: flex; flex-direction: column; flex-shrink: 0; width: 212px; padding: 16px 12px; background: var(--papel-hondo); border-right: 3px solid var(--panel); }
+.buscador { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: var(--panel); border: 2px solid var(--borde); font-family: var(--mono); font-size: 12px; color: var(--gris); }
+.paleta-grupo { margin-top: 16px; }
+.paleta-grupo .rotulo { padding-bottom: 7px; font-size: 10px; letter-spacing: .16em; }
+.paleta-item { display: flex; align-items: center; gap: 9px; padding: 6px; font-size: 13px; color: var(--texto-suave); }
+.paleta-icono { flex-shrink: 0; width: 16px; height: 16px; border: 2px solid var(--icono-borde, var(--crema)); background: var(--icono-fondo, transparent); }
+.icono-crema { --icono-fondo: var(--crema); --icono-borde: var(--crema); }
+.icono-menta { --icono-fondo: var(--menta); --icono-borde: var(--menta); }
+.icono-rosa { --icono-fondo: var(--rosa); --icono-borde: var(--rosa); }
+.icono-mixto { --icono-fondo: var(--menta); --icono-borde: var(--rosa); }
+.icono-hueco { --icono-fondo: transparent; --icono-borde: var(--crema); }
+.paleta-ayuda { padding: 10px 11px; border: 2px dashed var(--borde); }
+.paleta-ayuda .rotulo { font-size: 10px; letter-spacing: .12em; }
+.paleta-ayuda p { margin: 5px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--lila); }
+
+.cabecera-flujo { display: flex; align-items: center; gap: 14px; flex-shrink: 0; height: 84px; padding: 0 24px; border-bottom: 3px solid var(--panel); }
+.cabecera-flujo .titulo { font-size: 22px; }
+/* Los disparadores van apilados: en una fila no caben junto a pestanas y botones. */
+.disparadores { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 5px; }
+.disparador { padding: 2px 9px; border: 2px solid currentColor; font-family: var(--mono); font-size: 10.5px; white-space: nowrap; }
+.disparador.menta { color: var(--menta); }
+.disparador.rosa { color: var(--rosa); }
+.pestanas { display: flex; border: 2px solid var(--borde); }
+.pestana { padding: 6px 11px; font-family: var(--display); font-size: 12px; color: var(--lila); }
+.pestana.activa { background: var(--crema); color: var(--tinta); }
+.cabecera-flujo .boton { white-space: nowrap; }
+.cabecera-flujo .boton.contorno { padding: 8px 15px; color: var(--texto); }
+.cabecera-flujo .boton.primario { padding: 10px 18px; }
+
+/* La superficie: la cuadricula de puntos del lienzo es la misma trama riso. */
+.lienzo { position: relative; flex-grow: 1; min-height: 0; background-color: var(--superficie); background-image: radial-gradient(circle, #2e2542 1.5px, transparent 1.7px); background-size: 22px 22px; }
+/* El flujo escala con el viewBox hasta caber en el ancho real del lienzo (~750 px):
+   con medidas fijas los ultimos nodos quedaban encima del inspector. */
+.lienzo-svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.cable-etiqueta { font-family: var(--mono); font-weight: 700; font-size: 11px; }
+
+/* Los nodos viven en <foreignObject>: su posicion sale de los mismos numeros que
+   dibujan los cables, en un solo lugar (renderVals). */
+.nodo { width: 136px; margin: 3px; background: var(--crema); color: var(--tinta); border-left: 7px solid var(--tier); box-shadow: 5px 6px 0 var(--tier); }
+.nodo.tier-gratis { box-shadow: 5px 6px 0 var(--borde); }
+.nodo.enfocado { outline: 3px solid var(--crema); }
+.nodo-cabeza { display: flex; align-items: center; gap: 6px; padding: 6px 8px 0; }
+.nodo-cuadro { width: 12px; height: 12px; background: var(--tier); }
+.nodo-tipo { font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; color: #6c6178; }
+.nodo-titulo { padding: 3px 8px 0; font-family: var(--display); font-size: 12.5px; line-height: 1.15; }
+.nodo-pie { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px 7px; }
+.nodo-pie .pill { padding: 1px 7px; font-size: 9.5px; }
+.nodo-costo { font-family: var(--mono); font-size: 10px; color: var(--gris-tinta); }
+.sello-aprobacion { margin: 4px; padding: 2px 8px 3px; background: var(--papel); font-size: 11px; transform: rotate(-7deg); }
+
+.lienzo-herramientas { position: absolute; right: 18px; top: 16px; display: flex; gap: 6px; }
+.herramienta { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--panel); border: 2px solid var(--borde); font-family: var(--mono); font-weight: 700; font-size: 12px; color: var(--lila); }
+
+.nota-plan { position: absolute; left: 22px; bottom: 20px; width: 330px; padding: 14px 16px 13px; box-shadow: 7px 8px 0 var(--rosa); transform: rotate(-1deg); }
+.nota-plan-cinta { left: 34px; top: -11px; width: 86px; height: 22px; transform: rotate(-6deg); }
+.nota-plan .rotulo { font-size: 10px; color: var(--gris-tinta); }
+.nota-plan-cifras { display: flex; align-items: flex-end; gap: 20px; margin-top: 9px; }
+.cifra-nota { font-family: var(--display); font-size: 30px; line-height: .9; }
+.cifra-nota.menta { color: var(--menta-tinta); }
+.cifra-nota.rosa { color: var(--rosa-tinta); }
+.cifra-nota-rotulo { font-size: 11.5px; }
+.proyeccion { padding: 2px 9px 5px; border: 3px solid var(--tinta); transform: rotate(-3deg); }
+.proyeccion-rotulo { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; }
+.proyeccion-cifra { font-family: var(--display); font-size: 22px; line-height: 1; }
+
+/* El ledger compacto vive en una columna de ~750 px: menos aire entre cifras, y
+   si aun falta ancho cede el dato de la ultima corrida, nunca las cifras. */
+.columna > .ledger.compacto { gap: 18px; }
+.ledger-ultima { min-width: 0; overflow: hidden; font-family: var(--mono); font-size: 11px; color: var(--gris); text-overflow: ellipsis; }
+
+.inspector { display: flex; flex-direction: column; flex-shrink: 0; width: 336px; padding: 20px 20px 18px; background: var(--papel-hondo); border-left: 3px solid var(--panel); }
+.inspector-tipo { display: flex; align-items: center; gap: 9px; }
+.inspector-tipo .rotulo { font-size: 10px; }
+.inspector-cuadro { width: 14px; height: 14px; background: var(--rosa); }
+.inspector-titulo { margin-top: 7px; font-family: var(--display); font-size: 20px; }
+
+.selector-tier { display: flex; margin-top: 16px; border: 2px solid var(--borde); }
+.selector-tier span { flex-grow: 1; padding: 7px 0; text-align: center; font-family: var(--display); font-size: 12px; color: var(--lila); }
+.selector-tier .opcion-local { color: var(--menta); }
+.selector-tier .opcion-activa { background: var(--rosa); color: var(--tinta); }
+
+.campos { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.campo .rotulo { font-size: 10px; letter-spacing: .12em; }
+.campo-valor { margin-top: 5px; padding: 8px 10px; background: var(--panel); border: 2px solid var(--borde); font-family: var(--mono); font-size: 12px; }
+.campo-valor.fila { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; }
+.campo-valor.prosa { line-height: 1.6; color: var(--texto-suave); }
+.campo-valor.condicion { color: var(--menta); }
+
+.costo-nodo { margin-top: 18px; padding: 13px 14px; border: 3px solid var(--rosa); }
+.costo-nodo .rotulo { font-size: 10px; letter-spacing: .12em; color: var(--rosa); }
+.costo-nodo-cifras { display: flex; align-items: flex-end; gap: 14px; margin-top: 7px; }
+.costo-nodo-cifra { font-family: var(--display); font-size: 30px; line-height: 1; color: var(--rosa); }
+.costo-nodo-tokens { padding-bottom: 3px; font-family: var(--mono); font-size: 11px; color: var(--lila); }
+.costo-nodo-nota { margin-top: 6px; font-size: 12px; color: var(--lila); }
+.egress-nodo { display: flex; align-items: center; gap: 7px; margin-top: 5px; font-family: var(--mono); font-size: 11px; }
+.egress-nodo.primero { margin-top: 10px; padding-top: 10px; border-top: 2px dotted var(--borde); }
+.egress-nodo i { width: 9px; height: 9px; border-radius: 50%; background: var(--tier); }
+
+.inspector-acciones { display: flex; gap: 9px; margin-top: 16px; }
+.inspector-acciones .boton { padding: 9px 14px; font-size: 12px; }
+.inspector-acciones .boton.contorno { padding: 7px 12px; border-color: var(--borde); color: var(--lila); }
+.inspector-pie { font-family: var(--mono); font-size: 11px; line-height: 1.6; color: var(--gris); }
+  </style>
+</helmet>
+
+<div class="pantalla">
+
+  <nav class="riel">
+    <div class="riel-marca desregistro"><span class="sombra">l</span><span class="frente">l</span></div>
+    <div class="riel-sep"></div>
+    <sc-for list="{{rail}}" as="r" hint-placeholder-count="7">
+      <div class="riel-item {{r.clase}}"></div>
+    </sc-for>
+  </nav>
+
+  <!-- paleta de nodos -->
+  <aside class="paleta">
+    <div class="buscador">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#6f6484" stroke-width="2"><circle cx="6" cy="6" r="4.5"></circle><path d="M9.5 9.5L13 13"></path></svg>
+      <span>buscar nodo</span>
+    </div>
+
+    <sc-for list="{{paleta}}" as="g" hint-placeholder-count="4">
+      <div class="paleta-grupo">
+        <div class="rotulo">{{g.grupo}}</div>
+        <sc-for list="{{g.items}}" as="it" hint-placeholder-count="4">
+          <div class="paleta-item">
+            <i class="paleta-icono {{it.clase}}"></i>
+            <span>{{it.n}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+
+    <div class="espaciador"></div>
+    <div class="paleta-ayuda">
+      <div class="rotulo">ARRASTRA AL LIENZO</div>
+      <p>Cada nodo declara su tier. El lienzo y el YAML son el mismo archivo.</p>
+    </div>
+  </aside>
+
+  <main class="columna">
+    <header class="cabecera-flujo">
+      <div>
+        <div class="titulo">Triage de leads</div>
+        <div class="disparadores">
+          <span class="disparador menta">cron 0 9 * * mon-fri</span>
+          <span class="disparador rosa">webhook /hooks/leads · firmado</span>
+        </div>
+      </div>
+      <div class="espaciador"></div>
+      <div class="pestanas">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+          <span class="pestana {{t.clase}}">{{t.n}}</span>
+        </sc-for>
+      </div>
+      <span class="boton contorno">PLAN</span>
+      <span class="boton primario">EJECUTAR</span>
+    </header>
+
+    <div class="lienzo">
+      <svg class="lienzo-svg" viewBox="0 0 930 700" preserveAspectRatio="xMinYMin meet">
+        <sc-for list="{{cables}}" as="c" hint-placeholder-count="6">
+          <g>
+            <path d="{{c.d}}" fill="none" stroke="{{c.color}}" stroke-width="3" stroke-dasharray="{{c.guion}}"></path>
+            <circle cx="{{c.x2}}" cy="{{c.y2}}" r="4" fill="{{c.color}}"></circle>
+            <text x="{{c.lx}}" y="{{c.ly}}" class="cable-etiqueta" fill="{{c.color}}">{{c.etiqueta}}</text>
+          </g>
+        </sc-for>
+
+        <sc-for list="{{nodos}}" as="n" hint-placeholder-count="7">
+          <foreignObject x="{{n.fx}}" y="{{n.fy}}" width="156" height="100">
+            <div class="nodo {{n.clase}}">
+              <div class="nodo-cabeza">
+                <i class="nodo-cuadro"></i>
+                <span class="nodo-tipo">{{n.tipo}}</span>
+              </div>
+              <div class="nodo-titulo">{{n.titulo}}</div>
+              <div class="nodo-pie">
+                <span class="pill">{{n.tier}}</span>
+                <span class="nodo-costo">{{n.costo}}</span>
+              </div>
+            </div>
+          </foreignObject>
+        </sc-for>
+
+        <!-- sello de aprobación sobre el nodo con efecto -->
+        <foreignObject x="{{selloX}}" y="{{selloY}}" width="150" height="40">
+          <div class="sello rosa sello-aprobacion">PIDE APROBACIÓN</div>
+        </foreignObject>
+      </svg>
+
+      <div class="lienzo-herramientas">
+        <sc-for list="{{zoom}}" as="z" hint-placeholder-count="4">
+          <span class="herramienta">{{z}}</span>
+        </sc-for>
+      </div>
+
+      <!-- el plus: el plan no gasta tokens -->
+      <div class="hoja nota-plan">
+        <i class="cinta nota-plan-cinta"></i>
+        <div class="rotulo">PLAN · SIN GASTAR UN TOKEN</div>
+        <div class="nota-plan-cifras">
+          <div><div class="cifra-nota menta">4</div><div class="cifra-nota-rotulo">gratis</div></div>
+          <div><div class="cifra-nota rosa">1</div><div class="cifra-nota-rotulo">se paga</div></div>
+          <div><div class="cifra-nota">1</div><div class="cifra-nota-rotulo">aprobación</div></div>
+          <div class="espaciador"></div>
+          <div class="proyeccion">
+            <div class="proyeccion-rotulo">1.000 CORRIDAS</div>
+            <div class="proyeccion-cifra">$12.40</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="ledger compacto">
+      <span class="etiqueta rosa">LEDGER</span>
+      <span class="ledger-cifra local">2.1M <small>LOCAL</small></span>
+      <span class="ledger-cifra remoto">204k <small>REMOTO</small></span>
+      <span class="ledger-cifra">$0.248 <small>20 CORRIDAS</small></span>
+      <div class="espaciador"></div>
+      <span class="ledger-ultima">última: hoy 09:00 · 4.2 s · ok</span>
+      <div class="sello rosa">EGRESS 20</div>
+    </footer>
+  </main>
+
+  <!-- inspector del nodo -->
+  <aside class="inspector">
+    <div class="inspector-tipo">
+      <i class="inspector-cuadro"></i>
+      <span class="rotulo">NODO 5 · LLM</span>
+    </div>
+    <div class="inspector-titulo">Redactar la respuesta</div>
+
+    <div class="selector-tier">
+      <span class="opcion-local">LOCAL</span>
+      <span class="opcion-activa">REMOTO</span>
+      <span>AUTO</span>
+    </div>
+
+    <div class="campos">
+      <div class="campo">
+        <div class="rotulo">MODELO</div>
+        <div class="campo-valor fila"><span>claude-opus-5</span><span class="tenue">▾</span></div>
+      </div>
+      <div class="campo">
+        <div class="rotulo">PROMPT</div>
+        <div class="campo-valor prosa">{{promptDelNodo}}</div>
+      </div>
+      <div class="campo">
+        <div class="rotulo">SE EJECUTA CUANDO</div>
+        <div class="campo-valor condicion">steps.clasificar.output.score &gt; 0.7</div>
+      </div>
+    </div>
+
+    <!-- el plus: costo y egress del nodo, medidos -->
+    <div class="costo-nodo">
+      <div class="rotulo">ESTE NODO CUESTA</div>
+      <div class="costo-nodo-cifras">
+        <span class="costo-nodo-cifra">$0.0124</span>
+        <span class="costo-nodo-tokens">3.2k tok · por corrida</span>
+      </div>
+      <div class="costo-nodo-nota">mediana de 20 corridas reales, no una estimación</div>
+      <div class="egress-nodo primero tier-remoto"><i></i><span>sale a api.anthropic.com</span></div>
+      <div class="egress-nodo tier-local"><i></i><span>PII redactada antes de salir</span></div>
+    </div>
+
+    <div class="inspector-acciones">
+      <span class="boton menta">PROBAR EN LOCAL</span>
+      <span class="boton contorno">VER SALIDA</span>
+    </div>
+
+    <div class="espaciador"></div>
+    <div class="inspector-pie">workflows/triage-de-leads.yml<br>el lienzo edita el YAML, no lo reemplaza</div>
+  </aside>
+
+  <svg class="grano" width="1440" height="900" aria-hidden="true">
+    <filter id="grano"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"></feTurbulence></filter>
+    <rect width="1440" height="900" filter="url(#grano)" fill="#ffffff"></rect>
+  </svg>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const MENTA = '#5ef2a8', ROSA = '#ff48a0', CREMA = '#f5eee0', GRIS = '#3a3050';
+    const W = 143, H = 74;
+    // El nodo lleva 3px de margen dentro de su foreignObject para que la sombra
+    // y el foco no se recorten.
+    const MARGEN = 3;
+
+    // Unica fuente de las posiciones: de aqui salen los nodos y los cables.
+    // [x, y, tipo, titulo, tier, clase, costo]
+    const crudos = [
+      [14, 336, 'DISPARADOR', 'Cron + webhook', 'GRATIS', 'tier-gratis', '0'],
+      [166, 336, 'LLM', 'Extraer campos', 'LOCAL', 'tier-local', '~1.4k'],
+      [318, 336, 'LLM', 'Clasificar lead', 'LOCAL', 'tier-local', '~0.9k'],
+      [470, 336, 'CONDICIÓN', 'score > 0.7', 'GRATIS', 'tier-gratis', '0'],
+      [622, 220, 'LLM', 'Redactar respuesta', 'REMOTO', 'tier-remoto enfocado', '~3.2k'],
+      [774, 220, 'HTTP', 'Avisar en Slack', 'EFECTO', 'tier-efecto', '—'],
+      [622, 470, 'TRANSFORM', 'Archivar en el CRM', 'GRATIS', 'tier-gratis', '0'],
+    ];
+    const nodos = crudos.map(([x, y, tipo, titulo, tier, clase, costo]) => ({
+      fx: x - MARGEN, fy: y - MARGEN, tipo, titulo, tier, clase, costo,
+    }));
+
+    const salida = (i) => [crudos[i][0] + W, crudos[i][1] + H / 2];
+    const entrada = (i) => [crudos[i][0], crudos[i][1] + H / 2];
+    const cable = (a, b, color, etiqueta) => {
+      const [x1, y1] = salida(a), [x2, y2] = entrada(b);
+      const dx = Math.max(30, (x2 - x1) / 2);
+      return {
+        d: `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`,
+        x2, y2, color, etiqueta: etiqueta || '',
+        guion: color === GRIS ? '6 6' : 'none',
+        lx: (x1 + x2) / 2 - 6, ly: (y1 + y2) / 2 - 9,
+      };
+    };
+
+    return {
+      rail: [0, 1, 2, 3, 4, 5, 6].map((i) => ({ clase: i === 1 ? 'activo' : '' })),
+      tabs: [
+        { n: 'LIENZO', clase: 'activa' },
+        { n: 'YAML', clase: '' },
+        { n: 'CORRIDAS', clase: '' },
+      ],
+      zoom: ['−', '+', '⤢', '≡'],
+      promptDelNodo: 'Responde al lead {{ steps.extraer.output.nombre }} en su idioma, tono directo, máximo 120 palabras.',
+      paleta: [
+        { grupo: 'DISPARADORES', items: [
+          { n: 'Cron', clase: 'icono-crema' }, { n: 'Webhook', clase: 'icono-crema' },
+          { n: 'Carpeta', clase: 'icono-crema' }, { n: 'Correo', clase: 'icono-crema' },
+        ] },
+        { grupo: 'MODELO', items: [
+          { n: 'LLM local', clase: 'icono-menta' }, { n: 'LLM remoto', clase: 'icono-rosa' },
+          { n: 'Router por costo', clase: 'icono-mixto' }, { n: 'Destilar contexto', clase: 'icono-menta' },
+        ] },
+        { grupo: 'DATOS', items: [
+          { n: 'Transformar', clase: 'icono-hueco' }, { n: 'Condición', clase: 'icono-hueco' },
+          { n: 'Bucle', clase: 'icono-hueco' }, { n: 'Fusionar', clase: 'icono-hueco' },
+        ] },
+        { grupo: 'ACCIONES · PIDEN APROBACIÓN', items: [
+          { n: 'HTTP', clase: 'icono-rosa' }, { n: 'Herramienta MCP', clase: 'icono-rosa' },
+          { n: 'Puente n8n', clase: 'icono-rosa' }, { n: 'Comando del equipo', clase: 'icono-rosa' },
+        ] },
+      ],
+      nodos,
+      selloX: crudos[5][0] - 16,
+      selloY: crudos[5][1] - 48,
+      cables: [
+        cable(0, 1, MENTA), cable(1, 2, MENTA), cable(2, 3, CREMA),
+        cable(3, 4, ROSA, 'sí'), cable(3, 6, GRIS, 'no'), cable(4, 5, ROSA),
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

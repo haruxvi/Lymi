@@ -1,0 +1,7 @@
+# Finales de linea normalizados en el repositorio: evita diffs de solo CRLF/LF
+# entre Windows y el resto.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+
+# Generado por uv: se colapsa en los diffs de GitHub.
+uv.lock linguist-generated=true

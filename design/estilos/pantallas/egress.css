@@ -1,0 +1,42 @@
+/* Egress · lo que salió de tu máquina */
+
+.egreso { padding: 26px 34px 22px; }
+.egreso-trama { right: -60px; top: -40px; width: 460px; height: 340px; }
+
+.egreso-cabecera { position: relative; display: flex; align-items: center; gap: 16px; }
+.egreso-titulo { font-size: 30px; }
+.egreso-periodo { font-size: 12px; }
+.filtro { padding: 5px 12px; border: 2px solid var(--borde); border-radius: 999px; font-family: var(--mono); font-weight: 700; font-size: 11.5px; color: var(--lila); }
+.filtro.activo { background: var(--crema); border-color: var(--crema); color: var(--tinta); }
+.filtro.rosa { border-color: var(--rosa); color: var(--rosa); }
+.filtro.menta { border-color: var(--menta); color: var(--menta); }
+
+.cifras-egreso { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; margin-top: 26px; }
+.cifra-egreso { padding: 16px 18px; background: var(--panel); border-top: 6px solid var(--acento); }
+.cifra-egreso.rosa { --acento: var(--rosa); }
+.cifra-egreso.menta { --acento: var(--menta); }
+.cifra-egreso.crema { --acento: var(--crema); }
+.cifra-egreso .rotulo { color: var(--lila); }
+.cifra-egreso-valor { margin-top: 6px; font-family: var(--display); font-size: 42px; line-height: 1; color: var(--acento); }
+.cifra-egreso-nota { margin-top: 4px; font-size: 13px; color: var(--lila); }
+
+.cifra-bloqueada { padding: 16px 18px; box-shadow: 6px 7px 0 var(--rosa); transform: rotate(1.4deg); }
+.cifra-bloqueada .rotulo { color: var(--tinta); }
+.cifra-bloqueada .cifra-egreso-nota { margin-top: 6px; color: var(--tinta); }
+.sello-bloqueo { display: inline-block; margin-top: 6px; padding: 0 12px 4px; border: 5px solid var(--rosa-tinta); font-family: var(--display); font-size: 40px; line-height: 1; color: var(--rosa-tinta); transform: rotate(-5deg); }
+
+/* El registro va recto: se lee, no se mira. */
+.registro { display: flex; flex-direction: column; flex-grow: 1; min-height: 0; margin-top: 26px; background: var(--tinta); }
+.registro-fila { display: grid; grid-template-columns: 62px 190px 1fr 190px 76px 120px; gap: 16px; align-items: center; padding: 11px 18px; border-bottom: 2px dotted var(--linea); font-size: 12px; }
+.registro-fila.bloqueada { background: repeating-linear-gradient(135deg, rgba(255, 72, 160, .13) 0 6px, transparent 6px 12px); }
+.registro-cabeza { padding: 12px 18px; border-bottom: 3px solid var(--panel); font-family: var(--mono); font-weight: 700; font-size: 10.5px; letter-spacing: .12em; color: var(--gris); }
+.destino.remoto { color: var(--rosa); }
+.destino.local { color: var(--menta); }
+.destino.mcp { color: var(--lila); }
+.registro-origen { overflow: hidden; font-size: 13.5px; white-space: nowrap; text-overflow: ellipsis; }
+.registro-hash { font-size: 11.5px; }
+.estado { justify-self: end; padding: 2px 9px; border: 2px solid var(--borde); border-radius: 999px; font-family: var(--mono); font-weight: 700; font-size: 10.5px; color: var(--lila); }
+.estado.redactado { background: var(--menta); border-color: var(--menta); color: var(--tinta); }
+.estado.bloqueado { background: var(--crema); border-color: var(--rosa-tinta); color: var(--rosa-tinta); }
+.estado.local { border-color: var(--menta); color: var(--menta); }
+.registro-pie { padding: 12px 18px; font-size: 11.5px; }

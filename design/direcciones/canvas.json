@@ -1,0 +1,31 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "Punto medio" },
+    { "id": "page-2", "name": "Las cuatro" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 620, "h": 820, "title": "A+B · Risografía", "page": "page-1" },
+    { "file": "Otaku.dc.html", "x": 0, "y": 0, "w": 620, "h": 820, "title": "A · Otaku / Y2K", "page": "page-2" },
+    { "file": "Zine.dc.html", "x": 720, "y": 0, "w": 620, "h": 820, "title": "B · Fanzine fotocopiado", "page": "page-2" },
+    { "file": "CRT.dc.html", "x": 1440, "y": 0, "w": 620, "h": 820, "title": "C · Fósforo CRT", "page": "page-2" },
+    { "file": "Cartel.dc.html", "x": 2160, "y": 0, "w": 620, "h": 820, "title": "D · Cartel geométrico", "page": "page-2" }
+  ],
+  "annotations": [
+    {
+      "id": "brief-riso",
+      "x": 0,
+      "y": -260,
+      "w": 860,
+      "text": "PUNTO MEDIO A+B — RISOGRAFÍA\n\nNo es una mezcla aguada: es el género donde A y B ya conviven. Así se imprimen los doujinshi y los flyers de rave — tintas flúor planas sobre papel con grano y desregistro.\n\nQué aporta A: rosa y verde flúor, katakana, el sticker, la energía.\nQué aporta B: grano de papel, trama de puntos, rotación, cinta adhesiva, el sello.\n\nLa traducción clave: el cromado de A no existe en riso, porque la riso no sabe hacer degradados suaves — hace tramas de puntos. Y el desregistro (la tinta verde corrida 5px bajo la rosa) es el error humano que impide que se vea a máquina."
+    },
+    {
+      "id": "nota-archivo",
+      "x": 0,
+      "y": -150,
+      "w": 700,
+      "text": "Las cuatro direcciones originales, para referencia.\nSi quieres robarle algo a C o a D antes de que aplique la dirección a todo, dímelo ahora.",
+      "page": "page-2"
+    }
+  ],
+  "launch": { "view": "canvas", "page": "page-1" }
+}

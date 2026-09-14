@@ -1,0 +1,345 @@
+<title>lymi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;700&family=Noto+Sans+JP:wght@700&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+  /* Risografia: tintas fluor planas sobre papel oscuro, trama de puntos en vez de
+     degradados, desregistro de segunda tinta, grano, cinta y sellos.
+     Un solo mundo visual, pintado explicitamente para cualquier fondo. */
+  :root {
+    --papel:  #191324;
+    --papel2: #221a31;
+    --rosa:   #ff48a0;
+    --menta:  #5ef2a8;
+    --crema:  #f5eee0;
+    --tinta:  #14101c;
+    --gris:   #a89cbd;
+    --gris2:  #6f6484;
+
+    --display: "Archivo Black", "Arial Black", Impact, sans-serif;
+    --texto:   "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --dato:    "JetBrains Mono", ui-monospace, Menlo, monospace;
+    --jp:      "Noto Sans JP", "Yu Gothic", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { background: var(--papel); }
+  body {
+    margin: 0;
+    color: var(--crema);
+    font-family: var(--texto);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* grano de papel sobre toda la pagina */
+  body::after {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    opacity: .14;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)' fill='%23fff'/%3E%3C/svg%3E");
+  }
+
+  .trama-rosa, .trama-menta {
+    position: absolute; pointer-events: none;
+    background-image: radial-gradient(circle, currentColor 1.2px, transparent 1.4px);
+    background-size: 7px 7px;
+  }
+  .trama-rosa  { color: var(--rosa); }
+  .trama-menta { color: var(--menta); }
+
+  .hoja { position: relative; max-width: 1120px; margin: 0 auto; padding: 0 28px 110px; }
+
+  /* ---------- cabecera ---------- */
+  .cabecera {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap;
+    padding: 26px 0 0;
+    font-family: var(--dato); font-size: 11.5px; letter-spacing: .14em; color: var(--gris2);
+  }
+  .cabecera .jp { font-family: var(--jp); font-size: 15px; letter-spacing: .24em; color: var(--menta); }
+
+  /* ---------- portada ---------- */
+  .portada { position: relative; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 36px; padding: 40px 0 30px; }
+  .portada .trama-rosa { right: -60px; top: -40px; width: 460px; height: 380px;
+    -webkit-mask-image: radial-gradient(closest-side, #000, transparent); mask-image: radial-gradient(closest-side, #000, transparent); opacity: .55; }
+
+  .marca { position: relative; height: clamp(120px, 17vw, 190px); transform: rotate(-2deg); margin-top: 6px; }
+  .marca span {
+    position: absolute; left: 0; top: 0;
+    font-family: var(--display); font-size: clamp(130px, 19vw, 214px); line-height: .8; letter-spacing: -.06em;
+  }
+  .marca .fondo { color: var(--menta); transform: translate(7px, 5px); mix-blend-mode: screen; opacity: .9; }
+  .marca .frente { color: var(--rosa); }
+
+  .tesis {
+    position: relative; margin: 36px 0 0; max-width: 20ch;
+    font-family: var(--display); font-size: clamp(26px, 3.4vw, 40px); line-height: 1.08;
+    text-transform: uppercase; letter-spacing: -.015em; text-wrap: balance; transform: rotate(.6deg);
+  }
+  .tesis mark {
+    background: var(--rosa); color: var(--tinta); padding: 0 .22em;
+    -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  }
+  .bajada { margin: 24px 0 0; max-width: 46ch; color: var(--gris); font-size: 16.5px; }
+  .bajada b { color: var(--crema); font-weight: 700; }
+
+  .etiquetas { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+  .sticker {
+    display: inline-block; padding: 9px 18px; border-radius: 999px;
+    font-family: var(--display); font-size: 13.5px; letter-spacing: .02em; color: var(--tinta);
+  }
+  .sticker.menta { background: var(--menta); transform: rotate(-3deg); }
+  .sticker.rosa  { background: var(--rosa);  transform: rotate(2deg); }
+
+  /* ---------- recibo impreso ---------- */
+  .recibo {
+    position: relative; align-self: start; margin-top: 30px;
+    background: var(--crema); color: var(--tinta);
+    padding: 30px 28px 24px; transform: rotate(1.6deg);
+    box-shadow: 10px 12px 0 var(--rosa);
+  }
+  .cinta {
+    position: absolute; top: -13px; width: 96px; height: 26px;
+    background: rgba(245, 238, 224, .5); border-left: 1px dashed rgba(20,16,28,.25); border-right: 1px dashed rgba(20,16,28,.25);
+  }
+  .cinta.izq { left: 22px; transform: rotate(-7deg); }
+  .cinta.der { right: 28px; transform: rotate(5deg); }
+
+  .recibo h2 { margin: 0 0 16px; font-family: var(--dato); font-size: 11px; letter-spacing: .18em; font-weight: 700; }
+  .fila { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: baseline; padding: 8px 0; border-bottom: 2px dotted rgba(20,16,28,.28); }
+  .fila span:first-child { font-size: 14px; }
+  .fila span:last-child { font-family: var(--dato); font-size: 13.5px; font-variant-numeric: tabular-nums; }
+
+  .sello {
+    position: relative; display: inline-block; margin: 24px 0 6px;
+    border: 5px solid var(--tinta); padding: 4px 16px 10px; transform: rotate(-4deg);
+  }
+  .sello .trama-menta { inset: 0; color: #1d7a55; opacity: .35; background-size: 5px 5px; }
+  .sello b { position: relative; font-family: var(--display); font-size: 70px; line-height: .8; }
+  .recibo p { margin: 6px 0 0; font-size: 13.5px; }
+  .demo {
+    position: absolute; right: -14px; bottom: 70px; transform: rotate(-11deg);
+    border: 3px solid var(--rosa); color: var(--rosa); background: var(--crema);
+    font-family: var(--dato); font-weight: 700; font-size: 11px; letter-spacing: .12em; padding: 5px 9px;
+  }
+  .reproduce { margin-top: 16px; font-family: var(--dato); font-size: 11.5px; color: #4a3e5c; }
+
+  /* ---------- secciones ---------- */
+  section { position: relative; margin-top: 110px; }
+  .rotulo {
+    display: inline-block; margin: 0 0 26px; padding: 4px 12px;
+    background: var(--menta); color: var(--tinta); transform: rotate(-1.5deg);
+    font-family: var(--dato); font-weight: 700; font-size: 12px; letter-spacing: .14em;
+  }
+  .rotulo.rosa { background: var(--rosa); }
+  h3.grande {
+    margin: 0 0 18px; max-width: 24ch;
+    font-family: var(--display); font-size: clamp(26px, 3.6vw, 44px); line-height: 1.05;
+    text-transform: uppercase; letter-spacing: -.02em; text-wrap: balance;
+  }
+  .parrafo { max-width: 62ch; color: var(--gris); }
+  .parrafo b { color: var(--crema); }
+
+  /* mecanismos: recortes pegados en asimetria */
+  .recortes { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 22px; margin-top: 34px; }
+  .recorte { position: relative; background: var(--papel2); padding: 22px 22px 24px; border: 2px solid rgba(245,238,224,.1); }
+  .recorte:nth-child(1) { grid-column: 1 / span 7; transform: rotate(-1deg); }
+  .recorte:nth-child(2) { grid-column: 8 / span 5; transform: rotate(1.4deg); margin-top: 28px; }
+  .recorte:nth-child(3) { grid-column: 2 / span 5; transform: rotate(.8deg); }
+  .recorte:nth-child(4) { grid-column: 7 / span 6; transform: rotate(-1.2deg); margin-top: -12px; }
+  .recorte .n { font-family: var(--display); font-size: 46px; line-height: 1; color: var(--rosa); }
+  .recorte h4 { margin: 8px 0 8px; font-family: var(--display); font-size: 19px; line-height: 1.15; text-transform: uppercase; }
+  .recorte p { margin: 0; color: var(--gris); font-size: 14.5px; }
+
+  /* los tres fallos */
+  .fallos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 34px; }
+  .fallo { position: relative; padding: 24px 22px; background: var(--crema); color: var(--tinta); }
+  .fallo:nth-child(1) { transform: rotate(-1.6deg); }
+  .fallo:nth-child(2) { transform: rotate(1deg); margin-top: 24px; }
+  .fallo:nth-child(3) { transform: rotate(-.6deg); }
+  .fallo .problema { font-family: var(--display); font-size: 25px; line-height: 1; text-transform: uppercase; }
+  .fallo .problema s { text-decoration-color: var(--rosa); text-decoration-thickness: 5px; }
+  .fallo .solucion { margin: 14px 0 0; font-size: 14.5px; }
+  .fallo .solucion b { background: var(--menta); padding: 0 .2em; }
+
+  /* lo que no afirmamos */
+  .contrapartida { position: relative; margin-top: 30px; background: var(--papel2); border: 3px solid var(--rosa); padding: 28px 30px; transform: rotate(-.5deg); }
+  .contrapartida .trama-rosa { right: 0; bottom: 0; width: 240px; height: 180px; opacity: .25;
+    -webkit-mask-image: linear-gradient(135deg, transparent, #000); mask-image: linear-gradient(135deg, transparent, #000); }
+  .no { position: relative; display: grid; grid-template-columns: 40px 1fr; gap: 4px 14px; padding: 14px 0; border-top: 2px dotted rgba(245,238,224,.18); }
+  .no:first-of-type { border-top: 0; padding-top: 0; }
+  .no .x { font-family: var(--display); font-size: 30px; line-height: 1; color: var(--rosa); }
+  .no h4 { margin: 2px 0 4px; font-family: var(--texto); font-weight: 700; font-size: 16.5px; }
+  .no p { margin: 0; color: var(--gris); font-size: 14.5px; }
+
+  /* estado */
+  .estado { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 30px; margin-top: 26px; align-items: start; }
+  .lista { margin: 0; padding: 0; list-style: none; }
+  .lista li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; padding: 8px 0; color: var(--gris); font-size: 15px; }
+  .lista .si { color: var(--menta); font-family: var(--display); }
+  .lista .aun { color: var(--rosa); font-family: var(--display); }
+  .comando {
+    display: block; background: var(--tinta); border: 2px solid var(--menta); padding: 16px 18px;
+    font-family: var(--dato); font-size: 13.5px; color: var(--crema); overflow-x: auto; white-space: pre;
+    transform: rotate(.8deg);
+  }
+  .comando .p { color: var(--menta); }
+
+  a { color: var(--menta); text-underline-offset: 3px; }
+  a:hover { color: var(--rosa); }
+  a:focus-visible { outline: 3px solid var(--rosa); outline-offset: 3px; }
+
+  .pie {
+    margin-top: 110px; padding-top: 18px; border-top: 3px solid var(--rosa);
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    font-family: var(--dato); font-size: 11.5px; letter-spacing: .08em; color: var(--gris2);
+  }
+
+  @media (max-width: 820px) {
+    .portada, .estado, .fallos { grid-template-columns: minmax(0, 1fr); }
+    .recortes { grid-template-columns: minmax(0, 1fr); }
+    .recorte:nth-child(n) { grid-column: auto; margin-top: 0; }
+    .fallo:nth-child(2) { margin-top: 0; }
+    .demo { right: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+
+<div class="hoja">
+
+  <header class="cabecera">
+    <span class="jp">ライミ</span>
+    <span>N.º 001 · FASE 0 · APACHE-2.0</span>
+  </header>
+
+  <div class="portada">
+    <div class="trama-rosa" aria-hidden="true"></div>
+
+    <div>
+      <div class="marca" role="img" aria-label="lymi">
+        <span class="fondo" aria-hidden="true">lymi</span>
+        <span class="frente" aria-hidden="true">lymi</span>
+      </div>
+
+      <p class="tesis">Los tokens dependen de la tarea, <mark>no del tamaño del repo</mark>.</p>
+
+      <p class="bajada">
+        Un orquestador de agentes local-first que <b>no promete</b> ahorrarte tokens: te
+        entrega la cuenta. Lo que gastaste, lo que gastaba el agente ingenuo haciendo lo
+        mismo, y el registro de qué salió de tu máquina.
+      </p>
+
+      <div class="etiquetas">
+        <span class="sticker menta">local-first</span>
+        <span class="sticker rosa">sin humo</span>
+      </div>
+    </div>
+
+    <div class="recibo">
+      <span class="cinta izq" aria-hidden="true"></span>
+      <span class="cinta der" aria-hidden="true"></span>
+      <h2>RECIBO DE TAREA · SNAKE EN PYTHON</h2>
+      <div class="fila"><span>Línea base — agente ingenuo</span><span>7.3k tok · $0.0562</span></div>
+      <div class="fila"><span>lymi — destilado en local</span><span>1.2k tok · $0.0257</span></div>
+      <div class="fila"><span>Procesado en tu GPU</span><span>7.6k tok · gratis</span></div>
+      <div class="sello"><span class="trama-menta" aria-hidden="true"></span><b>−84%</b></div>
+      <p>tokens remotos, con las dos corridas aprobando su puerta de correctitud: el Snake generado se ejecuta y pasa 3 pruebas.</p>
+      <p class="reproduce">corridas cf5cc2125b65 · 270b0f56491e<br>reproduce: lymi bench snake --demo</p>
+      <span class="demo">MODO DEMO</span>
+    </div>
+  </div>
+
+  <section>
+    <span class="rotulo">EL PROBLEMA</span>
+    <h3 class="grande">Nadie publica contra qué compara.</h3>
+    <p class="parrafo">
+      «Ahorra un 80%» no es falsable: quien lo dice elige la línea base que le conviene.
+      Y «es local» suele significar que tus documentos viajan por la API de otro. Aquí la
+      línea base es <b>código de este repositorio</b>, y la afirmación se falsa con una
+      curva: la misma tarea en repos de 1k, 10k, 100k y 1M de líneas. Plana, se sostiene.
+      Creciente, es falsa y se publica como falsa.
+    </p>
+  </section>
+
+  <section>
+    <span class="rotulo">CÓMO — DE MAYOR A MENOR EFECTO</span>
+    <div class="recortes">
+      <div class="recorte">
+        <div class="n">01</div>
+        <h4>El índice nunca entra al contexto</h4>
+        <p>El mapa del proyecto vive en SQLite y en el servidor de lenguaje. El modelo lo consulta; jamás lo recibe entero. Volcar el grafo al prompt te devuelve a O(N) con estética bonita.</p>
+      </div>
+      <div class="recorte">
+        <div class="n">02</div>
+        <h4>Símbolos, no archivos</h4>
+        <p>La función pedida y sus referencias, no las 900 líneas que la rodean.</p>
+      </div>
+      <div class="recorte">
+        <div class="n">03</div>
+        <h4>El volumen lo absorbe tu GPU</h4>
+        <p>Clasificar, resumir y escribir memoria corre en un modelo local de 4B. Al caro llega solo lo destilado.</p>
+      </div>
+      <div class="recorte">
+        <div class="n">04</div>
+        <h4>Presupuesto de contexto duro</h4>
+        <p>Techo fijo de tokens: para meter algo nuevo hay que desalojar lo viejo. Acotado por construcción, no por esperanza.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="rotulo rosa">LOS TRES RIESGOS DE UN AGENTE CON CONTROL DEL PC</span>
+    <h3 class="grande">Por eso se suelen aislar en una máquina desechable. lymi vive en la tuya.</h3>
+    <div class="fallos">
+      <div class="fallo">
+        <div class="problema"><s>Rompe el sistema</s></div>
+        <p class="solucion">Propone, un ejecutor acotado aplica y <b>todo se deshace</b>: plan antes de actuar, rutas del sistema vetadas, diario de deshacer, código en worktrees y sandbox para lo no confiable.</p>
+      </div>
+      <div class="fallo">
+        <div class="problema"><s>Olvida todo</s></div>
+        <p class="solucion">La memoria vive <b>fuera del modelo</b>, en markdown que abres con Obsidian: la escribe el modelo local, se recupera acotada y la edición humana siempre gana.</p>
+      </div>
+      <div class="fallo">
+        <div class="problema"><s>La API lee tus datos</s></div>
+        <p class="solucion">Cada dato tiene etiqueta. <b>Lo confidencial lo lee tu GPU</b>, y un único gateway bloquea, redacta y registra lo que sale, por hash, nunca el contenido.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="rotulo rosa">LO QUE NO AFIRMAMOS</span>
+    <div class="contrapartida">
+      <span class="trama-rosa" aria-hidden="true"></span>
+      <div class="no"><span class="x">×</span><div><h4>Que sea «local» si usa una API remota</h4><p>Si el dato salió, salió. Queda registrado el destino y el hash, nunca el contenido.</p></div></div>
+      <div class="no"><span class="x">×</span><div><h4>Que el debate entre agentes ahorre tokens</h4><p>Es un multiplicador de costo. Entra solo si la medición demuestra que cambia el resultado.</p></div></div>
+      <div class="no"><span class="x">×</span><div><h4>Que los subagentes bajen el consumo total</h4><p>Bajan el del hilo principal; el total puede subir. Se mide de punta a punta.</p></div></div>
+      <div class="no"><span class="x">×</span><div><h4>Que haya ahorro en tareas de barrido</h4><p>Renombrar en todo el código toca todo por definición. Ahí los tokens remotos crecen con los hallazgos, no con el repo. Pero crecen.</p></div></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="rotulo">ESTADO</span>
+    <h3 class="grande">Primero el instrumento. Después todo lo demás.</h3>
+    <div class="estado">
+      <ul class="lista">
+        <li><span class="si">+</span><span>Ledger de tokens, costo y egress por hash</span></li>
+        <li><span class="si">+</span><span>Banco de pruebas con puertas que ejecutan el código generado</span></li>
+        <li><span class="si">+</span><span>Workflows YAML seguros, MCP con supervisor, OAuth y código de dispositivo</span></li>
+        <li><span class="si">+</span><span>Cron, webhooks firmados y aprobaciones con reglas y vencimiento</span></li>
+        <li><span class="aun">·</span><span>Primera medición real contra proveedores: pendiente. Hasta entonces, el recibo va sellado como demo.</span></li>
+      </ul>
+      <code class="comando"><span class="p">$</span> uv run lymi setup
+<span class="p">$</span> uv run lymi bench snake --demo
+<span class="p">$</span> uv run lymi flow plan workflows/triage-de-leads.yml</code>
+    </div>
+  </section>
+
+  <footer class="pie">
+    <span>lymi · Apache-2.0</span>
+    <span>la línea base es código de este repo, ejecutable por cualquiera</span>
+  </footer>
+
+</div>

@@ -1,0 +1,76 @@
+/* Tema aplicado · Catppuccin Mocha.
+   Demuestra el motor de temas de verdad: esta pantalla usa los mismos
+   componentes de riso.css y solo redefine los tokens. */
+
+.tema-catppuccin {
+  --papel: #181825;
+  --papel-hondo: #11111b;
+  --tinta: #11111b;
+  --panel: #1e1e2e;
+  --superficie: #313244;
+  --borde: #45475a;
+  --texto: #cdd6f4;
+  --crema: #cdd6f4;
+  --lila: #bac2de;
+  --gris: #6c7086;
+  --gris-claro: #9399b2;
+  --menta: #a6e3a1;
+  --rosa: #fab387;
+  --malva: #cba6f7;
+  --rosado: #f5c2e7;
+  --azul: #89b4fa;
+}
+
+.riced { display: block; }
+.riced .grano { opacity: .14; }
+.riced .desregistro > .frente { color: var(--malva); }
+
+.riced-trama { position: absolute; border-radius: 50%; background-size: 9px 9px; -webkit-mask-image: radial-gradient(closest-side, #000 60%, transparent); mask-image: radial-gradient(closest-side, #000 60%, transparent); }
+.riced-trama-a { left: -120px; top: 180px; width: 700px; height: 700px; opacity: .55; background-image: radial-gradient(circle, var(--malva) 1.6px, transparent 1.8px); }
+.riced-trama-b { right: -160px; top: -140px; width: 760px; height: 760px; opacity: .45; background-image: radial-gradient(circle, var(--rosa) 1.6px, transparent 1.8px); }
+.riced-jp { position: absolute; left: 60px; bottom: 36px; font-family: var(--jp); font-weight: 700; font-size: 120px; line-height: 1; letter-spacing: .05em; color: var(--superficie); }
+
+.escritorio { position: relative; display: flex; flex-direction: column; gap: 12px; height: 900px; padding: 12px; box-sizing: border-box; }
+
+.barra-sistema { display: flex; align-items: center; gap: 14px; flex-shrink: 0; height: 38px; padding: 0 14px; background: rgba(30, 30, 46, .92); border: 2px solid var(--borde); }
+.espacios { display: flex; gap: 6px; }
+.espacio { min-width: 24px; padding: 2px 6px; text-align: center; font-family: var(--mono); font-weight: 700; font-size: 12px; color: var(--gris); }
+.espacio.activo { background: var(--malva); color: var(--tinta); }
+.barra-titulo { font-size: 12px; color: var(--lila); }
+.barra-ledger { display: flex; align-items: center; gap: 10px; padding: 3px 12px; background: var(--rosado); color: var(--panel); transform: rotate(-1.5deg); }
+.barra-ledger .mono { font-weight: 700; font-size: 11px; }
+.barra-ledger .display { font-size: 14px; }
+.stat { font-family: var(--mono); font-size: 12px; color: var(--gris-claro); }
+.stat b { font-weight: 700; }
+.stat .azul { color: var(--azul); }
+.stat .verde { color: var(--menta); }
+.barra-hora { font-family: var(--mono); font-weight: 700; font-size: 12px; }
+
+.ventana { position: relative; display: flex; flex-grow: 1; min-height: 0; margin: 18px 90px 70px 330px; background: rgba(30, 30, 46, .96); border: 3px solid var(--malva); box-shadow: 14px 16px 0 var(--rosa); }
+.ventana .cinta { z-index: 3; background: rgba(205, 214, 244, .35); border-color: rgba(17, 17, 27, .4); }
+.ventana-cinta-a { left: 48px; top: -14px; width: 110px; height: 28px; transform: rotate(-6deg); }
+.ventana-cinta-b { right: 60px; top: -13px; width: 96px; height: 26px; transform: rotate(5deg); }
+
+.ventana-lateral { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; width: 190px; padding: 18px 12px; background: var(--papel-hondo); }
+.ventana-marca { height: 52px; margin: 0 6px 14px; font-size: 36px; line-height: 1; letter-spacing: -.05em; --dx: 3px; --dy: 3px; }
+.ventana-marca > .sombra { opacity: 1; }
+.ventana-nav { padding: 8px 10px; font-size: 13px; color: var(--gris-claro); }
+.ventana-nav.activo { background: var(--crema); color: var(--tinta); font-family: var(--display); transform: rotate(-1.5deg); }
+
+.ventana-centro { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; flex-grow: 1; }
+.ventana-logo { width: 380px; height: 140px; font-size: 160px; transform: rotate(-2.5deg); --dx: 8px; --dy: 6px; }
+.ventana-compositor { width: 560px; background: var(--crema); color: var(--tinta); box-shadow: 8px 9px 0 var(--malva); }
+.ventana-campo { padding: 18px 20px 12px; font-size: 16px; color: var(--gris); }
+.ventana-pills { display: flex; gap: 8px; padding: 10px 12px 12px 18px; border-top: 2px dotted rgba(17, 17, 27, .3); }
+.ventana-pills .pill { padding: 4px 11px; font-size: 11.5px; }
+
+.ventana-ledger { display: flex; align-items: center; gap: 26px; flex-shrink: 0; height: 58px; padding: 0 22px; background: var(--papel-hondo); border-top: 3px solid var(--rosa); }
+.ventana-ledger .display { font-size: 22px; }
+.ventana-ledger .local { color: var(--menta); }
+.ventana-ledger .remoto { color: var(--rosa); }
+.ventana-ledger .sello { padding: 2px 10px; font-size: 13px; }
+
+.riced-etiquetas { position: absolute; left: 34px; top: 90px; display: flex; flex-direction: column; gap: 12px; width: 260px; }
+.riced-tema { align-self: flex-start; padding: 6px 14px; background: var(--malva); color: var(--tinta); font-family: var(--display); font-size: 14px; transform: rotate(-3deg); }
+.riced-capas { align-self: flex-start; padding: 6px 14px; background: var(--menta); color: var(--tinta); font-family: var(--mono); font-weight: 700; font-size: 12px; transform: rotate(2deg); }
+.riced-nota { margin: 6px 0 0; font-size: 14px; line-height: 1.55; color: var(--lila); }

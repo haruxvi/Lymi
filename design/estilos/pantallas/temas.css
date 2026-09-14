@@ -1,0 +1,50 @@
+/* Apariencia */
+
+.controles { display: flex; flex-direction: column; gap: 22px; flex-shrink: 0; width: 470px; padding: 26px; overflow: hidden; background: var(--papel-hondo); border-right: 3px solid var(--panel); }
+.temas-titulo { font-size: 26px; }
+.temas-ruta { margin-top: 4px; font-size: 11.5px; }
+.controles .etiqueta { display: inline-block; }
+
+.rejilla-temas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.tarjeta-tema { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 3px solid var(--linea); cursor: pointer; }
+.tarjeta-tema svg { flex-shrink: 0; }
+.tarjeta-tema-nombre { font-size: 13px; font-weight: 700; color: var(--lila); }
+.tarjeta-tema.activa { background: var(--panel); border-color: var(--crema); }
+.tarjeta-tema.activa .tarjeta-tema-nombre { color: var(--texto); }
+.mezcla { mix-blend-mode: screen; }
+
+.texturas { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.textura { display: grid; grid-template-columns: 120px 1fr 48px; gap: 12px; align-items: center; font-size: 13.5px; }
+.textura-marco { height: 8px; padding: 2px; border: 2px solid var(--borde); }
+.textura-marco svg { display: block; }
+.textura-valor { font-family: var(--mono); font-size: 12px; text-align: right; }
+
+.tipos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tipo { padding: 9px 12px; border: 2px solid var(--borde); }
+.tipo .rotulo { font-size: 10px; letter-spacing: .12em; }
+.tipo-muestra { margin-top: 2px; font-size: 14px; }
+.tipo-muestra.mono { margin-top: 3px; font-weight: 700; font-size: 13px; }
+
+.temas-vista { gap: 24px; padding: 26px 30px; }
+.vista-cabecera { display: flex; align-items: baseline; gap: 12px; }
+.vista-slug { font-family: var(--mono); font-weight: 700; font-size: 12px; color: var(--rosa); }
+
+/* La vista previa es SVG: los colores del tema llegan como atributos fill/stroke,
+   que cambian con el clic sin meter valores dinamicos dentro de style="". */
+.vista-svg { display: block; width: 100%; height: auto; }
+.vista-logo { font-family: var(--display); font-size: 120px; letter-spacing: -.06em; }
+.vista-pill { font-family: var(--mono); font-weight: 700; font-size: 12px; }
+.vista-cifra { font-family: var(--display); font-size: 24px; }
+.vista-sello { font-family: var(--display); font-size: 13px; }
+
+.toml { display: flex; flex-direction: column; flex-grow: 1; min-height: 0; background: var(--tinta); }
+.toml-cabecera { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 3px solid var(--panel); }
+.toml-archivo { font-family: var(--mono); font-weight: 700; font-size: 11.5px; color: var(--lila); }
+.toml-acciones { display: flex; gap: 8px; }
+.toml-boton { padding: 4px 11px; border: 2px solid var(--borde); font-family: var(--mono); font-size: 11px; }
+.toml-boton.primario { background: var(--menta); border-color: var(--menta); color: var(--tinta); font-weight: 700; }
+.toml-cuerpo { padding: 12px 18px; overflow: hidden; font-family: var(--mono); font-size: 12.5px; line-height: 1.75; }
+.toml-linea { white-space: pre; color: var(--texto); }
+.toml-linea.comentario { color: var(--gris); }
+.toml-linea.remoto { color: var(--rosa); }
+.toml-linea.local { color: var(--menta); }

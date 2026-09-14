@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Minimo privilegio: la CI solo lee el repositorio.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    # Windows es el entorno verificado. Linux y macOS quedan en PENDIENTES
+    # (distribucion) hasta correr la suite ahi al menos una vez.
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Dependencias (desde uv.lock, sin actualizar)
+        run: uv sync --extra dev --locked
+
+      - name: Lint
+        run: uv run --extra dev ruff check src tests
+
+      - name: Pruebas
+        run: uv run --extra dev pytest -q
+
+      - name: Estilos de las maquetas sincronizados
+        run: node design/estilos/sincronizar.mjs --check

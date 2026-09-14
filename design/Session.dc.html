@@ -1,0 +1,381 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;700&family=Noto+Sans+JP:wght@700&family=JetBrains+Mono:wght@400;700&display=swap">
+  <style data-estilos>
+/* generado por design/estilos/sincronizar.mjs: editar design/estilos/, no aqui */
+/* lymi · risografía — tokens y componentes compartidos por todas las pantallas.
+   Fuente de verdad de los estilos. `node design/estilos/sincronizar.mjs` copia
+   este archivo (mas la hoja de cada pantalla) dentro de cada artboard: el canvas
+   ejecuta cada .dc.html aislado y no puede cargar hojas externas. */
+
+:root {
+  --papel: #191324;
+  --papel-hondo: #130e1b;
+  --superficie: #1b1526;
+  --panel: #221a31;
+  --borde: #3a3050;
+  --linea: #2c2340;
+  --tinta: #14101c;
+
+  --rosa: #ff48a0;
+  --rosa-tinta: #c2256f;
+  --menta: #5ef2a8;
+  --menta-tinta: #0f8f5c;
+  --crema: #f5eee0;
+  --cinta: rgba(245, 238, 224, .55);
+
+  --texto: #f5eee0;
+  --texto-suave: #cfc5df;
+  --lila: #a89cbd;
+  --gris: #6f6484;
+  --gris-tinta: #4a3e5c;
+
+  --display: 'Archivo Black', Impact, sans-serif;
+  --cuerpo: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --jp: 'Noto Sans JP', sans-serif;
+}
+
+body { margin: 0; background: var(--papel); font-family: var(--cuerpo); }
+a { color: var(--menta); }
+a:hover { color: var(--rosa); }
+
+/* ---------- lienzo ---------- */
+
+.pantalla { position: relative; display: flex; width: 1440px; height: 900px; overflow: hidden; background: var(--papel); color: var(--texto); }
+.columna { position: relative; display: flex; flex-direction: column; flex-grow: 1; min-width: 0; min-height: 0; }
+.espaciador { flex-grow: 1; }
+.grano { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: .13; mix-blend-mode: overlay; }
+
+/* ---------- tipografía ---------- */
+
+.display { font-family: var(--display); }
+.mono { font-family: var(--mono); }
+.titulo { font-family: var(--display); font-size: 24px; text-transform: uppercase; }
+.rotulo { font-family: var(--mono); font-weight: 700; font-size: 10.5px; letter-spacing: .14em; color: var(--gris); }
+.suave { color: var(--lila); }
+.tenue { color: var(--gris); }
+.derecha { text-align: right; }
+
+/* ---------- marca con desregistro de segunda tinta ---------- */
+
+.desregistro { position: relative; font-family: var(--display); line-height: .8; letter-spacing: -.06em; }
+.desregistro > span { position: absolute; left: 0; top: 0; }
+.desregistro > .sombra { color: var(--menta); mix-blend-mode: screen; opacity: .9; transform: translate(var(--dx, 5px), var(--dy, 4px)); }
+.desregistro > .frente { color: var(--rosa); }
+
+/* ---------- riel de navegación ---------- */
+
+.riel { display: flex; flex-direction: column; align-items: center; gap: 14px; flex-shrink: 0; width: 64px; padding-top: 18px; background: var(--papel-hondo); border-right: 3px solid var(--panel); }
+.riel-marca { width: 30px; height: 36px; font-size: 34px; line-height: 1; letter-spacing: 0; --dx: 3px; --dy: 3px; }
+.riel-marca > .sombra { opacity: 1; }
+.riel-sep { width: 26px; height: 3px; margin: 6px 0; background: var(--borde); }
+.riel-item { width: 26px; height: 26px; border: 2px solid var(--borde); }
+.riel-item.activo { background: var(--crema); border-color: var(--crema); transform: rotate(-6deg); }
+
+/* ---------- trama de puntos ---------- */
+
+.trama { position: absolute; pointer-events: none; opacity: .35; background-size: 8px 8px; -webkit-mask-image: radial-gradient(closest-side, #000, transparent); mask-image: radial-gradient(closest-side, #000, transparent); }
+.trama-rosa { background-image: radial-gradient(circle, var(--rosa) 1.3px, transparent 1.5px); }
+.trama-menta { background-image: radial-gradient(circle, var(--menta) 1.2px, transparent 1.4px); background-size: 7px 7px; }
+
+/* ---------- etiquetas, sellos, cinta y hojas de papel ---------- */
+
+.etiqueta { align-self: flex-start; padding: 3px 10px; font-family: var(--mono); font-weight: 700; font-size: 11px; letter-spacing: .14em; color: var(--tinta); transform: rotate(-2deg); }
+.etiqueta.rosa { background: var(--rosa); }
+.etiqueta.menta { background: var(--menta); }
+.etiqueta.crema { background: var(--crema); }
+
+.sello { display: inline-block; padding: 3px 12px 4px; border: 3px solid currentColor; font-family: var(--display); font-size: 14px; transform: rotate(-4deg); }
+.sello.rosa { color: var(--rosa); }
+.sello.menta { color: var(--menta); }
+
+.sello-grande { --sello: var(--menta); position: relative; align-self: flex-start; padding: 6px 18px 12px; border: 6px solid var(--sello); transform: rotate(-4deg); }
+.sello-grande.rosa { --sello: var(--rosa); }
+.sello-grande-trama { position: absolute; inset: 0; opacity: .3; background-image: radial-gradient(circle, var(--sello) 1.2px, transparent 1.4px); background-size: 6px 6px; }
+.sello-grande-cifra { position: relative; font-family: var(--display); font-size: 82px; line-height: .8; color: var(--sello); }
+
+.cinta { position: absolute; width: 90px; height: 24px; background: var(--cinta); border-left: 1px dashed rgba(20, 16, 28, .3); border-right: 1px dashed rgba(20, 16, 28, .3); }
+
+.hoja { position: relative; background: var(--crema); color: var(--tinta); }
+
+/* ---------- tiers: menta es tu GPU, rosa se paga ---------- */
+
+.tier-local { --tier: var(--menta); }
+.tier-remoto,
+.tier-efecto { --tier: var(--rosa); }
+.tier-gratis,
+.tier-indice { --tier: var(--crema); }
+.tier-texto { color: var(--tier); }
+.tier-fondo { background: var(--tier); }
+
+.pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: var(--tier, var(--crema)); color: var(--tinta); font-family: var(--mono); font-weight: 700; font-size: 10.5px; }
+
+/* ---------- botones ---------- */
+
+.boton { padding: 9px 16px; font-family: var(--display); font-size: 12.5px; }
+.boton.primario { background: var(--rosa); color: var(--tinta); transform: rotate(-2deg); }
+.boton.menta { background: var(--menta); color: var(--tinta); }
+.boton.crema { background: var(--crema); color: var(--tinta); }
+.boton.tinta { background: var(--tinta); color: var(--menta); }
+.boton.contorno { padding: 7px 14px; border: 2px solid currentColor; }
+
+/* ---------- barra del ledger: chrome permanente ---------- */
+
+.ledger { display: flex; align-items: center; gap: 34px; flex-shrink: 0; height: 76px; padding: 0 28px; background: var(--papel-hondo); border-top: 3px solid var(--rosa); }
+.ledger .etiqueta { align-self: center; padding: 3px 9px; letter-spacing: .18em; }
+.ledger > * { white-space: nowrap; }
+
+/* Sellos, pastillas y etiquetas son una sola pieza impresa: nunca parten en dos lineas. */
+.sello,
+.sello-grande,
+.pill,
+.etiqueta { white-space: nowrap; }
+.ledger-dato { display: flex; flex-direction: column; }
+.ledger-rotulo { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--gris); }
+.ledger-cifra { font-family: var(--display); font-size: 28px; line-height: 1; }
+.ledger-cifra.local { color: var(--menta); }
+.ledger-cifra.remoto { color: var(--rosa); }
+.ledger-sello { padding: 4px 12px 5px; font-size: 15px; }
+.medidor-dato { gap: 6px; }
+.medidor { width: 160px; height: 14px; padding: 2px; border: 2px solid var(--crema); }
+.medidor-relleno { height: 100%; background-color: rgba(94, 242, 168, .25); background-image: radial-gradient(circle, var(--menta) 1.4px, transparent 1.6px); background-size: 4px 4px; }
+
+.ledger.compacto { gap: 26px; height: 62px; padding: 0 24px; }
+.ledger.compacto .ledger-cifra { font-size: 20px; line-height: 1.2; }
+.ledger.compacto .ledger-cifra small { font-family: var(--mono); font-size: 10px; color: var(--gris); }
+.ledger.compacto .sello { padding: 2px 10px 3px; font-size: 13px; }
+
+/* Sesión activa · plan/apply */
+
+.sesion-trama { right: -40px; top: 60px; width: 380px; height: 300px; }
+
+.cabecera { position: relative; display: flex; align-items: center; gap: 18px; flex-shrink: 0; height: 84px; padding: 0 34px; border-bottom: 3px solid var(--panel); }
+.cabecera-textos { display: flex; flex-direction: column; gap: 4px; }
+.sesion-titulo { font-size: 23px; letter-spacing: -.01em; }
+.cabecera-meta { font-size: 11.5px; }
+
+.transcripcion { position: relative; display: flex; flex-direction: column; flex-grow: 1; min-height: 0; padding: 26px 34px 0; }
+.tarea { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+.tarea .etiqueta { flex-shrink: 0; padding: 3px 9px; }
+.tarea-texto { max-width: 62ch; margin: 0; font-size: 16px; line-height: 1.55; }
+.codigo { padding: 1px 6px; background: var(--panel); font-family: var(--mono); font-size: 14.5px; }
+
+.pasos { display: flex; flex-direction: column; margin: 0 0 0 8px; padding: 0; list-style: none; border-left: 3px dashed var(--borde); }
+.paso { position: relative; display: grid; grid-template-columns: 150px 1fr; gap: 18px; padding: 0 0 18px 22px; }
+.paso-marca { position: absolute; left: -9px; top: 4px; width: 14px; height: 14px; }
+.paso-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.paso-meta .pill { letter-spacing: .1em; }
+.paso-costo { font-size: 12px; }
+.paso-titulo { font-weight: 700; font-size: 15.5px; }
+.paso-detalle { max-width: 60ch; margin-top: 3px; font-size: 13.5px; line-height: 1.55; color: var(--lila); }
+
+.parche { width: 640px; margin: 8px 0 0 30px; padding: 20px 22px 18px; box-shadow: 8px 9px 0 var(--menta); }
+.parche-cinta { left: 30px; top: -12px; width: 86px; transform: rotate(-5deg); }
+.parche-sello { position: absolute; right: 18px; top: 16px; padding: 2px 9px; background: var(--crema); font-size: 12px; transform: rotate(6deg); }
+.parche-titulo { font-family: var(--display); font-size: 17px; text-transform: uppercase; }
+.parche-resumen { margin-top: 4px; font-size: 13.5px; color: var(--gris-tinta); }
+.parche-archivos { display: flex; flex-direction: column; gap: 3px; margin-top: 12px; font-size: 12.5px; }
+.parche-archivos span { white-space: pre; }
+.parche-acciones { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+.parche-acciones .boton { font-size: 13px; }
+.parche-acciones .boton.tinta { padding: 9px 18px; }
+.parche-acciones .boton.contorno { padding: 7px 16px; color: var(--tinta); }
+.parche-rechazar { padding: 9px 10px; color: var(--rosa-tinta); }
+.parche-deshacer { font-size: 11px; color: var(--gris-tinta); }
+
+.sesion-ledger { margin-top: 22px; }
+.medidor-sesion { width: 150px; }
+.medidor-sesion .medidor-relleno { width: 62%; }
+
+.panel-ledger { display: flex; flex-direction: column; flex-shrink: 0; width: 380px; padding: 26px 26px 22px; background: var(--papel-hondo); border-left: 3px solid var(--panel); }
+.panel-ledger .sello-grande { margin: 22px 0 4px 4px; }
+.panel-nota { margin-top: 12px; font-size: 13.5px; color: var(--lila); }
+
+.comparacion { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.comparacion-fila { display: grid; grid-template-columns: 44px 1fr 50px; gap: 10px; align-items: center; }
+.comparacion-rotulo { font-family: var(--mono); font-size: 11px; color: var(--gris); }
+.comparacion-cifra { font-family: var(--mono); font-size: 12px; text-align: right; }
+.barra-base { height: 14px; background-image: radial-gradient(circle, var(--lila) 1.3px, transparent 1.5px); background-size: 4px 4px; }
+.barra-lymi { width: 13%; height: 14px; background: var(--menta); }
+
+.llamadas-titulo { margin-top: 26px; padding-bottom: 8px; border-bottom: 3px solid var(--panel); font-size: 11px; letter-spacing: .16em; }
+.llamadas { display: flex; flex-direction: column; }
+.llamada { display: grid; grid-template-columns: 10px 1fr auto; gap: 4px 12px; align-items: baseline; padding: 8px 0; border-bottom: 2px dotted var(--linea); }
+.llamada-punto { width: 10px; height: 10px; }
+.llamada-proposito { font-size: 13px; }
+.llamada-costo { font-family: var(--mono); font-size: 12px; }
+.llamada-modelo,
+.llamada-tokens { font-family: var(--mono); font-size: 10.5px; color: var(--gris); }
+.llamada-tokens { text-align: right; }
+.panel-pie { font-family: var(--mono); font-size: 11px; line-height: 1.6; color: var(--gris); }
+  </style>
+</helmet>
+
+<div class="pantalla">
+
+  <nav class="riel">
+    <div class="riel-marca desregistro"><span class="sombra">l</span><span class="frente">l</span></div>
+    <div class="riel-sep"></div>
+    <sc-for list="{{rail}}" as="r" hint-placeholder-count="7">
+      <div class="riel-item {{r.clase}}"></div>
+    </sc-for>
+  </nav>
+
+  <main class="columna">
+    <div class="trama trama-rosa sesion-trama"></div>
+
+    <header class="cabecera">
+      <div class="cabecera-textos">
+        <span class="titulo sesion-titulo">Rotación de tokens en auth</span>
+        <span class="mono tenue cabecera-meta">monorepo-core · 1.2M líneas · worktree lymi/auth-rotativa</span>
+      </div>
+      <div class="espaciador"></div>
+      <div class="sello rosa">EN CURSO</div>
+    </header>
+
+    <section class="transcripcion">
+      <div class="tarea">
+        <span class="etiqueta menta">TAREA</span>
+        <p class="tarea-texto">Refactoriza <code class="codigo">AuthService</code> para emitir tokens rotativos, sin cambiar la interfaz pública.</p>
+      </div>
+
+      <ol class="pasos">
+        <sc-for list="{{steps}}" as="st" hint-placeholder-count="4">
+          <li class="paso {{st.clase}}">
+            <i class="paso-marca tier-fondo"></i>
+            <div class="paso-meta">
+              <span class="pill">{{st.tier}}</span>
+              <span class="mono paso-costo {{st.costoClase}}">{{st.cost}}</span>
+            </div>
+            <div>
+              <div class="paso-titulo">{{st.title}}</div>
+              <div class="paso-detalle">{{st.detail}}</div>
+            </div>
+          </li>
+        </sc-for>
+      </ol>
+
+      <!-- plan / apply: el agente propone, la persona aprueba -->
+      <div class="hoja parche">
+        <i class="cinta parche-cinta"></i>
+        <div class="sello rosa parche-sello">PIDE APROBACIÓN</div>
+        <div class="parche-titulo">Aplicar el parche</div>
+        <div class="parche-resumen">3 archivos · +41 −6 · en un git worktree aislado, tu rama no se toca</div>
+        <div class="mono parche-archivos">
+          <span>M  src/auth/service.py</span>
+          <span>M  src/auth/tokens.py</span>
+          <span>A  tests/test_rotacion.py</span>
+        </div>
+        <div class="parche-acciones">
+          <span class="boton tinta">APROBAR</span>
+          <span class="boton contorno">VER DIFF</span>
+          <span class="boton parche-rechazar">RECHAZAR</span>
+          <div class="espaciador"></div>
+          <span class="mono parche-deshacer">deshacer: lymi undo 7f3a</span>
+        </div>
+      </div>
+    </section>
+
+    <footer class="ledger sesion-ledger">
+      <span class="etiqueta rosa">LEDGER</span>
+      <div class="ledger-dato">
+        <span class="ledger-rotulo">LOCAL</span>
+        <span class="ledger-cifra local">142.8k</span>
+      </div>
+      <div class="ledger-dato">
+        <span class="ledger-rotulo">REMOTO</span>
+        <span class="ledger-cifra remoto">9.1k</span>
+      </div>
+      <div class="ledger-dato">
+        <span class="ledger-rotulo">COSTO</span>
+        <span class="ledger-cifra">$0.043</span>
+      </div>
+      <div class="ledger-dato medidor-dato">
+        <span class="ledger-rotulo">CONTEXTO 12.4k / 20k</span>
+        <div class="medidor medidor-sesion"><div class="medidor-relleno"></div></div>
+      </div>
+      <div class="espaciador"></div>
+      <div class="sello rosa ledger-sello">EGRESS 2</div>
+    </footer>
+  </main>
+
+  <aside class="panel-ledger">
+    <span class="etiqueta menta">CONTRA LA LÍNEA BASE</span>
+
+    <div class="sello-grande">
+      <i class="sello-grande-trama"></i>
+      <span class="sello-grande-cifra">−87%</span>
+    </div>
+    <div class="panel-nota">tokens remotos, con la puerta de correctitud aprobada</div>
+
+    <div class="comparacion">
+      <div class="comparacion-fila">
+        <span class="comparacion-rotulo">base</span>
+        <div class="barra-base"></div>
+        <span class="comparacion-cifra">71.4k</span>
+      </div>
+      <div class="comparacion-fila">
+        <span class="comparacion-rotulo">lymi</span>
+        <div><div class="barra-lymi"></div></div>
+        <span class="comparacion-cifra">9.1k</span>
+      </div>
+    </div>
+
+    <div class="rotulo llamadas-titulo">LLAMADAS · 7</div>
+    <div class="llamadas">
+      <sc-for list="{{calls}}" as="c" hint-placeholder-count="7">
+        <div class="llamada {{c.clase}}">
+          <i class="llamada-punto tier-fondo"></i>
+          <span class="llamada-proposito">{{c.purpose}}</span>
+          <span class="llamada-costo {{c.costoClase}}">{{c.cost}}</span>
+          <span></span>
+          <span class="llamada-modelo">{{c.model}}</span>
+          <span class="llamada-tokens">{{c.tokens}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div class="espaciador"></div>
+    <div class="panel-pie">reproduce: lymi bench repo-1m<br>la línea base es código del repo</div>
+  </aside>
+
+  <svg class="grano" width="1440" height="900" aria-hidden="true">
+    <filter id="grano"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"></feTurbulence></filter>
+    <rect width="1440" height="900" filter="url(#grano)" fill="#ffffff"></rect>
+  </svg>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      rail: [0, 1, 2, 3, 4, 5, 6].map((i) => ({ clase: i === 0 ? 'activo' : '' })),
+      steps: [
+        { tier: 'ÍNDICE', clase: 'tier-indice', cost: '0 tok', costoClase: 'tenue', title: 'Índice simbólico consultado', detail: 'AuthService y sus 31 referencias, vía LSP. El índice se consulta: nunca entra al prompt.' },
+        { tier: 'LOCAL', clase: 'tier-local', cost: '18.4k tok', costoClase: 'tier-texto', title: '12 símbolos recuperados', detail: 'Firmas y cuerpos, no archivos. De 6.100 líneas implicadas se leyeron 190.' },
+        { tier: 'LOCAL', clase: 'tier-local', cost: '124.4k tok · $0', costoClase: 'tier-texto', title: 'Destilación del contexto', detail: 'qwen2.5:3b lo comprime a una ficha de 2.900 tokens, en tu GPU.' },
+        { tier: 'REMOTO', clase: 'tier-remoto', cost: '$0.0431', costoClase: 'tier-texto', title: 'Plan de refactor', detail: 'Única llamada al modelo caro. 6.2k de 9.1k leídos del caché.' },
+      ],
+      calls: [
+        { purpose: 'Consulta al índice', model: 'sin modelo', tokens: '0', cost: '—', clase: 'tier-indice', costoClase: 'tenue' },
+        { purpose: 'Puntuar relevancia', model: 'qwen2.5:3b', tokens: '11.2k', cost: '$0', clase: 'tier-local', costoClase: 'tier-texto' },
+        { purpose: 'Destilar símbolos', model: 'qwen2.5:3b', tokens: '62.7k', cost: '$0', clase: 'tier-local', costoClase: 'tier-texto' },
+        { purpose: 'Destilar símbolos', model: 'qwen2.5:3b', tokens: '48.5k', cost: '$0', clase: 'tier-local', costoClase: 'tier-texto' },
+        { purpose: 'Enrutar al tier', model: 'qwen2.5:3b', tokens: '1.9k', cost: '$0', clase: 'tier-local', costoClase: 'tier-texto' },
+        { purpose: 'Plan de refactor', model: 'claude-opus-5', tokens: '9.1k', cost: '$0.0431', clase: 'tier-remoto', costoClase: 'tier-texto' },
+        { purpose: 'Escribir memoria', model: 'qwen2.5:3b', tokens: '18.5k', cost: '$0', clase: 'tier-local', costoClase: 'tier-texto' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

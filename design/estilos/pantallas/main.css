@@ -1,0 +1,61 @@
+/* Inicio */
+
+.lateral { position: relative; z-index: 2; display: flex; flex-direction: column; flex-shrink: 0; width: 232px; background: var(--papel-hondo); border-right: 3px solid var(--panel); }
+.lateral-marca { height: 70px; margin: 18px 20px 10px; font-size: 44px; line-height: 1; letter-spacing: -.05em; --dx: 4px; --dy: 4px; }
+.lateral-marca > .sombra { opacity: 1; }
+.lateral-jp { position: absolute; left: 2px; top: 52px; font-family: var(--jp); font-weight: 700; font-size: 11px; letter-spacing: .26em; color: var(--gris); }
+
+.lateral-nav { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; font-size: 13.5px; color: var(--lila); }
+.nav-punto { width: 8px; height: 8px; background: var(--borde); }
+.nav-item.activo { background: var(--crema); color: var(--tinta); font-family: var(--display); transform: rotate(-1.5deg); }
+.nav-item.activo .nav-punto { background: var(--rosa); }
+
+.lateral-seccion { margin: 30px 20px 10px; letter-spacing: .18em; }
+.lateral-sesiones { display: flex; flex-direction: column; padding: 0 12px; }
+.sesion { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 7px 12px; }
+.sesion-nombre { overflow: hidden; font-size: 13px; color: var(--lila); white-space: nowrap; text-overflow: ellipsis; }
+.sesion-hace { flex-shrink: 0; font-family: var(--mono); font-size: 10.5px; color: var(--gris); }
+
+.proveedores { display: flex; flex-direction: column; gap: 6px; margin: 14px; padding: 12px 14px; border: 2px dashed var(--borde); }
+.proveedor { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--texto); }
+.proveedor .tenue { font-size: 10.5px; }
+.proveedor-punto { width: 8px; height: 8px; border-radius: 50%; background: var(--tier); }
+
+.main-trama-a { right: -80px; top: -60px; width: 620px; height: 520px; opacity: .5; }
+.main-trama-b { left: -60px; bottom: 40px; width: 420px; height: 360px; opacity: .4; }
+
+.inicio { position: relative; display: flex; flex-direction: column; align-items: center; flex-grow: 1; padding-top: 70px; }
+.inicio-marca { width: 470px; height: 170px; font-size: 196px; transform: rotate(-2.5deg); --dx: 9px; --dy: 7px; }
+.inicio-tesis { margin: 30px 0 0; font-family: var(--display); font-size: 21px; text-transform: uppercase; letter-spacing: -.01em; }
+.resalta { padding: 0 6px; color: var(--tinta); }
+.resalta.rosa { background: var(--rosa); }
+.resalta.menta { background: var(--menta); }
+
+.inicio-stickers { display: flex; gap: 12px; margin-top: 18px; }
+.sticker { padding: 7px 16px; border-radius: 999px; color: var(--tinta); font-family: var(--display); font-size: 12.5px; }
+.sticker.menta { background: var(--menta); transform: rotate(-3deg); }
+.sticker.rosa { background: var(--rosa); transform: rotate(2deg); }
+
+.compositor { width: 780px; margin-top: 44px; box-shadow: 9px 10px 0 var(--rosa); }
+.compositor-cinta-a { left: 36px; top: -12px; width: 92px; transform: rotate(-6deg); }
+.compositor-cinta-b { right: 40px; top: -11px; width: 80px; height: 22px; transform: rotate(5deg); }
+.compositor-campo { padding: 24px 24px 16px; font-size: 18px; color: var(--gris); }
+.compositor-barra { display: flex; align-items: center; gap: 10px; padding: 12px 14px 14px 20px; border-top: 2px dotted rgba(20, 16, 28, .3); }
+.compositor-barra .pill { padding: 5px 12px; font-size: 12px; }
+.compositor-presupuesto { font-size: 12px; color: var(--gris-tinta); }
+.compositor-enviar { display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; background: var(--tinta); }
+
+.inicio-tarjetas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; width: 780px; margin-top: 40px; }
+.inicio-tarjeta { padding: 16px 18px; background: var(--panel); border: 2px solid var(--borde); }
+.inicio-tarjeta-n { font-family: var(--display); font-size: 26px; line-height: 1; color: var(--acento, var(--crema)); }
+.inicio-tarjeta-titulo { margin-top: 8px; font-family: var(--display); font-size: 14px; text-transform: uppercase; }
+.inicio-tarjeta-texto { margin-top: 5px; font-size: 13px; line-height: 1.5; color: var(--lila); }
+.giro-izq { transform: rotate(-1.4deg); }
+.giro-der { transform: rotate(1deg); }
+.giro-leve { transform: rotate(-.6deg); }
+.acento-rosa { --acento: var(--rosa); }
+.acento-menta { --acento: var(--menta); }
+
+.medidor-inicio { width: 170px; }
+.medidor-inicio .medidor-relleno { width: 21%; }

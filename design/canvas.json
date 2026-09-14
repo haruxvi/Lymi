@@ -1,0 +1,35 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "Inicio" },
+    { "file": "Session.dc.html", "x": 1580, "y": 0, "w": 1440, "h": 900, "title": "Sesión activa · plan/apply" },
+    { "file": "Workflow.dc.html", "x": 0, "y": 1080, "w": 1440, "h": 900, "title": "Workflow · lienzo de nodos" },
+    { "file": "Egress.dc.html", "x": 1580, "y": 1080, "w": 1440, "h": 900, "title": "Egress" },
+    { "file": "Grafo.dc.html", "x": 0, "y": 2160, "w": 1440, "h": 900, "title": "Mapa de costos" },
+    { "file": "Temas.dc.html", "x": 1580, "y": 2160, "w": 1440, "h": 900, "title": "Apariencia", "is_interactive": true },
+    { "file": "Riced.dc.html", "x": 0, "y": 3240, "w": 1440, "h": 900, "title": "Tema aplicado · Catppuccin" }
+  ],
+  "annotations": [
+    {
+      "id": "sistema-riso",
+      "x": 0,
+      "y": -230,
+      "w": 980,
+      "text": "LYMI · LÍNEA EDITORIAL RISOGRAFÍA\n\nTintas: papel #191324 · rosa #ff48a0 (se paga) · menta #5ef2a8 (local, gratis) · crema #f5eee0 (neutro y hojas de papel).\nTipos: Archivo Black (display) · Archivo (texto) · JetBrains Mono (datos) · Noto Sans JP (ライミ).\n\nRegla de uso: la textura, los sellos, la cinta y las rotaciones son para marca y acentos. Tablas, formularios y cifras van rectos y legibles: una app se opera, no solo se mira.\nEl ledger es chrome permanente en todas las pantallas."
+    },
+    {
+      "id": "nota-workflow",
+      "x": -700,
+      "y": 1080,
+      "w": 620,
+      "text": "WORKFLOW · LIENZO DE NODOS\n\nEditor de nodos como n8n: paleta arrastrable, lienzo con cuadrícula, cables entre nodos, rama sí/no e inspector del nodo seleccionado.\n\nLo que n8n no tiene y aquí sí: cada nodo declara su tier (local, remoto, gratis, efecto), el cable toma el color del destino, el inspector muestra lo que ese nodo cuesta medido en corridas reales y a dónde sale el dato, el plan se calcula sin gastar un token, y el lienzo edita el mismo YAML versionable que corre el motor."
+    },
+    {
+      "id": "nota-temas",
+      "x": 1580,
+      "y": 3240,
+      "w": 620,
+      "text": "Apariencia es interactiva: haz clic en una tinta o una paleta y la vista previa y el theme.toml cambian.\nLa última pantalla muestra el mismo lenguaje re-entintado con Catppuccin: el tema cambia colores, no la semántica."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

@@ -1,0 +1,104 @@
+/* Workflow · lienzo de nodos */
+
+.paleta { display: flex; flex-direction: column; flex-shrink: 0; width: 212px; padding: 16px 12px; background: var(--papel-hondo); border-right: 3px solid var(--panel); }
+.buscador { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: var(--panel); border: 2px solid var(--borde); font-family: var(--mono); font-size: 12px; color: var(--gris); }
+.paleta-grupo { margin-top: 16px; }
+.paleta-grupo .rotulo { padding-bottom: 7px; font-size: 10px; letter-spacing: .16em; }
+.paleta-item { display: flex; align-items: center; gap: 9px; padding: 6px; font-size: 13px; color: var(--texto-suave); }
+.paleta-icono { flex-shrink: 0; width: 16px; height: 16px; border: 2px solid var(--icono-borde, var(--crema)); background: var(--icono-fondo, transparent); }
+.icono-crema { --icono-fondo: var(--crema); --icono-borde: var(--crema); }
+.icono-menta { --icono-fondo: var(--menta); --icono-borde: var(--menta); }
+.icono-rosa { --icono-fondo: var(--rosa); --icono-borde: var(--rosa); }
+.icono-mixto { --icono-fondo: var(--menta); --icono-borde: var(--rosa); }
+.icono-hueco { --icono-fondo: transparent; --icono-borde: var(--crema); }
+.paleta-ayuda { padding: 10px 11px; border: 2px dashed var(--borde); }
+.paleta-ayuda .rotulo { font-size: 10px; letter-spacing: .12em; }
+.paleta-ayuda p { margin: 5px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--lila); }
+
+.cabecera-flujo { display: flex; align-items: center; gap: 14px; flex-shrink: 0; height: 84px; padding: 0 24px; border-bottom: 3px solid var(--panel); }
+.cabecera-flujo .titulo { font-size: 22px; }
+/* Los disparadores van apilados: en una fila no caben junto a pestanas y botones. */
+.disparadores { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 5px; }
+.disparador { padding: 2px 9px; border: 2px solid currentColor; font-family: var(--mono); font-size: 10.5px; white-space: nowrap; }
+.disparador.menta { color: var(--menta); }
+.disparador.rosa { color: var(--rosa); }
+.pestanas { display: flex; border: 2px solid var(--borde); }
+.pestana { padding: 6px 11px; font-family: var(--display); font-size: 12px; color: var(--lila); }
+.pestana.activa { background: var(--crema); color: var(--tinta); }
+.cabecera-flujo .boton { white-space: nowrap; }
+.cabecera-flujo .boton.contorno { padding: 8px 15px; color: var(--texto); }
+.cabecera-flujo .boton.primario { padding: 10px 18px; }
+
+/* La superficie: la cuadricula de puntos del lienzo es la misma trama riso. */
+.lienzo { position: relative; flex-grow: 1; min-height: 0; background-color: var(--superficie); background-image: radial-gradient(circle, #2e2542 1.5px, transparent 1.7px); background-size: 22px 22px; }
+/* El flujo escala con el viewBox hasta caber en el ancho real del lienzo (~750 px):
+   con medidas fijas los ultimos nodos quedaban encima del inspector. */
+.lienzo-svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.cable-etiqueta { font-family: var(--mono); font-weight: 700; font-size: 11px; }
+
+/* Los nodos viven en <foreignObject>: su posicion sale de los mismos numeros que
+   dibujan los cables, en un solo lugar (renderVals). */
+.nodo { width: 136px; margin: 3px; background: var(--crema); color: var(--tinta); border-left: 7px solid var(--tier); box-shadow: 5px 6px 0 var(--tier); }
+.nodo.tier-gratis { box-shadow: 5px 6px 0 var(--borde); }
+.nodo.enfocado { outline: 3px solid var(--crema); }
+.nodo-cabeza { display: flex; align-items: center; gap: 6px; padding: 6px 8px 0; }
+.nodo-cuadro { width: 12px; height: 12px; background: var(--tier); }
+.nodo-tipo { font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; color: #6c6178; }
+.nodo-titulo { padding: 3px 8px 0; font-family: var(--display); font-size: 12.5px; line-height: 1.15; }
+.nodo-pie { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px 7px; }
+.nodo-pie .pill { padding: 1px 7px; font-size: 9.5px; }
+.nodo-costo { font-family: var(--mono); font-size: 10px; color: var(--gris-tinta); }
+.sello-aprobacion { margin: 4px; padding: 2px 8px 3px; background: var(--papel); font-size: 11px; transform: rotate(-7deg); }
+
+.lienzo-herramientas { position: absolute; right: 18px; top: 16px; display: flex; gap: 6px; }
+.herramienta { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--panel); border: 2px solid var(--borde); font-family: var(--mono); font-weight: 700; font-size: 12px; color: var(--lila); }
+
+.nota-plan { position: absolute; left: 22px; bottom: 20px; width: 330px; padding: 14px 16px 13px; box-shadow: 7px 8px 0 var(--rosa); transform: rotate(-1deg); }
+.nota-plan-cinta { left: 34px; top: -11px; width: 86px; height: 22px; transform: rotate(-6deg); }
+.nota-plan .rotulo { font-size: 10px; color: var(--gris-tinta); }
+.nota-plan-cifras { display: flex; align-items: flex-end; gap: 20px; margin-top: 9px; }
+.cifra-nota { font-family: var(--display); font-size: 30px; line-height: .9; }
+.cifra-nota.menta { color: var(--menta-tinta); }
+.cifra-nota.rosa { color: var(--rosa-tinta); }
+.cifra-nota-rotulo { font-size: 11.5px; }
+.proyeccion { padding: 2px 9px 5px; border: 3px solid var(--tinta); transform: rotate(-3deg); }
+.proyeccion-rotulo { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; }
+.proyeccion-cifra { font-family: var(--display); font-size: 22px; line-height: 1; }
+
+/* El ledger compacto vive en una columna de ~750 px: menos aire entre cifras, y
+   si aun falta ancho cede el dato de la ultima corrida, nunca las cifras. */
+.columna > .ledger.compacto { gap: 18px; }
+.ledger-ultima { min-width: 0; overflow: hidden; font-family: var(--mono); font-size: 11px; color: var(--gris); text-overflow: ellipsis; }
+
+.inspector { display: flex; flex-direction: column; flex-shrink: 0; width: 336px; padding: 20px 20px 18px; background: var(--papel-hondo); border-left: 3px solid var(--panel); }
+.inspector-tipo { display: flex; align-items: center; gap: 9px; }
+.inspector-tipo .rotulo { font-size: 10px; }
+.inspector-cuadro { width: 14px; height: 14px; background: var(--rosa); }
+.inspector-titulo { margin-top: 7px; font-family: var(--display); font-size: 20px; }
+
+.selector-tier { display: flex; margin-top: 16px; border: 2px solid var(--borde); }
+.selector-tier span { flex-grow: 1; padding: 7px 0; text-align: center; font-family: var(--display); font-size: 12px; color: var(--lila); }
+.selector-tier .opcion-local { color: var(--menta); }
+.selector-tier .opcion-activa { background: var(--rosa); color: var(--tinta); }
+
+.campos { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.campo .rotulo { font-size: 10px; letter-spacing: .12em; }
+.campo-valor { margin-top: 5px; padding: 8px 10px; background: var(--panel); border: 2px solid var(--borde); font-family: var(--mono); font-size: 12px; }
+.campo-valor.fila { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; }
+.campo-valor.prosa { line-height: 1.6; color: var(--texto-suave); }
+.campo-valor.condicion { color: var(--menta); }
+
+.costo-nodo { margin-top: 18px; padding: 13px 14px; border: 3px solid var(--rosa); }
+.costo-nodo .rotulo { font-size: 10px; letter-spacing: .12em; color: var(--rosa); }
+.costo-nodo-cifras { display: flex; align-items: flex-end; gap: 14px; margin-top: 7px; }
+.costo-nodo-cifra { font-family: var(--display); font-size: 30px; line-height: 1; color: var(--rosa); }
+.costo-nodo-tokens { padding-bottom: 3px; font-family: var(--mono); font-size: 11px; color: var(--lila); }
+.costo-nodo-nota { margin-top: 6px; font-size: 12px; color: var(--lila); }
+.egress-nodo { display: flex; align-items: center; gap: 7px; margin-top: 5px; font-family: var(--mono); font-size: 11px; }
+.egress-nodo.primero { margin-top: 10px; padding-top: 10px; border-top: 2px dotted var(--borde); }
+.egress-nodo i { width: 9px; height: 9px; border-radius: 50%; background: var(--tier); }
+
+.inspector-acciones { display: flex; gap: 9px; margin-top: 16px; }
+.inspector-acciones .boton { padding: 9px 14px; font-size: 12px; }
+.inspector-acciones .boton.contorno { padding: 7px 12px; border-color: var(--borde); color: var(--lila); }
+.inspector-pie { font-family: var(--mono); font-size: 11px; line-height: 1.6; color: var(--gris); }

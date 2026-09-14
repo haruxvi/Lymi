@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+# datos de corridas: reproducibles, no versionados
+runs/
+*.sqlite3
+*.sqlite3-journal
+
+# bundles generados del canvas: incluyen runtime de terceros, se regeneran desde design/*.dc.html
+design/lymi-desktop.html
+design/direcciones/direcciones-lymi.html
+
+# datos locales del desarrollador: rutas, cuentas, maquina
+CLAUDE.local.md

@@ -1,0 +1,367 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;700&family=Noto+Sans+JP:wght@700&family=JetBrains+Mono:wght@400;700&display=swap">
+  <style data-estilos>
+/* generado por design/estilos/sincronizar.mjs: editar design/estilos/, no aqui */
+/* lymi · risografía — tokens y componentes compartidos por todas las pantallas.
+   Fuente de verdad de los estilos. `node design/estilos/sincronizar.mjs` copia
+   este archivo (mas la hoja de cada pantalla) dentro de cada artboard: el canvas
+   ejecuta cada .dc.html aislado y no puede cargar hojas externas. */
+
+:root {
+  --papel: #191324;
+  --papel-hondo: #130e1b;
+  --superficie: #1b1526;
+  --panel: #221a31;
+  --borde: #3a3050;
+  --linea: #2c2340;
+  --tinta: #14101c;
+
+  --rosa: #ff48a0;
+  --rosa-tinta: #c2256f;
+  --menta: #5ef2a8;
+  --menta-tinta: #0f8f5c;
+  --crema: #f5eee0;
+  --cinta: rgba(245, 238, 224, .55);
+
+  --texto: #f5eee0;
+  --texto-suave: #cfc5df;
+  --lila: #a89cbd;
+  --gris: #6f6484;
+  --gris-tinta: #4a3e5c;
+
+  --display: 'Archivo Black', Impact, sans-serif;
+  --cuerpo: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --jp: 'Noto Sans JP', sans-serif;
+}
+
+body { margin: 0; background: var(--papel); font-family: var(--cuerpo); }
+a { color: var(--menta); }
+a:hover { color: var(--rosa); }
+
+/* ---------- lienzo ---------- */
+
+.pantalla { position: relative; display: flex; width: 1440px; height: 900px; overflow: hidden; background: var(--papel); color: var(--texto); }
+.columna { position: relative; display: flex; flex-direction: column; flex-grow: 1; min-width: 0; min-height: 0; }
+.espaciador { flex-grow: 1; }
+.grano { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: .13; mix-blend-mode: overlay; }
+
+/* ---------- tipografía ---------- */
+
+.display { font-family: var(--display); }
+.mono { font-family: var(--mono); }
+.titulo { font-family: var(--display); font-size: 24px; text-transform: uppercase; }
+.rotulo { font-family: var(--mono); font-weight: 700; font-size: 10.5px; letter-spacing: .14em; color: var(--gris); }
+.suave { color: var(--lila); }
+.tenue { color: var(--gris); }
+.derecha { text-align: right; }
+
+/* ---------- marca con desregistro de segunda tinta ---------- */
+
+.desregistro { position: relative; font-family: var(--display); line-height: .8; letter-spacing: -.06em; }
+.desregistro > span { position: absolute; left: 0; top: 0; }
+.desregistro > .sombra { color: var(--menta); mix-blend-mode: screen; opacity: .9; transform: translate(var(--dx, 5px), var(--dy, 4px)); }
+.desregistro > .frente { color: var(--rosa); }
+
+/* ---------- riel de navegación ---------- */
+
+.riel { display: flex; flex-direction: column; align-items: center; gap: 14px; flex-shrink: 0; width: 64px; padding-top: 18px; background: var(--papel-hondo); border-right: 3px solid var(--panel); }
+.riel-marca { width: 30px; height: 36px; font-size: 34px; line-height: 1; letter-spacing: 0; --dx: 3px; --dy: 3px; }
+.riel-marca > .sombra { opacity: 1; }
+.riel-sep { width: 26px; height: 3px; margin: 6px 0; background: var(--borde); }
+.riel-item { width: 26px; height: 26px; border: 2px solid var(--borde); }
+.riel-item.activo { background: var(--crema); border-color: var(--crema); transform: rotate(-6deg); }
+
+/* ---------- trama de puntos ---------- */
+
+.trama { position: absolute; pointer-events: none; opacity: .35; background-size: 8px 8px; -webkit-mask-image: radial-gradient(closest-side, #000, transparent); mask-image: radial-gradient(closest-side, #000, transparent); }
+.trama-rosa { background-image: radial-gradient(circle, var(--rosa) 1.3px, transparent 1.5px); }
+.trama-menta { background-image: radial-gradient(circle, var(--menta) 1.2px, transparent 1.4px); background-size: 7px 7px; }
+
+/* ---------- etiquetas, sellos, cinta y hojas de papel ---------- */
+
+.etiqueta { align-self: flex-start; padding: 3px 10px; font-family: var(--mono); font-weight: 700; font-size: 11px; letter-spacing: .14em; color: var(--tinta); transform: rotate(-2deg); }
+.etiqueta.rosa { background: var(--rosa); }
+.etiqueta.menta { background: var(--menta); }
+.etiqueta.crema { background: var(--crema); }
+
+.sello { display: inline-block; padding: 3px 12px 4px; border: 3px solid currentColor; font-family: var(--display); font-size: 14px; transform: rotate(-4deg); }
+.sello.rosa { color: var(--rosa); }
+.sello.menta { color: var(--menta); }
+
+.sello-grande { --sello: var(--menta); position: relative; align-self: flex-start; padding: 6px 18px 12px; border: 6px solid var(--sello); transform: rotate(-4deg); }
+.sello-grande.rosa { --sello: var(--rosa); }
+.sello-grande-trama { position: absolute; inset: 0; opacity: .3; background-image: radial-gradient(circle, var(--sello) 1.2px, transparent 1.4px); background-size: 6px 6px; }
+.sello-grande-cifra { position: relative; font-family: var(--display); font-size: 82px; line-height: .8; color: var(--sello); }
+
+.cinta { position: absolute; width: 90px; height: 24px; background: var(--cinta); border-left: 1px dashed rgba(20, 16, 28, .3); border-right: 1px dashed rgba(20, 16, 28, .3); }
+
+.hoja { position: relative; background: var(--crema); color: var(--tinta); }
+
+/* ---------- tiers: menta es tu GPU, rosa se paga ---------- */
+
+.tier-local { --tier: var(--menta); }
+.tier-remoto,
+.tier-efecto { --tier: var(--rosa); }
+.tier-gratis,
+.tier-indice { --tier: var(--crema); }
+.tier-texto { color: var(--tier); }
+.tier-fondo { background: var(--tier); }
+
+.pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: var(--tier, var(--crema)); color: var(--tinta); font-family: var(--mono); font-weight: 700; font-size: 10.5px; }
+
+/* ---------- botones ---------- */
+
+.boton { padding: 9px 16px; font-family: var(--display); font-size: 12.5px; }
+.boton.primario { background: var(--rosa); color: var(--tinta); transform: rotate(-2deg); }
+.boton.menta { background: var(--menta); color: var(--tinta); }
+.boton.crema { background: var(--crema); color: var(--tinta); }
+.boton.tinta { background: var(--tinta); color: var(--menta); }
+.boton.contorno { padding: 7px 14px; border: 2px solid currentColor; }
+
+/* ---------- barra del ledger: chrome permanente ---------- */
+
+.ledger { display: flex; align-items: center; gap: 34px; flex-shrink: 0; height: 76px; padding: 0 28px; background: var(--papel-hondo); border-top: 3px solid var(--rosa); }
+.ledger .etiqueta { align-self: center; padding: 3px 9px; letter-spacing: .18em; }
+.ledger > * { white-space: nowrap; }
+
+/* Sellos, pastillas y etiquetas son una sola pieza impresa: nunca parten en dos lineas. */
+.sello,
+.sello-grande,
+.pill,
+.etiqueta { white-space: nowrap; }
+.ledger-dato { display: flex; flex-direction: column; }
+.ledger-rotulo { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--gris); }
+.ledger-cifra { font-family: var(--display); font-size: 28px; line-height: 1; }
+.ledger-cifra.local { color: var(--menta); }
+.ledger-cifra.remoto { color: var(--rosa); }
+.ledger-sello { padding: 4px 12px 5px; font-size: 15px; }
+.medidor-dato { gap: 6px; }
+.medidor { width: 160px; height: 14px; padding: 2px; border: 2px solid var(--crema); }
+.medidor-relleno { height: 100%; background-color: rgba(94, 242, 168, .25); background-image: radial-gradient(circle, var(--menta) 1.4px, transparent 1.6px); background-size: 4px 4px; }
+
+.ledger.compacto { gap: 26px; height: 62px; padding: 0 24px; }
+.ledger.compacto .ledger-cifra { font-size: 20px; line-height: 1.2; }
+.ledger.compacto .ledger-cifra small { font-family: var(--mono); font-size: 10px; color: var(--gris); }
+.ledger.compacto .sello { padding: 2px 10px 3px; font-size: 13px; }
+
+/* Inicio */
+
+.lateral { position: relative; z-index: 2; display: flex; flex-direction: column; flex-shrink: 0; width: 232px; background: var(--papel-hondo); border-right: 3px solid var(--panel); }
+.lateral-marca { height: 70px; margin: 18px 20px 10px; font-size: 44px; line-height: 1; letter-spacing: -.05em; --dx: 4px; --dy: 4px; }
+.lateral-marca > .sombra { opacity: 1; }
+.lateral-jp { position: absolute; left: 2px; top: 52px; font-family: var(--jp); font-weight: 700; font-size: 11px; letter-spacing: .26em; color: var(--gris); }
+
+.lateral-nav { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; font-size: 13.5px; color: var(--lila); }
+.nav-punto { width: 8px; height: 8px; background: var(--borde); }
+.nav-item.activo { background: var(--crema); color: var(--tinta); font-family: var(--display); transform: rotate(-1.5deg); }
+.nav-item.activo .nav-punto { background: var(--rosa); }
+
+.lateral-seccion { margin: 30px 20px 10px; letter-spacing: .18em; }
+.lateral-sesiones { display: flex; flex-direction: column; padding: 0 12px; }
+.sesion { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 7px 12px; }
+.sesion-nombre { overflow: hidden; font-size: 13px; color: var(--lila); white-space: nowrap; text-overflow: ellipsis; }
+.sesion-hace { flex-shrink: 0; font-family: var(--mono); font-size: 10.5px; color: var(--gris); }
+
+.proveedores { display: flex; flex-direction: column; gap: 6px; margin: 14px; padding: 12px 14px; border: 2px dashed var(--borde); }
+.proveedor { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--texto); }
+.proveedor .tenue { font-size: 10.5px; }
+.proveedor-punto { width: 8px; height: 8px; border-radius: 50%; background: var(--tier); }
+
+.main-trama-a { right: -80px; top: -60px; width: 620px; height: 520px; opacity: .5; }
+.main-trama-b { left: -60px; bottom: 40px; width: 420px; height: 360px; opacity: .4; }
+
+.inicio { position: relative; display: flex; flex-direction: column; align-items: center; flex-grow: 1; padding-top: 70px; }
+.inicio-marca { width: 470px; height: 170px; font-size: 196px; transform: rotate(-2.5deg); --dx: 9px; --dy: 7px; }
+.inicio-tesis { margin: 30px 0 0; font-family: var(--display); font-size: 21px; text-transform: uppercase; letter-spacing: -.01em; }
+.resalta { padding: 0 6px; color: var(--tinta); }
+.resalta.rosa { background: var(--rosa); }
+.resalta.menta { background: var(--menta); }
+
+.inicio-stickers { display: flex; gap: 12px; margin-top: 18px; }
+.sticker { padding: 7px 16px; border-radius: 999px; color: var(--tinta); font-family: var(--display); font-size: 12.5px; }
+.sticker.menta { background: var(--menta); transform: rotate(-3deg); }
+.sticker.rosa { background: var(--rosa); transform: rotate(2deg); }
+
+.compositor { width: 780px; margin-top: 44px; box-shadow: 9px 10px 0 var(--rosa); }
+.compositor-cinta-a { left: 36px; top: -12px; width: 92px; transform: rotate(-6deg); }
+.compositor-cinta-b { right: 40px; top: -11px; width: 80px; height: 22px; transform: rotate(5deg); }
+.compositor-campo { padding: 24px 24px 16px; font-size: 18px; color: var(--gris); }
+.compositor-barra { display: flex; align-items: center; gap: 10px; padding: 12px 14px 14px 20px; border-top: 2px dotted rgba(20, 16, 28, .3); }
+.compositor-barra .pill { padding: 5px 12px; font-size: 12px; }
+.compositor-presupuesto { font-size: 12px; color: var(--gris-tinta); }
+.compositor-enviar { display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; background: var(--tinta); }
+
+.inicio-tarjetas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; width: 780px; margin-top: 40px; }
+.inicio-tarjeta { padding: 16px 18px; background: var(--panel); border: 2px solid var(--borde); }
+.inicio-tarjeta-n { font-family: var(--display); font-size: 26px; line-height: 1; color: var(--acento, var(--crema)); }
+.inicio-tarjeta-titulo { margin-top: 8px; font-family: var(--display); font-size: 14px; text-transform: uppercase; }
+.inicio-tarjeta-texto { margin-top: 5px; font-size: 13px; line-height: 1.5; color: var(--lila); }
+.giro-izq { transform: rotate(-1.4deg); }
+.giro-der { transform: rotate(1deg); }
+.giro-leve { transform: rotate(-.6deg); }
+.acento-rosa { --acento: var(--rosa); }
+.acento-menta { --acento: var(--menta); }
+
+.medidor-inicio { width: 170px; }
+.medidor-inicio .medidor-relleno { width: 21%; }
+  </style>
+</helmet>
+
+<div class="pantalla">
+
+  <aside class="lateral">
+    <div class="lateral-marca desregistro">
+      <span class="sombra">lymi</span>
+      <span class="frente">lymi</span>
+      <small class="lateral-jp">ライミ</small>
+    </div>
+
+    <nav class="lateral-nav">
+      <sc-for list="{{nav}}" as="n" hint-placeholder-count="7">
+        <div class="nav-item {{n.clase}}">
+          <i class="nav-punto"></i>
+          <span>{{n.label}}</span>
+        </div>
+      </sc-for>
+    </nav>
+
+    <div class="rotulo lateral-seccion">SESIONES</div>
+    <div class="lateral-sesiones">
+      <sc-for list="{{sessions}}" as="s" hint-placeholder-count="6">
+        <div class="sesion">
+          <span class="sesion-nombre">{{s.name}}</span>
+          <span class="sesion-hace">{{s.ago}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div class="espaciador"></div>
+    <div class="proveedores">
+      <div class="proveedor tier-local">
+        <i class="proveedor-punto"></i>
+        <span class="mono">qwen2.5:3b</span>
+        <span class="mono tenue">2.4 GB VRAM</span>
+      </div>
+      <div class="proveedor tier-remoto">
+        <i class="proveedor-punto"></i>
+        <span class="mono">claude code</span>
+        <span class="mono tenue">suscripción</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="columna">
+    <div class="trama trama-rosa main-trama-a"></div>
+    <div class="trama trama-menta main-trama-b"></div>
+
+    <section class="inicio">
+      <div class="inicio-marca desregistro">
+        <span class="sombra">lymi</span>
+        <span class="frente">lymi</span>
+      </div>
+
+      <p class="inicio-tesis">Todo token, <span class="resalta rosa">anotado</span>. Todo byte que sale, <span class="resalta menta">auditado</span>.</p>
+
+      <div class="inicio-stickers">
+        <span class="sticker menta">local-first</span>
+        <span class="sticker rosa">sin humo</span>
+      </div>
+
+      <!-- compositor: recto para usarse; la cinta es solo acento -->
+      <div class="hoja compositor">
+        <i class="cinta compositor-cinta-a"></i>
+        <i class="cinta compositor-cinta-b"></i>
+        <div class="compositor-campo">Dale una tarea a lymi…</div>
+        <div class="compositor-barra">
+          <span class="pill tier-local">qwen2.5:3b · LOCAL</span>
+          <span class="pill tier-remoto">opus · REMOTO</span>
+          <span class="mono compositor-presupuesto">presupuesto 20k tok</span>
+          <div class="espaciador"></div>
+          <div class="compositor-enviar">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#5ef2a8" stroke-width="2.4"><path d="M10 16V4M4.5 9.5L10 4l5.5 5.5"></path></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="inicio-tarjetas">
+        <sc-for list="{{starters}}" as="c" hint-placeholder-count="3">
+          <div class="inicio-tarjeta {{c.clase}}">
+            <div class="inicio-tarjeta-n">{{c.n}}</div>
+            <div class="inicio-tarjeta-titulo">{{c.titulo}}</div>
+            <div class="inicio-tarjeta-texto">{{c.texto}}</div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <footer class="ledger">
+      <span class="etiqueta rosa">LEDGER</span>
+      <div class="ledger-dato">
+        <span class="ledger-rotulo">LOCAL · GRATIS</span>
+        <span class="ledger-cifra local">{{localTok}}</span>
+      </div>
+      <div class="ledger-dato">
+        <span class="ledger-rotulo">REMOTO · SE PAGA</span>
+        <span class="ledger-cifra remoto">{{remoteTok}}</span>
+      </div>
+      <div class="ledger-dato">
+        <span class="ledger-rotulo">COSTO</span>
+        <span class="ledger-cifra">$0.014</span>
+      </div>
+      <div class="ledger-dato medidor-dato">
+        <span class="ledger-rotulo">CONTEXTO 4.2k / 20k</span>
+        <div class="medidor medidor-inicio"><div class="medidor-relleno"></div></div>
+      </div>
+      <div class="espaciador"></div>
+      <div class="sello menta ledger-sello">EGRESS 0</div>
+    </footer>
+  </main>
+
+  <svg class="grano" width="1440" height="900" aria-hidden="true">
+    <filter id="grano"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"></feTurbulence></filter>
+    <rect width="1440" height="900" filter="url(#grano)" fill="#ffffff"></rect>
+  </svg>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"localPct":{"editor":"range","default":96,"min":0,"max":100,"step":1,"unit":"%","section":"Ledger"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const pct = Math.max(0, Math.min(100, this.props.localPct ?? 96));
+    const total = 87300;
+    const local = Math.round((total * pct) / 100);
+    const fmt = (n) => (n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n));
+    const etiquetas = ['Nueva sesión', 'Workflows', 'Integraciones', 'Ledger', 'Egress', 'Mapa de costos', 'Apariencia'];
+    return {
+      localTok: fmt(local),
+      remoteTok: fmt(total - local),
+      nav: etiquetas.map((label, i) => ({ label, clase: i === 0 ? 'activo' : '' })),
+      sessions: [
+        { name: 'Rotación de tokens en auth', ago: '2m' },
+        { name: 'Curva de escalamiento, 1M', ago: '18m' },
+        { name: 'Triage de leads', ago: '1h' },
+        { name: 'Índice simbólico del monorepo', ago: '3h' },
+        { name: 'Conectores MCP', ago: '5h' },
+        { name: 'Auditoría de egress', ago: 'ayer' },
+      ],
+      starters: [
+        { n: '01', titulo: 'Medir un repo', texto: 'Recibo contra la línea base y curva de escalamiento.', clase: 'giro-izq acento-rosa' },
+        { n: '02', titulo: 'Correr un workflow', texto: 'Plan primero: qué cuesta y qué pide aprobación.', clase: 'giro-der acento-menta' },
+        { n: '03', titulo: 'Auditar lo que salió', texto: 'Destino y hash de todo lo que dejó tu máquina.', clase: 'giro-leve' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

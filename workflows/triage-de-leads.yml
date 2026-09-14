@@ -1,0 +1,73 @@
+# Triage de leads entrantes.
+#
+# Cinco pasos, uno solo se paga. Los modelos locales extraen y clasifican; el
+# modelo caro solo redacta cuando el lead vale la pena, y el aviso a Slack pide
+# aprobacion antes de salir porque cambia algo fuera de lymi.
+#
+#   lymi flow plan workflows/triage-de-leads.yml
+#   lymi flow run  workflows/triage-de-leads.yml --input correo=@correo.txt
+
+name: triage_de_leads
+description: Clasifica un correo entrante y redacta respuesta solo si el lead es bueno.
+
+inputs:
+  correo:
+    type: string
+    description: Texto completo del correo recibido.
+
+integrations:
+  slack:
+    type: http
+    allow_hosts: [hooks.slack.com]
+
+steps:
+  - id: extraer
+    type: llm
+    tier: local
+    output: json
+    system: Devuelves solo JSON valido, sin texto alrededor.
+    prompt: |
+      Extrae de este correo un JSON con las claves empresa, cargo,
+      presupuesto_usd (numero o null) y urgencia (baja|media|alta).
+
+      Correo:
+      {{ inputs.correo }}
+
+  - id: clasificar
+    type: llm
+    tier: local
+    output: json
+    system: Devuelves solo JSON valido, sin texto alrededor.
+    prompt: |
+      Dado este lead, devuelve {"score": numero entre 0 y 1, "motivo": texto corto}.
+      Un score alto es un lead con presupuesto claro y urgencia real.
+
+      Lead: {{ steps.extraer.output }}
+
+  - id: ficha
+    type: transform
+    set:
+      empresa: "{{ steps.extraer.output.empresa }}"
+      score: "{{ steps.clasificar.output.score }}"
+      motivo: "{{ steps.clasificar.output.motivo }}"
+
+  - id: redactar
+    type: llm
+    tier: remote
+    when: steps.clasificar.output.score > 0.7
+    system: Escribes respuestas comerciales breves, concretas y sin relleno.
+    prompt: |
+      Redacta una respuesta de tres frases para este lead. Propone una llamada.
+
+      Ficha: {{ steps.ficha.output }}
+      Correo original:
+      {{ inputs.correo }}
+
+  - id: avisar
+    type: http
+    integration: slack
+    method: POST
+    when: steps.clasificar.output.score > 0.7
+    url: https://hooks.slack.com/services/${SLACK_WEBHOOK_PATH}
+    body:
+      text: "Lead caliente: {{ steps.ficha.output.empresa }} ({{ steps.ficha.output.score }})"
