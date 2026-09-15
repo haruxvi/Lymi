@@ -1,0 +1,18 @@
+# Etiquetas de sensibilidad por ruta. Copia a sensibilidad.yml y ajusta.
+#
+# Niveles: publico, interno, confidencial, nunca-sale.
+# La primera regla que coincide gana. Hay un piso fijo que ninguna regla baja:
+# .env, llaves (*.pem, *.key, id_rsa*), .ssh/ y bovedas (*.kdbx) son nunca-sale.
+#
+# nunca-sale: el texto literal del archivo no llega a ningun proveedor remoto ni
+# integracion. El modelo local si puede leerlo y lo que resuma si puede salir.
+
+por_defecto: interno
+
+reglas:
+  - ruta: "contratos/*"
+    nivel: nunca-sale
+  - ruta: "*.xlsx"
+    nivel: confidencial
+  - ruta: "docs/publico/*"
+    nivel: publico

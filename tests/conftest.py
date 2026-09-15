@@ -29,6 +29,13 @@ class KeyringEnMemoria(KeyringBackend):
         del self.datos[(service, username)]
 
 
+@pytest.fixture(autouse=True)
+def parada_aislada(tmp_path_factory, monkeypatch):
+    """Ninguna prueba lee la parada real: un `lymi stop` del usuario no rompe la suite."""
+    monkeypatch.setenv("LYMI_PARADA", str(tmp_path_factory.mktemp("parada") / "PARAR"))
+    monkeypatch.setenv("LYMI_DIARIO", str(tmp_path_factory.mktemp("diario")))
+
+
 @pytest.fixture
 def keyring_memoria():
     anterior = keyring.get_keyring()

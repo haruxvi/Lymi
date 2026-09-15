@@ -1,0 +1,176 @@
+/* Interfaz de lymi: layout y vistas.
+   Tokens y componentes (etiquetas, sellos, pastillas, ledger...) vienen de riso.css,
+   la misma fuente que las maquetas. Nada de estilos inline: la CSP no los permite. */
+
+html, body { height: 100%; }
+body { color: var(--texto); }
+
+.saltar { position: absolute; left: -9999px; top: 8px; z-index: 10; padding: 8px 12px; background: var(--crema); color: var(--tinta); }
+.saltar:focus { left: 8px; }
+
+:focus-visible { outline: 3px solid var(--menta); outline-offset: 2px; }
+
+.app { display: grid; grid-template-columns: 232px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; height: 100vh; }
+.app-grano { position: fixed; inset: 0; width: 100%; height: 100%; }
+
+/* ---------- lateral ---------- */
+
+.lateral { position: relative; z-index: 2; grid-row: 1 / 3; display: flex; flex-direction: column; background: var(--papel-hondo); border-right: 3px solid var(--panel); padding-bottom: 18px; }
+.lateral-marca { display: block; height: 70px; margin: 18px 20px 10px; font-size: 44px; line-height: 1; letter-spacing: -.05em; text-decoration: none; --dx: 4px; --dy: 4px; }
+.lateral-marca > .sombra { opacity: 1; }
+.lateral-jp { position: absolute; left: 2px; top: 52px; font-family: var(--jp); font-weight: 700; font-size: 11px; letter-spacing: .26em; color: var(--gris); }
+.lateral-nav { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; font-size: 13.5px; color: var(--lila); text-decoration: none; }
+.nav-item:hover { color: var(--texto); }
+.nav-punto { width: 8px; height: 8px; background: var(--borde); }
+.nav-item.activo { background: var(--crema); color: var(--tinta); font-family: var(--display); transform: rotate(-1.5deg); }
+.nav-item.activo .nav-punto { background: var(--rosa); }
+.lateral-pie { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 0 22px; font-size: 11px; }
+
+/* ---------- contenido ---------- */
+
+.contenido { position: relative; overflow: auto; padding: 34px 40px 56px; }
+.contenido:focus { outline: none; }
+.barra-ledger { grid-column: 2; }
+.ledger-vacio { font-family: var(--mono); font-size: 12px; color: var(--gris); }
+
+.cargando { padding: 40px 0; font-family: var(--mono); color: var(--gris); }
+
+.vista-cabecera { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; margin-bottom: 26px; }
+.vista-cabecera > div { flex-grow: 1; min-width: 0; }
+.vista-titulo { margin: 0; font-family: var(--display); font-size: 34px; line-height: 1; text-transform: uppercase; overflow-wrap: anywhere; }
+.vista-sub { margin: 8px 0 0; max-width: 72ch; font-size: 14px; line-height: 1.55; color: var(--lila); }
+.seccion { margin: 38px 0 14px; font-family: var(--display); font-size: 17px; text-transform: uppercase; }
+.volver { display: inline-block; margin-bottom: 14px; font-family: var(--mono); font-size: 12px; color: var(--lila); text-decoration: none; }
+.volver:hover { color: var(--texto); }
+
+/* ---------- inicio ---------- */
+
+.inicio-cabeza { position: relative; display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 30px; }
+.inicio-trama { right: -40px; top: -40px; width: 480px; height: 360px; opacity: .45; }
+.inicio-marca { width: 360px; height: 130px; font-size: 150px; transform: rotate(-2.5deg); --dx: 7px; --dy: 6px; }
+.inicio-tesis { margin: 22px 0 0; font-family: var(--display); font-size: 19px; text-transform: uppercase; letter-spacing: -.01em; }
+.resalta { padding: 0 6px; color: var(--tinta); }
+.resalta.rosa { background: var(--rosa); }
+.resalta.menta { background: var(--menta); }
+
+/* ---------- tarjetas y cifras ---------- */
+
+.rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+.tarjeta { position: relative; display: block; padding: 16px 18px; background: var(--panel); border: 2px solid var(--borde); color: inherit; text-decoration: none; }
+a.tarjeta:hover { border-color: var(--crema); }
+.tarjeta-titulo { margin-top: 8px; font-family: var(--display); font-size: 15px; text-transform: uppercase; }
+.tarjeta-n { font-family: var(--display); font-size: 26px; line-height: 1; color: var(--acento, var(--crema)); }
+.acento-rosa { --acento: var(--rosa); }
+.acento-menta { --acento: var(--menta); }
+.cifra { margin-top: 8px; font-family: var(--display); font-size: 36px; line-height: 1; overflow-wrap: anywhere; }
+.cifra.local { color: var(--menta); }
+.cifra.remoto { color: var(--rosa); }
+.nota { margin-top: 6px; font-size: 13px; line-height: 1.5; color: var(--lila); }
+
+/* ---------- tablas: rectas y legibles ---------- */
+
+.tabla-marco { overflow-x: auto; background: var(--tinta); }
+.tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tabla th { padding: 10px 14px; border-bottom: 3px solid var(--panel); text-align: left; font-family: var(--mono); font-weight: 700; font-size: 10.5px; letter-spacing: .12em; color: var(--gris); white-space: nowrap; }
+.tabla td { padding: 10px 14px; border-bottom: 2px dotted var(--linea); vertical-align: top; }
+.tabla tr.clicable { cursor: pointer; }
+.tabla tr.clicable:hover td,
+.tabla tr.clicable:focus-visible td { background: rgba(245, 238, 224, .05); }
+.num { font-family: var(--mono); text-align: right; white-space: nowrap; }
+/* Sin cortes a mitad de palabra: un id o un hash partido no se puede copiar ni leer.
+   Si la tabla no cabe, su marco hace scroll horizontal. */
+.mono-chico { font-family: var(--mono); font-size: 11.5px; }
+.celda-ancha { min-width: 180px; }
+
+/* ---------- estados ---------- */
+
+.estado { display: inline-block; padding: 2px 9px; border: 2px solid var(--borde); border-radius: 999px; font-family: var(--mono); font-weight: 700; font-size: 10.5px; color: var(--lila); white-space: nowrap; }
+.estado.ok, .estado.passed { border-color: var(--menta); color: var(--menta); }
+.estado.fallo, .estado.failed, .estado.error, .estado.rechazado { border-color: var(--rosa); color: var(--rosa); }
+.estado.en_curso, .estado.running, .estado.esperando, .estado.falta { border-color: var(--crema); color: var(--crema); }
+.estado.omitido { color: var(--gris); }
+
+/* ---------- formularios ---------- */
+
+.formulario { max-width: 760px; }
+.campo { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.campo-rotulo { font-family: var(--mono); font-weight: 700; font-size: 10.5px; letter-spacing: .12em; color: var(--gris); }
+.campo-ayuda { font-size: 12.5px; color: var(--lila); }
+.entrada { padding: 9px 11px; background: var(--panel); border: 2px solid var(--borde); color: var(--texto); font-family: var(--mono); font-size: 13px; }
+textarea.entrada { min-height: 150px; resize: vertical; line-height: 1.55; }
+.entrada:focus { outline: none; border-color: var(--menta); }
+.opciones { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.opcion { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 2px solid var(--borde); cursor: pointer; }
+.opcion:has(input:checked) { border-color: var(--crema); background: var(--panel); }
+.opcion input { margin-top: 3px; accent-color: var(--rosa); }
+.opcion > span { display: flex; flex-direction: column; gap: 4px; }
+.opcion-titulo { font-family: var(--display); font-size: 14px; text-transform: uppercase; }
+.opcion.deshabilitada { opacity: .5; cursor: not-allowed; }
+
+button.boton { border: 0; cursor: pointer; }
+button.boton.contorno { background: transparent; color: var(--texto); }
+button.boton:disabled { opacity: .45; cursor: not-allowed; }
+.acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+
+/* ---------- bloques de texto ---------- */
+
+.codigo-bloque { margin: 0; max-height: 440px; padding: 14px 18px; overflow: auto; background: var(--tinta); color: var(--texto-suave); font-family: var(--mono); font-size: 12.5px; line-height: 1.7; white-space: pre; }
+.eventos { max-height: 280px; white-space: pre-wrap; }
+
+.aviso { padding: 12px 14px; border: 2px dashed var(--borde); font-size: 13px; line-height: 1.5; color: var(--lila); }
+.aviso.error { border-color: var(--rosa); color: var(--rosa); }
+.aviso.ok { border-color: var(--menta); color: var(--menta); }
+.vacio { padding: 30px; border: 2px dashed var(--borde); text-align: center; line-height: 1.6; color: var(--lila); }
+
+/* ---------- hojas de papel: aprobacion y recibo ---------- */
+
+.hoja-app { max-width: 760px; margin: 22px 0; padding: 22px 24px 20px; }
+.hoja-app .cinta { left: 36px; top: -12px; transform: rotate(-5deg); }
+.hoja-app .sello-hoja { position: absolute; right: 18px; top: 16px; background: var(--crema); font-size: 12px; }
+.aprobacion { box-shadow: 8px 9px 0 var(--rosa); }
+.recibo { box-shadow: 8px 9px 0 var(--menta); }
+.hoja-titulo { margin: 0 0 6px; font-family: var(--display); font-size: 18px; text-transform: uppercase; }
+.hoja-texto { font-size: 13.5px; line-height: 1.55; color: var(--gris-tinta); }
+.hoja-app .codigo-bloque { margin-top: 12px; max-height: 260px; background: rgba(20, 16, 28, .07); color: var(--tinta); white-space: pre-wrap; }
+.hoja-app .boton.contorno { color: var(--tinta); }
+.hoja-app .boton.rechazo { color: var(--rosa-tinta); padding: 9px 10px; background: transparent; }
+
+.titular { margin: 14px 0 4px; font-family: var(--display); font-size: 54px; line-height: .9; }
+.titular.ahorro { color: var(--menta-tinta); }
+.titular.sin-ahorro { font-size: 30px; color: var(--rosa-tinta); }
+.comparacion { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+.comp-fila { display: grid; grid-template-columns: 90px 1fr 90px; gap: 12px; align-items: center; font-size: 12.5px; }
+.comp-pista { height: 14px; background: rgba(20, 16, 28, .12); }
+.comp-relleno { height: 100%; }
+.comp-relleno.base { background-image: radial-gradient(circle, var(--gris-tinta) 1.3px, transparent 1.5px); background-size: 4px 4px; }
+.comp-relleno.lymi { background: var(--menta-tinta); }
+.lineas-recibo { margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.7; }
+.pie-recibo { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 12px; border-top: 2px dotted rgba(20, 16, 28, .3); font-family: var(--mono); font-size: 11.5px; }
+.pie-recibo a { color: var(--tinta); }
+
+.sello-chico { padding: 1px 8px 2px; border-width: 2px; font-size: 11px; }
+button.boton.boton-parada { padding: 6px 12px; font-size: 11.5px; white-space: nowrap; }
+button.boton.boton-parada.contorno { color: var(--rosa); }
+
+/* ---------- apariencia ---------- */
+
+.muestras { display: flex; flex-shrink: 0; }
+.muestras i { width: 12px; height: 28px; }
+.tarjeta-tema { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; background: transparent; border: 3px solid var(--linea); color: var(--lila); font: inherit; font-size: 13px; font-weight: 700; text-align: left; cursor: pointer; }
+.tarjeta-tema.activa { background: var(--panel); border-color: var(--crema); color: var(--texto); }
+.colores { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.color { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 2px solid var(--borde); font-family: var(--mono); font-size: 12px; }
+.color input { width: 34px; height: 26px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+
+@media (max-width: 860px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; }
+  .lateral { grid-row: auto; flex-direction: row; align-items: center; overflow-x: auto; padding: 0 8px; border-right: 0; border-bottom: 3px solid var(--panel); }
+  .lateral-marca { flex-shrink: 0; height: 44px; margin: 10px 12px; font-size: 30px; }
+  .lateral-jp, .lateral-pie, .lateral .espaciador { display: none; }
+  .lateral-nav { flex-direction: row; }
+  .nav-item { white-space: nowrap; }
+  .barra-ledger { grid-column: 1; overflow-x: auto; }
+  .contenido { padding: 24px 18px 40px; }
+  .inicio-marca { width: 260px; height: 96px; font-size: 110px; }
+}

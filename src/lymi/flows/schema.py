@@ -165,7 +165,94 @@ class TransformStep(_Paso):
     set: dict[str, Any]
 
 
-Step = Annotated[LlmStep | ToolStep | HttpStep | TransformStep, Field(discriminator="type")]
+_CAMPOS_PC = {
+    "leer": {"ruta"},
+    "listar": {"ruta"},
+    "escribir": {"ruta", "contenido"},
+    "mover": {"ruta", "destino"},
+    "borrar": {"ruta"},
+    "ejecutar": {"comando"},
+}
+
+
+class PcStep(_Paso):
+    """Accion sobre este PC a traves del ejecutor del host: nunca un shell.
+
+    Las rutas y comandos se juzgan contra el perfil (`ejecutor.yml`) al ejecutar;
+    aqui se valida la forma. Escribir, mover, borrar y ejecutar piden aprobacion.
+    """
+
+    type: Literal["pc"]
+    op: Literal["leer", "listar", "escribir", "mover", "borrar", "ejecutar"]
+    ruta: str | None = None
+    destino: str | None = None
+    contenido: str | None = None
+    comando: str | None = None
+    args: list[str] = []
+
+    @property
+    def efectos(self) -> bool:
+        return self.op in {"escribir", "mover", "borrar", "ejecutar"}
+
+    @model_validator(mode="after")
+    def _campos(self) -> PcStep:
+        presentes = {c for c in ("ruta", "destino", "contenido", "comando") if getattr(self, c) is not None}
+        requeridos = _CAMPOS_PC[self.op]
+        if faltan := requeridos - presentes:
+            raise ValueError(f"paso {self.id!r}: op {self.op} requiere {', '.join(sorted(faltan))}")
+        if sobran := presentes - requeridos:
+            raise ValueError(f"paso {self.id!r}: op {self.op} no admite {', '.join(sorted(sobran))}")
+        if self.args and self.op != "ejecutar":
+            raise ValueError(f"paso {self.id!r}: args solo aplica a op ejecutar")
+        return self
+
+
+_CAMPOS_WEB = {
+    "extraer": {"url"},
+    "mapear": {"url"},
+    "buscar": {"consulta"},
+    "investigar": {"pregunta"},
+}
+
+
+class WebStep(_Paso):
+    """Lectura de la web hecha por lymi: pagina a markdown, mapa, busqueda o investigacion.
+
+    No cambia nada afuera, asi que no pide aprobacion; pero cada peticion es egress
+    y queda en el ledger, y nunca alcanza la red interna.
+    """
+
+    type: Literal["web"]
+    op: Literal["extraer", "mapear", "buscar", "investigar"]
+    url: str | None = None
+    consulta: str | None = None
+    pregunta: str | None = None
+    urls: list[str] | str = []
+    """Solo investigar: fuentes fijas en vez de buscar. Admite una plantilla que produzca una lista."""
+    tier: Literal["local", "remote"] = "local"
+    """Solo investigar: quien redacta la respuesta."""
+    max_paginas: int = Field(20, ge=1, le=200)
+    profundidad: int = Field(1, ge=0, le=3)
+    max_resultados: int = Field(5, ge=1, le=20)
+
+    @model_validator(mode="after")
+    def _campos(self) -> WebStep:
+        presentes = {c for c in ("url", "consulta", "pregunta") if getattr(self, c) is not None}
+        requeridos = _CAMPOS_WEB[self.op]
+        if faltan := requeridos - presentes:
+            raise ValueError(f"paso {self.id!r}: op {self.op} requiere {', '.join(sorted(faltan))}")
+        if sobran := presentes - requeridos:
+            raise ValueError(f"paso {self.id!r}: op {self.op} no admite {', '.join(sorted(sobran))}")
+        if self.urls and self.op != "investigar":
+            raise ValueError(f"paso {self.id!r}: urls solo aplica a op investigar")
+        if self.url is not None and _usa_env(self.url):
+            raise ValueError(f"paso {self.id!r}: una URL publica no lleva ${{VARIABLE}}; los secretos no se leen en la web")
+        return self
+
+
+Step = Annotated[
+    LlmStep | ToolStep | HttpStep | TransformStep | PcStep | WebStep, Field(discriminator="type")
+]
 
 
 class InputSpec(_Base):

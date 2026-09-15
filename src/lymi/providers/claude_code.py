@@ -49,6 +49,10 @@ class ClaudeCodeAuthError(RuntimeError):
     """El CLI esta instalado pero la sesion no autentica."""
 
 
+class ClaudeCodeLimiteError(RuntimeError):
+    """La suscripcion llego a su limite de uso: no es un fallo, es una espera."""
+
+
 def _leer_usage(payload: dict[str, Any]) -> Usage:
     """Lee el consumo del JSON del CLI de forma defensiva.
 
@@ -105,11 +109,20 @@ def _revisar_error(payload: dict[str, Any]) -> None:
     if not payload.get("is_error"):
         return
     detalle = str(payload.get("result") or payload.get("terminal_reason") or "sin detalle")
-    if "authenticate" in detalle.lower() or "oauth" in detalle.lower():
+    minusculas = detalle.lower()
+    if "authenticate" in minusculas or "oauth" in minusculas:
         raise ClaudeCodeAuthError(
             f"{detalle}. Abre una terminal, ejecuta `claude` y usa /login."
         )
+    if any(senal in minusculas for senal in _SENALES_LIMITE):
+        raise ClaudeCodeLimiteError(
+            f"tu suscripcion llego a su limite de uso ({detalle[:160]}). "
+            "Espera a que se restablezca; mientras tanto: lymi bench snake --demo"
+        )
     raise RuntimeError(f"claude -p fallo: {detalle[:400]}")
+
+
+_SENALES_LIMITE = ("session limit", "usage limit", "limit reached", "hit your limit", "quota")
 
 
 def _resolver_binario(binario: str) -> str:

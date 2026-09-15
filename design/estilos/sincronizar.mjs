@@ -67,5 +67,18 @@ for (const archivo of artboards) {
   }
 }
 
-if (!problemas) console.log(`ok: ${artboards.length} artboards con estilos al dia y sin {{ }} en style=""`);
+// La interfaz real (`lymi ui`) usa los mismos tokens y componentes que las maquetas:
+// una sola fuente para el diseno y para la app.
+const RISO_APP = join(DISENO, '..', 'src', 'lymi', 'ui', 'static', 'riso.css');
+const cssApp = `/* generado por design/estilos/sincronizar.mjs desde design/estilos/riso.css: no editar aqui */\n${base}`;
+if (!existsSync(RISO_APP) || leer(RISO_APP) !== cssApp) {
+  if (soloRevisar) {
+    avisar('src/lymi/ui/static/riso.css: desincronizado (corre sin --check)');
+  } else {
+    writeFileSync(RISO_APP, cssApp, 'utf8');
+    console.log('src/lymi/ui/static/riso.css: actualizado');
+  }
+}
+
+if (!problemas) console.log(`ok: ${artboards.length} artboards y la app con estilos al dia, sin {{ }} en style=""`);
 process.exit(problemas ? 1 : 0);

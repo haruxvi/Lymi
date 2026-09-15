@@ -54,6 +54,8 @@ class CallRecord:
     ok: bool = True
     error: str | None = None
     egress: bool = False
+    redacciones: int = 0
+    """Secretos o datos personales reemplazados por marcadores antes de salir."""
     payload: str | None = field(default=None, repr=False)
     """Texto exacto enviado al proveedor. No se guarda: solo su hash y tamano.
     Asi el log de egress es auditable sin convertirse en una segunda copia de
@@ -68,10 +70,24 @@ class Ledger:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(self.path, isolation_level=None)
         self.conn.row_factory = sqlite3.Row
+        self._migrar()
         self.conn.executescript(SCHEMA.read_text(encoding="utf-8"))
 
     def close(self) -> None:
         self.conn.close()
+
+    def _migrar(self) -> None:
+        """Agrega columnas nuevas a bases creadas con un esquema anterior.
+
+        Va antes del esquema: la vista `run_totals` se recrea al abrir y ya lee las
+        columnas nuevas, asi que sobre una tabla vieja fallaria.
+        """
+        tablas = {f[0] for f in self.conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+        if "calls" not in tablas:
+            return
+        columnas = {f[1] for f in self.conn.execute("PRAGMA table_info(calls)")}
+        if "redacciones" not in columnas:
+            self.conn.execute("ALTER TABLE calls ADD COLUMN redacciones INTEGER NOT NULL DEFAULT 0")
 
     # ---------------- corridas ----------------
 
@@ -150,15 +166,15 @@ class RunHandle:
         self.ledger.conn.execute(
             "INSERT INTO calls (run_id, seq, ts, provider, model, billing_mode, tier,"
             " purpose, input_tokens, output_tokens, cache_read_tokens, cache_write_tokens,"
-            " cost_usd, latency_ms, ok, error, egress, payload_sha256, payload_bytes)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            " cost_usd, latency_ms, ok, error, egress, payload_sha256, payload_bytes, redacciones)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
                 self.run_id, self._seq, _now(), call.provider, call.model,
                 str(call.billing), call.tier, call.purpose,
                 call.input_tokens, call.output_tokens,
                 call.cache_read_tokens, call.cache_write_tokens,
                 cost, call.latency_ms, int(call.ok), call.error,
-                int(call.egress), digest, size,
+                int(call.egress), digest, size, call.redacciones,
             ),
         )
         return cost

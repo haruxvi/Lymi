@@ -4,7 +4,16 @@ Los agentes con control del PC arrastran tres riesgos, y por eso es comun
 aislarlos en una maquina desechable. lymi no puede ser un asistente de escritorio
 util hasta que los tres esten resueltos **en la maquina del usuario**.
 
-Estado: **diseno**. Nada de esto esta implementado todavia salvo lo marcado.
+Estado al 2026-09-14:
+
+- **Fallo 3, capas 3-5: implementado.** Pasarela en `bench/runner.Recorder`:
+  saneamiento de Unicode, redaccion reversible, bloqueo de claves privadas y de
+  contenido `nunca-sale`, egress registrado con el hash de lo que de verdad salio.
+  Etiquetas por ruta en `privacidad/etiquetas.py`. Falta la capa 6 (retencion).
+- **Fallo 1, capas 1, 7 y 8: parcial.** Plan/apply en workflows; parada por archivo
+  (`lymi stop`) y presupuestos de tokens y llamadas. Faltan ejecutor, diario de
+  deshacer, capacidades por ruta, worktrees y sandbox.
+- **Fallo 2: pendiente.**
 
 ---
 

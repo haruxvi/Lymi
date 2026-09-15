@@ -13,6 +13,7 @@ import pytest
 from lymi.ledger import Billing
 from lymi.providers.claude_code import (
     ClaudeCodeAuthError,
+    ClaudeCodeLimiteError,
     _facturacion,
     _leer_usage,
     _modelo,
@@ -58,6 +59,11 @@ class TestDeteccionDeError:
         with pytest.raises(RuntimeError) as exc:
             _revisar_error({"is_error": True, "result": "rate limit exceeded"})
         assert not isinstance(exc.value, ClaudeCodeAuthError)
+
+    def test_el_limite_de_la_suscripcion_se_explica(self) -> None:
+        # Respuesta real del 2026-09-14: cortaba la medicion con una traza de 80 lineas.
+        with pytest.raises(ClaudeCodeLimiteError, match="limite de uso"):
+            _revisar_error({"is_error": True, "result": "You've hit your session limit · resets 10:20pm"})
 
     def test_una_respuesta_sana_no_levanta(self) -> None:
         _revisar_error(EXITO)

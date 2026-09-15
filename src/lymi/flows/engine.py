@@ -13,16 +13,21 @@ import os
 import time
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 import httpx
 
 from lymi.bench.runner import Recorder
+from lymi.control import Detenido, Presupuesto, PresupuestoAgotado, verificar_parada
+from lymi.ejecutor import Diario, Ejecutor, Perfil, cargar_perfil, raiz_diario
 from lymi.flows import condition, template
 from lymi.flows.aprobaciones import Politica, Solicitud, resolver_aprobacion
 from lymi.flows.nodes import McpPool, PasoError, Recursos, destino_de, ejecutar, vista_previa
-from lymi.flows.schema import InputSpec, McpIntegration, Workflow
+from lymi.flows.schema import InputSpec, McpIntegration, PcStep, WebStep, Workflow
+from lymi.web import Buscador, Web, buscador_configurado
 from lymi.ledger import Billing, Ledger
+from lymi.privacidad import sanear_valor
 from lymi.providers.base import LLMClient
 
 Aprobador = Callable[..., bool | Awaitable[bool]]
@@ -130,13 +135,20 @@ async def ejecutar_flujo(
     aprobar: Aprobador = negar_todo,
     politica: Politica | None = None,
     tiempo_aprobacion: float | None = None,
+    presupuesto: Presupuesto | None = None,
+    protegidos: tuple[str, ...] = (),
+    perfil: Perfil | None = None,
+    web: Web | None = None,
+    buscador: Buscador | None = None,
     entorno: Mapping[str, str] | None = None,
     http_client: httpx.AsyncClient | None = None,
     variante: str = "flow",
     espera: Callable[[float], Awaitable[Any]] = asyncio.sleep,
 ) -> ResultadoFlujo:
     """Corre el workflow completo y devuelve el estado de cada paso."""
-    valores = preparar_inputs(flujo, inputs)
+    # Las entradas son texto ajeno (un correo, un webhook): se sanean antes de que
+    # cualquier plantilla las lleve a un modelo.
+    valores, _ = sanear_valor(preparar_inputs(flujo, inputs))
     entorno = dict(os.environ) if entorno is None else dict(entorno)
     contexto: dict[str, Any] = {"inputs": valores, "steps": {}}
     estados: list[EstadoPaso] = []
@@ -156,7 +168,20 @@ async def ejecutar_flujo(
 
     with ledger.run(flujo.name, variante, billing) as run:
         pool = McpPool(servidores_mcp, entorno)
-        recursos = Recursos(Recorder(run), local, remote, pool, cliente_http, entorno)
+        grabador = Recorder(run, presupuesto=presupuesto, protegidos=protegidos)
+        # El ejecutor y su diario solo existen si el workflow actua sobre el PC.
+        ejecutor = None
+        if any(isinstance(p, PcStep) for p in flujo.steps):
+            base = Path.cwd()
+            ejecutor = Ejecutor(
+                perfil or cargar_perfil(base / "ejecutor.yml", base),
+                Diario(raiz_diario() / run.run_id),
+                base=base,
+            )
+        if any(isinstance(p, WebStep) for p in flujo.steps):
+            web = web or Web(cliente_http)
+            buscador = buscador or buscador_configurado(entorno, cliente_http)
+        recursos = Recursos(grabador, local, remote, pool, cliente_http, entorno, ejecutor, web, buscador)
 
         def terminar_mal(estado: EstadoPaso) -> ResultadoFlujo:
             estados.append(estado)
@@ -169,6 +194,15 @@ async def ejecutar_flujo(
         try:
             for paso in flujo.steps:
                 inicio = time.perf_counter()
+
+                # Entre pasos, no solo entre llamadas: un paso http o de herramienta
+                # tambien actua fuera de lymi.
+                try:
+                    verificar_parada()
+                    if presupuesto is not None:
+                        presupuesto.verificar()
+                except (Detenido, PresupuestoAgotado) as exc:
+                    return terminar_mal(EstadoPaso(paso.id, "fallo", str(exc)))
 
                 if paso.when is not None:
                     try:

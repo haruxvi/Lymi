@@ -101,8 +101,16 @@ src/lymi/
                supervisor MCP), engine, plan, aprobaciones, catalogo (manifiestos
                de Hermes), oauth (navegador), oauth_dispositivo (RFC 8628)
   triggers/    cron, agenda, webhook, ganchos, politica desatendida, servidor
+  privacidad/  unicode (saneamiento), redaccion (reversible, bloqueo), etiquetas
+               (sensibilidad por ruta). La pasarela que los aplica es
+               `bench/runner.Recorder.preparar`: toda llamada a un modelo pasa por ahi
+  control.py   parada por archivo (`lymi stop|resume`) y presupuestos
   doctor.py    diagnostico de proveedores (`lymi setup`)
   cli*.py      comandos
+  ui/          `lymi ui`: app Starlette local (host + token + CSP), trabajos en
+               segundo plano con aprobaciones desde el navegador, tema;
+               static/ = index.html, app.js (sin dependencias), app.css, riso.css
+               (generado por design/estilos/sincronizar.mjs)
 tests/         pruebas; tests/servidores/eco_mcp.py = servidor MCP real
 workflows/     ejemplos
 design/        maquetas (*.dc.html) y sitio; estilos en design/estilos/ (riso.css +

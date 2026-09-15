@@ -7,6 +7,7 @@ from typing import Annotated
 
 import typer
 
+from lymi.control import Presupuesto
 from lymi.flows.aprobaciones import (
     Decision,
     MemoriaAprobaciones,
@@ -19,6 +20,13 @@ from lymi.flows.engine import EntradaError, correr
 from lymi.flows.plan import planificar, resumir
 from lymi.flows.schema import Workflow, WorkflowError, cargar
 from lymi.ledger import Ledger
+from lymi.privacidad.etiquetas import (
+    EtiquetaError,
+    Etiquetas,
+    Nivel,
+    cargar_etiquetas,
+    fragmentos_protegidos,
+)
 
 flow_app = typer.Typer(
     help="Workflows declarativos: validar, planificar y correr.",
@@ -49,7 +57,20 @@ def _cargar(archivo: Path) -> Workflow:
 
 def _entradas(pares: list[str]) -> dict[str, str]:
     """Convierte `clave=valor` y `clave=@archivo` en un diccionario."""
+    return _entradas_etiquetadas(pares, Etiquetas())[0]
+
+
+def _entradas_etiquetadas(
+    pares: list[str], etiquetas: Etiquetas
+) -> tuple[dict[str, str], tuple[str, ...], list[str]]:
+    """Como `_entradas`, mas lo que no puede salir y los avisos para mostrar.
+
+    Devuelve (valores, fragmentos protegidos, avisos). Solo los archivos tienen
+    etiqueta: un valor escrito a mano en la terminal no viene de ninguna ruta.
+    """
     valores: dict[str, str] = {}
+    protegidos: list[str] = []
+    avisos: list[str] = []
     for par in pares:
         clave, separador, valor = par.partition("=")
         if not separador or not clave:
@@ -62,8 +83,14 @@ def _entradas(pares: list[str]) -> dict[str, str]:
             except OSError as exc:
                 typer.secho(f"no se pudo leer {ruta}: {exc}", fg=typer.colors.RED)
                 raise typer.Exit(1) from None
+            nivel = etiquetas.nivel_de(ruta)
+            if nivel is Nivel.NUNCA_SALE:
+                protegidos.extend(fragmentos_protegidos(valor))
+                avisos.append(
+                    f"{clave}: {ruta} es nunca-sale; su texto no llegara a ningun proveedor remoto ni integracion"
+                )
         valores[clave] = valor
-    return valores
+    return valores, tuple(protegidos), avisos
 
 
 @flow_app.command("validate")
@@ -118,13 +145,27 @@ def run(
     memoria_db: Annotated[
         Path, typer.Option("--memoria-aprobaciones", help="Decisiones 'siempre para este destino'.")
     ] = Path("runs/aprobaciones.sqlite3"),
+    max_tokens_remotos: Annotated[
+        int | None, typer.Option(min=1, help="Tope de tokens remotos; al alcanzarlo no empieza otro paso.")
+    ] = None,
+    max_llamadas: Annotated[int | None, typer.Option(min=1, help="Tope de llamadas a modelos.")] = None,
+    sensibilidad: Annotated[
+        Path, typer.Option(help="Reglas de sensibilidad por ruta para los archivos de entrada.")
+    ] = Path("sensibilidad.yml"),
     db: Annotated[Path, typer.Option(help="Ruta del ledger.")] = Path("runs/lymi.sqlite3"),
 ) -> None:
     """Ejecuta el workflow. Cada efecto pide aprobacion salvo con --yes."""
     from lymi.bench.wiring import proveedores
 
     flujo = _cargar(archivo)
-    valores = _entradas(entrada or [])
+    try:
+        etiquetas = cargar_etiquetas(sensibilidad)
+    except EtiquetaError as exc:
+        typer.secho(f"  {exc}", fg=typer.colors.RED)
+        raise typer.Exit(1) from None
+    valores, protegidos, avisos = _entradas_etiquetadas(entrada or [], etiquetas)
+    for aviso in avisos:
+        typer.secho(f"  {aviso}", fg=typer.colors.MAGENTA)
 
     local, etiqueta_local, remoto, etiqueta_remota = proveedores()
     typer.secho(
@@ -167,6 +208,10 @@ def run(
         resultado = correr(
             flujo, valores, ledger=ledger, local=local, remote=remoto,
             aprobar=aprobar, politica=politica, tiempo_aprobacion=vencimiento,
+            presupuesto=Presupuesto(max_tokens_remotos, max_llamadas)
+            if max_tokens_remotos or max_llamadas
+            else None,
+            protegidos=protegidos,
         )
         totales = ledger.totals(resultado.run_id) or {}
     except EntradaError as exc:
@@ -191,3 +236,50 @@ def run(
 
     if not resultado.ok:
         raise typer.Exit(1)
+
+
+aprobaciones_app = typer.Typer(
+    help="Decisiones recordadas con 'siempre para este destino'.",
+    no_args_is_help=True,
+    add_completion=False,
+)
+flow_app.add_typer(aprobaciones_app, name="approvals")
+
+_MEMORIA_POR_DEFECTO = Path("runs/aprobaciones.sqlite3")
+
+
+@aprobaciones_app.command("list")
+def listar_aprobaciones(
+    memoria_db: Annotated[
+        Path, typer.Option("--memoria-aprobaciones", help="Ruta de las decisiones recordadas.")
+    ] = _MEMORIA_POR_DEFECTO,
+) -> None:
+    """Lista las decisiones vigentes. Las vencidas no se muestran: ya no deciden nada."""
+    from datetime import UTC, datetime
+
+    ahora = datetime.now(UTC)
+    vigentes = [
+        f for f in MemoriaAprobaciones(memoria_db).listar() if datetime.fromisoformat(f["hasta"]) > ahora
+    ]
+    if not vigentes:
+        typer.echo("  No hay decisiones recordadas.")
+        return
+    for f in vigentes:
+        metodo = f["metodo"] or "*"
+        typer.echo(f"  {f['decision']:<10}{f['destino']:<40}{metodo:<8}hasta {f['hasta'][:10]}")
+
+
+@aprobaciones_app.command("forget")
+def olvidar_aprobacion(
+    destino: Annotated[str, typer.Argument(help="Destino recordado, ej. hooks.slack.com")],
+    metodo: Annotated[str | None, typer.Option(help="Solo este metodo HTTP.")] = None,
+    memoria_db: Annotated[
+        Path, typer.Option("--memoria-aprobaciones", help="Ruta de las decisiones recordadas.")
+    ] = _MEMORIA_POR_DEFECTO,
+) -> None:
+    """Olvida las decisiones de un destino: la proxima vez se vuelve a preguntar."""
+    olvidadas = MemoriaAprobaciones(memoria_db).olvidar(destino, metodo)
+    if not olvidadas:
+        typer.secho(f"  No habia decisiones recordadas para {destino}.", fg=typer.colors.YELLOW)
+        raise typer.Exit(1)
+    typer.secho(f"  olvidadas {olvidadas} decisiones para {destino}", fg=typer.colors.GREEN)

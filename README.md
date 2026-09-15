@@ -70,6 +70,7 @@ configurados y omite los demas.
 ## Uso rapido
 
 ```bash
+uv run lymi ui             # la app en el navegador, solo en esta maquina
 uv run lymi setup          # que proveedores estan listos y que falta
 uv run lymi bench snake    # mide una tarea contra la linea base y emite el recibo
 uv run lymi ledger         # corridas registradas

@@ -61,6 +61,8 @@ este repositorio, por lo que no requieren aviso; se listan por transparencia.
 | [mcp-server-chart](https://github.com/antvis/mcp-server-chart) | MIT | Graficos via MCP; solo con servidor de render propio. |
 | [dify](https://github.com/langgenius/dify) | Apache 2.0 modificada | Solo ideas: nodo de intervencion humana con vencimiento. |
 | [Everywhere](https://github.com/Sylinko/Everywhere) | BSL 1.1 | Solo ideas: contexto de pantalla via arbol de accesibilidad. |
+| [OpenSandbox](https://github.com/opensandbox-group/OpenSandbox) | Apache 2.0 | Candidato a runtime de sandbox (via su servidor MCP). Idea adoptada: la carga de trabajo nunca ve la credencial real; la pasarela la inyecta al salir. |
+| [claude-unlimited](https://github.com/DevDock-AI/claude-unlimited) | MIT | **Nucleo descartado**: rota cuentas para esquivar los limites de uso de cada suscripcion, lo que choca con los terminos de los proveedores. Solo ideas neutras: avisar antes de agotar la cuota, atribucion de uso por proyecto. |
 
 ## Recursos de diseno
 

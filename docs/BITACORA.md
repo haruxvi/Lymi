@@ -181,8 +181,50 @@ Contrastado contra las filas del ledger de las corridas `1f85e5ee2e1c` y
   CONTRIBUTING, plantilla de PR, `.gitattributes`, README con estado real.
 - 378 pruebas verdes, `uv lock --check` ok.
 
+## [2026-09-14] codigo | App navegable y calentamiento de cache
+
+- `lymi bench` calienta la cache del proveedor antes de medir (`calentar_cache`,
+  corrida aparte `calentamiento`), para que la linea base no le regale cache a
+  lymi. `--sin-calentar` lo apaga.
+- `lymi ui`: app local sobre datos reales, en `src/lymi/ui/`. Starlette con
+  guardia propia: host exacto (DNS rebinding), token por proceso en toda la API,
+  Origin ajeno rechazado, CSP sin inline, sin internet. Bench y workflows corren
+  como trabajos en hilos; los efectos piden aprobacion en el navegador con
+  vencimiento (vencer = rechazar) y "siempre para este destino".
+- Frontend sin dependencias: ningun dato entra como HTML (todo por nodos de
+  texto) y los estilos dinamicos van por CSSOM. `riso.css` de la app lo genera
+  `sincronizar.mjs` desde la misma fuente que las maquetas.
+- Revisada en el navegador contra el ledger real (14 corridas): corregidos el
+  texto pegado en las opciones de Medir y los cortes a mitad de palabra en tablas.
+- 412 pruebas verdes (34 nuevas), ruff limpio.
+
+## [2026-09-14] codigo | Pasarela de egress, parada y presupuestos
+
+- Medicion real con calentamiento: la linea base paso; la suscripcion llego a su
+  limite de sesion a mitad de lymi y cayo con una traza. Nuevo
+  `ClaudeCodeLimiteError`: el bench lo explica en una linea.
+- Pasarela en `Recorder.preparar`, usada por el bench y por los pasos LLM de
+  workflows: parada -> presupuesto -> saneamiento Unicode -> contenido
+  `nunca-sale` -> redaccion reversible (solo si sale). La respuesta se rehidrata.
+  El egress registrado es el texto redactado: lo que de verdad salio. Nueva
+  columna `redacciones` (migracion automatica de bases viejas).
+- Lo que corta la pasarela no se reintenta en workflows.
+- Etiquetas de sensibilidad por ruta con piso fijo (.env, llaves, .ssh, bovedas).
+  `flow run -i x=@archivo` protege el literal `nunca-sale`; el modelo local si lo lee.
+- `lymi stop|resume` (archivo de parada, visible para todo proceso) y boton en la
+  app que revoca aprobaciones pendientes. `flow run --max-tokens-remotos --max-llamadas`.
+- `lymi flow approvals list|forget`.
+- Leccion: la herramienta de escritura convirtio escapes `‮` en caracteres
+  invisibles literales dentro del codigo (Trojan Source). Ruff lo detecto
+  (PLE2502/PLE2515); se reemplazaron por escapes con un script sin barras.
+- Repos evaluados: OpenSandbox (Apache 2.0, candidato a sandbox via MCP; idea de
+  inyectar credenciales en la salida), claude-unlimited (MIT, nucleo descartado:
+  rota cuentas para esquivar limites de uso). dify ya estaba evaluado.
+- 480 pruebas verdes, ruff limpio.
+
 ### Hilos abiertos al cierre
 
 - Bloqueante del usuario: primer commit (configurar correo noreply antes).
+- Repetir `lymi bench snake` real con calentamiento cuando la suscripcion se restablezca.
 - Primera medicion real.
 - Editor de temas funcional sobre `theme.toml`.

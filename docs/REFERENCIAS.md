@@ -24,6 +24,8 @@ implementacion.
 | mcp-server-chart | MIT | 26 graficos via MCP | **Solo con servidor de render propio**: por defecto envia los datos a Alipay |
 | dify | Apache 2.0 **modificada** | Plataforma de apps LLM con workflows visuales | **Solo ideas**: nodo `human_input` con vencimiento |
 | Everywhere | **BSL 1.1** | Asistente que lee el contexto de pantalla | **Solo ideas**: leer arbol de accesibilidad en vez de capturas |
+| OpenSandbox | Apache 2.0 | Plataforma de sandbox para agentes (Docker/Kubernetes, SDKs, MCP) | **Candidato** a runtime de sandbox via su MCP; **idea adoptada**: la credencial real la inyecta la salida, nunca la ve la carga de trabajo |
+| claude-unlimited | MIT | Proxy que rota varias cuentas de Claude/ChatGPT cuando una llega al limite | **Nucleo descartado** (esquiva limites de uso por cuenta: choca con los terminos de los proveedores); ideas neutras: avisar antes de agotar cuota, atribucion por proyecto |
 
 ## Detalle por repositorio
 
@@ -146,3 +148,31 @@ Prohibe usos competidores. Idea clave para el Jarvis: leer el **arbol de
 accesibilidad** del sistema (UI Automation en Windows, AX en macOS) y convertir
 paginas web a markdown via accesibilidad, en vez de enviar capturas de pantalla.
 Texto estructurado cuesta una fraccion de los tokens de una imagen.
+
+### OpenSandbox (Apache 2.0) — candidato para el sandbox
+
+Auditado el 2026-09-14 (commit 47ccb7a). Go en el nucleo, SDKs en Python, TS, Java,
+Go y C#, servidor MCP con creacion de sandbox, comandos y archivos. Aislamiento
+fuerte opcional (gVisor, Kata, Firecracker) y control de egress por sandbox.
+
+- **Para lymi**: el pendiente "sandbox para codigo generado" puede usar su MCP en
+  vez de construir un runtime. Requiere Docker: en una maquina de 16 GB compite
+  con el modelo local, asi que va como opcion, no como dependencia.
+- **Idea adoptada, "Credential Vault"**: la carga de trabajo recibe credenciales
+  falsas y la salida inyecta la real al hacer la peticion. Es la misma regla que
+  ya sigue lymi (`${VAR}` solo se expande en la URL de la pasarela, nunca llega al
+  modelo) llevada a procesos ajenos. Aplica cuando exista el ejecutor del host.
+
+### claude-unlimited (MIT) — nucleo descartado
+
+Auditado el 2026-09-14 (commit d075fbe). Proxy local en `127.0.0.1:4317` que junta
+varias suscripciones de Claude, ChatGPT/Codex y claves de API, y cambia de cuenta
+cuando una llega a su limite, sin que la sesion lo note. Incluye traduccion de
+Codex a la forma de la API de Anthropic.
+
+- **Descartado**: rotar cuentas para seguir cuando una llega a su limite es
+  esquivar los limites por cuenta, algo que los terminos de los proveedores no
+  permiten. lymi no va a depender de eso ni a ofrecerlo.
+- **Ideas neutras que si sirven**: avisar antes de agotar la cuota (lymi ya tiene el
+  consumo por llamada en el ledger), atribucion de uso por proyecto, export/import
+  cifrado de la configuracion.

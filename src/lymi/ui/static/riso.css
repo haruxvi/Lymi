@@ -1,0 +1,143 @@
+/* generado por design/estilos/sincronizar.mjs desde design/estilos/riso.css: no editar aqui */
+/* lymi · risografía — tokens y componentes compartidos por todas las pantallas.
+   Fuente de verdad de los estilos. `node design/estilos/sincronizar.mjs` copia
+   este archivo (mas la hoja de cada pantalla) dentro de cada artboard: el canvas
+   ejecuta cada .dc.html aislado y no puede cargar hojas externas. */
+
+:root {
+  --papel: #191324;
+  --papel-hondo: #130e1b;
+  --superficie: #1b1526;
+  --panel: #221a31;
+  --borde: #3a3050;
+  --linea: #2c2340;
+  --tinta: #14101c;
+
+  --rosa: #ff48a0;
+  --rosa-tinta: #c2256f;
+  --menta: #5ef2a8;
+  --menta-tinta: #0f8f5c;
+  --crema: #f5eee0;
+  --cinta: rgba(245, 238, 224, .55);
+
+  --texto: #f5eee0;
+  --texto-suave: #cfc5df;
+  --lila: #a89cbd;
+  --gris: #6f6484;
+  --gris-tinta: #4a3e5c;
+
+  --display: 'Archivo Black', Impact, sans-serif;
+  --cuerpo: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --jp: 'Noto Sans JP', sans-serif;
+}
+
+body { margin: 0; background: var(--papel); font-family: var(--cuerpo); }
+a { color: var(--menta); }
+a:hover { color: var(--rosa); }
+
+/* ---------- lienzo ---------- */
+
+.pantalla { position: relative; display: flex; width: 1440px; height: 900px; overflow: hidden; background: var(--papel); color: var(--texto); }
+.columna { position: relative; display: flex; flex-direction: column; flex-grow: 1; min-width: 0; min-height: 0; }
+.espaciador { flex-grow: 1; }
+.grano { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: .13; mix-blend-mode: overlay; }
+
+/* ---------- tipografía ---------- */
+
+.display { font-family: var(--display); }
+.mono { font-family: var(--mono); }
+.titulo { font-family: var(--display); font-size: 24px; text-transform: uppercase; }
+.rotulo { font-family: var(--mono); font-weight: 700; font-size: 10.5px; letter-spacing: .14em; color: var(--gris); }
+.suave { color: var(--lila); }
+.tenue { color: var(--gris); }
+.derecha { text-align: right; }
+
+/* ---------- marca con desregistro de segunda tinta ---------- */
+
+.desregistro { position: relative; font-family: var(--display); line-height: .8; letter-spacing: -.06em; }
+.desregistro > span { position: absolute; left: 0; top: 0; }
+.desregistro > .sombra { color: var(--menta); mix-blend-mode: screen; opacity: .9; transform: translate(var(--dx, 5px), var(--dy, 4px)); }
+.desregistro > .frente { color: var(--rosa); }
+
+/* ---------- riel de navegación ---------- */
+
+.riel { display: flex; flex-direction: column; align-items: center; gap: 14px; flex-shrink: 0; width: 64px; padding-top: 18px; background: var(--papel-hondo); border-right: 3px solid var(--panel); }
+.riel-marca { width: 30px; height: 36px; font-size: 34px; line-height: 1; letter-spacing: 0; --dx: 3px; --dy: 3px; }
+.riel-marca > .sombra { opacity: 1; }
+.riel-sep { width: 26px; height: 3px; margin: 6px 0; background: var(--borde); }
+.riel-item { width: 26px; height: 26px; border: 2px solid var(--borde); }
+.riel-item.activo { background: var(--crema); border-color: var(--crema); transform: rotate(-6deg); }
+
+/* ---------- trama de puntos ---------- */
+
+.trama { position: absolute; pointer-events: none; opacity: .35; background-size: 8px 8px; -webkit-mask-image: radial-gradient(closest-side, #000, transparent); mask-image: radial-gradient(closest-side, #000, transparent); }
+.trama-rosa { background-image: radial-gradient(circle, var(--rosa) 1.3px, transparent 1.5px); }
+.trama-menta { background-image: radial-gradient(circle, var(--menta) 1.2px, transparent 1.4px); background-size: 7px 7px; }
+
+/* ---------- etiquetas, sellos, cinta y hojas de papel ---------- */
+
+.etiqueta { align-self: flex-start; padding: 3px 10px; font-family: var(--mono); font-weight: 700; font-size: 11px; letter-spacing: .14em; color: var(--tinta); transform: rotate(-2deg); }
+.etiqueta.rosa { background: var(--rosa); }
+.etiqueta.menta { background: var(--menta); }
+.etiqueta.crema { background: var(--crema); }
+
+.sello { display: inline-block; padding: 3px 12px 4px; border: 3px solid currentColor; font-family: var(--display); font-size: 14px; transform: rotate(-4deg); }
+.sello.rosa { color: var(--rosa); }
+.sello.menta { color: var(--menta); }
+
+.sello-grande { --sello: var(--menta); position: relative; align-self: flex-start; padding: 6px 18px 12px; border: 6px solid var(--sello); transform: rotate(-4deg); }
+.sello-grande.rosa { --sello: var(--rosa); }
+.sello-grande-trama { position: absolute; inset: 0; opacity: .3; background-image: radial-gradient(circle, var(--sello) 1.2px, transparent 1.4px); background-size: 6px 6px; }
+.sello-grande-cifra { position: relative; font-family: var(--display); font-size: 82px; line-height: .8; color: var(--sello); }
+
+.cinta { position: absolute; width: 90px; height: 24px; background: var(--cinta); border-left: 1px dashed rgba(20, 16, 28, .3); border-right: 1px dashed rgba(20, 16, 28, .3); }
+
+.hoja { position: relative; background: var(--crema); color: var(--tinta); }
+
+/* ---------- tiers: menta es tu GPU, rosa se paga ---------- */
+
+.tier-local { --tier: var(--menta); }
+.tier-remoto,
+.tier-efecto { --tier: var(--rosa); }
+.tier-gratis,
+.tier-indice { --tier: var(--crema); }
+.tier-texto { color: var(--tier); }
+.tier-fondo { background: var(--tier); }
+
+.pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: var(--tier, var(--crema)); color: var(--tinta); font-family: var(--mono); font-weight: 700; font-size: 10.5px; }
+
+/* ---------- botones ---------- */
+
+.boton { padding: 9px 16px; font-family: var(--display); font-size: 12.5px; }
+.boton.primario { background: var(--rosa); color: var(--tinta); transform: rotate(-2deg); }
+.boton.menta { background: var(--menta); color: var(--tinta); }
+.boton.crema { background: var(--crema); color: var(--tinta); }
+.boton.tinta { background: var(--tinta); color: var(--menta); }
+.boton.contorno { padding: 7px 14px; border: 2px solid currentColor; }
+
+/* ---------- barra del ledger: chrome permanente ---------- */
+
+.ledger { display: flex; align-items: center; gap: 34px; flex-shrink: 0; height: 76px; padding: 0 28px; background: var(--papel-hondo); border-top: 3px solid var(--rosa); }
+.ledger .etiqueta { align-self: center; padding: 3px 9px; letter-spacing: .18em; }
+.ledger > * { white-space: nowrap; }
+
+/* Sellos, pastillas y etiquetas son una sola pieza impresa: nunca parten en dos lineas. */
+.sello,
+.sello-grande,
+.pill,
+.etiqueta { white-space: nowrap; }
+.ledger-dato { display: flex; flex-direction: column; }
+.ledger-rotulo { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--gris); }
+.ledger-cifra { font-family: var(--display); font-size: 28px; line-height: 1; }
+.ledger-cifra.local { color: var(--menta); }
+.ledger-cifra.remoto { color: var(--rosa); }
+.ledger-sello { padding: 4px 12px 5px; font-size: 15px; }
+.medidor-dato { gap: 6px; }
+.medidor { width: 160px; height: 14px; padding: 2px; border: 2px solid var(--crema); }
+.medidor-relleno { height: 100%; background-color: rgba(94, 242, 168, .25); background-image: radial-gradient(circle, var(--menta) 1.4px, transparent 1.6px); background-size: 4px 4px; }
+
+.ledger.compacto { gap: 26px; height: 62px; padding: 0 24px; }
+.ledger.compacto .ledger-cifra { font-size: 20px; line-height: 1.2; }
+.ledger.compacto .ledger-cifra small { font-family: var(--mono); font-size: 10px; color: var(--gris); }
+.ledger.compacto .sello { padding: 2px 10px 3px; font-size: 13px; }

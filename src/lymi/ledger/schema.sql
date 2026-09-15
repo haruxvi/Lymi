@@ -37,7 +37,9 @@ CREATE TABLE IF NOT EXISTS calls (
     -- Semilla del control de egress (Fase 6): que salio de la maquina.
     egress             INTEGER NOT NULL DEFAULT 0,  -- 1 si el payload salio a internet
     payload_sha256     TEXT,
-    payload_bytes      INTEGER
+    payload_bytes      INTEGER,
+    -- Secretos o datos personales reemplazados por marcadores antes de salir.
+    redacciones        INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_calls_run ON calls(run_id);
@@ -81,6 +83,7 @@ SELECT
     -- Cuantas llamadas quedaron sin tarifa: si esto no es 0, el costo esta incompleto.
     SUM(CASE WHEN c.cost_usd IS NULL AND c.billing_mode = 'api' THEN 1 ELSE 0 END) AS unpriced_calls,
     COALESCE(SUM(c.latency_ms), 0)           AS latency_ms,
+    COALESCE(SUM(c.redacciones), 0)          AS redacciones,
     COALESCE(SUM(c.egress), 0)               AS egress_calls
 FROM runs r
 LEFT JOIN calls c ON c.run_id = r.id

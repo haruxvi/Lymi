@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="lymi-token" content="__LYMI_TOKEN__">
+  <title>lymi</title>
+  <link rel="stylesheet" href="/static/riso.css">
+  <link rel="stylesheet" href="/static/app.css">
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body>
+  <a class="saltar" href="#vista">Saltar al contenido</a>
+  <div class="app">
+    <aside class="lateral">
+      <a class="lateral-marca desregistro" href="#/inicio" aria-label="lymi, inicio">
+        <span class="sombra" aria-hidden="true">lymi</span>
+        <span class="frente" aria-hidden="true">lymi</span>
+        <small class="lateral-jp" aria-hidden="true">ライミ</small>
+      </a>
+      <nav class="lateral-nav" id="nav" aria-label="Secciones">
+        <a class="nav-item" href="#/inicio" data-ruta="inicio"><i class="nav-punto"></i><span>Inicio</span></a>
+        <a class="nav-item" href="#/proveedores" data-ruta="proveedores"><i class="nav-punto"></i><span>Proveedores</span></a>
+        <a class="nav-item" href="#/medir" data-ruta="medir"><i class="nav-punto"></i><span>Medir</span></a>
+        <a class="nav-item" href="#/corridas" data-ruta="corridas"><i class="nav-punto"></i><span>Corridas</span></a>
+        <a class="nav-item" href="#/workflows" data-ruta="workflows"><i class="nav-punto"></i><span>Workflows</span></a>
+        <a class="nav-item" href="#/egress" data-ruta="egress"><i class="nav-punto"></i><span>Egress</span></a>
+        <a class="nav-item" href="#/apariencia" data-ruta="apariencia"><i class="nav-punto"></i><span>Apariencia</span></a>
+      </nav>
+      <div class="espaciador"></div>
+      <div class="lateral-pie">
+        <span class="pill tier-local">LOCAL</span>
+        <span class="mono tenue">127.0.0.1 · sin internet</span>
+      </div>
+    </aside>
+
+    <main class="contenido" id="vista" tabindex="-1" aria-live="polite"></main>
+
+    <footer class="ledger barra-ledger" id="ledger" aria-label="Totales del ledger"></footer>
+  </div>
+
+  <svg class="grano app-grano" aria-hidden="true">
+    <filter id="grano"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"></feTurbulence></filter>
+    <rect width="100%" height="100%" filter="url(#grano)" fill="#ffffff"></rect>
+  </svg>
+</body>
+</html>

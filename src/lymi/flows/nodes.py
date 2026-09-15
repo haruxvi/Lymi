@@ -33,17 +33,24 @@ from urllib.parse import quote, urlparse
 import httpx
 
 from lymi.bench.runner import Recorder
+from lymi.control import Detenido, PresupuestoAgotado
+from lymi.ejecutor import CapacidadDenegada, Ejecutor, EjecutorError
 from lymi.flows import template
 from lymi.flows.schema import (
     HttpIntegration,
     HttpStep,
     LlmStep,
     McpIntegration,
+    PcStep,
     ToolStep,
     TransformStep,
+    WebStep,
     Workflow,
 )
+from lymi.privacidad import EgressBloqueado, sanear_valor
+from lymi.privacidad.etiquetas import Nivel
 from lymi.providers.base import LLMClient, Message
+from lymi.web import Buscador, Web, WebError, investigar
 
 LIMITE_RESPUESTA = 200_000
 """Caracteres maximos que se guardan de una respuesta HTTP o de herramienta."""
@@ -460,6 +467,9 @@ class Recursos:
     mcp: McpPool
     http: httpx.AsyncClient
     entorno: Mapping[str, str]
+    ejecutor: Ejecutor | None = None
+    web: Web | None = None
+    buscador: Buscador | None = None
 
 
 async def ejecutar_llm(paso: LlmStep, contexto: Mapping[str, Any], r: Recursos) -> Any:
@@ -471,11 +481,23 @@ async def ejecutar_llm(paso: LlmStep, contexto: Mapping[str, Any], r: Recursos) 
     system = _texto(template.render(paso.system, contexto)) if paso.system is not None else None
     mensajes = [Message("user", prompt)]
 
+    # La pasarela decide antes de llamar. Nada de lo que corta aqui se reintenta:
+    # reintentar un dato bloqueado, una parada o un tope agotado daria lo mismo.
+    try:
+        enviados, sistema, redactor = r.rec.preparar(cliente, mensajes, system)
+    except (EgressBloqueado, Detenido, PresupuestoAgotado) as exc:
+        raise PasoError(str(exc), reintentable=False) from None
+
     completion = await asyncio.to_thread(
-        cliente.complete, mensajes, system=system, max_tokens=paso.max_tokens
+        cliente.complete, enviados, system=sistema, max_tokens=paso.max_tokens
     )
+    if redactor is not None:
+        completion.text = redactor.rehidratar(completion.text)
     # Se registra aqui, en el hilo del bucle: SQLite no admite escrituras cruzadas.
-    r.rec.registrar(completion, mensajes, purpose=f"flow:{paso.id}", system=system)
+    r.rec.registrar(
+        completion, enviados, purpose=f"flow:{paso.id}", system=sistema,
+        redacciones=redactor.total if redactor is not None else 0,
+    )
     return extraer_json(completion.text) if paso.output == "json" else completion.text
 
 
@@ -485,6 +507,10 @@ async def ejecutar_transform(paso: TransformStep, contexto: Mapping[str, Any], _
 
 async def ejecutar_tool(paso: ToolStep, contexto: Mapping[str, Any], r: Recursos) -> Any:
     argumentos = template.render(paso.args, contexto)
+    try:
+        r.rec.verificar_protegido(_texto(argumentos))
+    except EgressBloqueado as exc:
+        raise PasoError(str(exc), reintentable=False) from None
     destino = f"{paso.integration}.{paso.tool}"
     inicio = time.perf_counter()
     try:
@@ -499,7 +525,8 @@ async def ejecutar_tool(paso: ToolStep, contexto: Mapping[str, Any], r: Recursos
         tipo="mcp", destino=destino, proposito=f"flow:{paso.id}", payload=_texto(argumentos),
         latencia_ms=int((time.perf_counter() - inicio) * 1000),
     )
-    return salida
+    # La salida de una herramienta ajena es entrada para el proximo paso: se sanea.
+    return sanear_valor(salida)[0]
 
 
 async def ejecutar_http(paso: HttpStep, contexto: Mapping[str, Any], r: Recursos, flujo: Workflow) -> Any:
@@ -513,6 +540,10 @@ async def ejecutar_http(paso: HttpStep, contexto: Mapping[str, Any], r: Recursos
     encabezados = expandir_env(dict(integ.headers), r.entorno)
     payload = None if cuerpo is None else _texto(cuerpo)
     proposito = f"flow:{paso.id}:{paso.method}"
+    try:
+        r.rec.verificar_protegido(f"{url}\n{payload or ''}")
+    except EgressBloqueado as exc:
+        raise PasoError(str(exc), reintentable=False) from None
 
     inicio = time.perf_counter()
     try:
@@ -544,14 +575,143 @@ async def ejecutar_http(paso: HttpStep, contexto: Mapping[str, Any], r: Recursos
     if not ok:
         raise PasoError(f"{paso.method} {host}: HTTP {estado}", reintentable=estado >= 500 or estado == 429)
 
+    # La respuesta de un servicio externo es entrada ajena para los pasos que siguen.
     try:
-        return respuesta.json()
+        return sanear_valor(respuesta.json())[0]
     except ValueError:
-        return respuesta.text[:LIMITE_RESPUESTA]
+        return sanear_valor(respuesta.text[:LIMITE_RESPUESTA])[0]
+
+
+def _campos_pc(paso: PcStep, contexto: Mapping[str, Any]) -> tuple[dict[str, str], list[str]]:
+    valores = {
+        campo: _texto(template.render(getattr(paso, campo), contexto))
+        for campo in ("ruta", "destino", "contenido")
+        if getattr(paso, campo) is not None
+    }
+    return valores, [_texto(template.render(a, contexto)) for a in paso.args]
+
+
+def _operar_pc(ejecutor: Ejecutor, paso: PcStep, valores: dict[str, str], args: list[str]) -> Any:
+    if paso.op == "leer":
+        return ejecutor.leer(valores["ruta"])
+    if paso.op == "listar":
+        return ejecutor.listar(valores["ruta"])
+    if paso.op == "escribir":
+        return ejecutor.escribir(valores["ruta"], valores["contenido"])
+    if paso.op == "mover":
+        return ejecutor.mover(valores["ruta"], valores["destino"])
+    if paso.op == "borrar":
+        return ejecutor.borrar(valores["ruta"])
+    return ejecutor.ejecutar(paso.comando or "", args, timeout=paso.timeout_s)
+
+
+async def ejecutar_pc(paso: PcStep, contexto: Mapping[str, Any], r: Recursos) -> Any:
+    if r.ejecutor is None:
+        raise PasoError("este motor no tiene ejecutor del host", reintentable=False)
+    valores, args = _campos_pc(paso, contexto)
+    destino = f"{paso.op}:{paso.comando if paso.op == 'ejecutar' else valores.get('ruta')}"
+    inicio = time.perf_counter()
+    try:
+        salida = await asyncio.to_thread(_operar_pc, r.ejecutor, paso, valores, args)
+    except (CapacidadDenegada, EjecutorError, OSError) as exc:
+        r.rec.accion_local(
+            tipo="pc", destino=destino, proposito=f"flow:{paso.id}",
+            latencia_ms=int((time.perf_counter() - inicio) * 1000), ok=False, error=str(exc)[:300],
+        )
+        # Una capacidad denegada no cambia al reintentar, y un efecto no se repite.
+        raise PasoError(str(exc), reintentable=False) from None
+    r.rec.accion_local(
+        tipo="pc", destino=destino, proposito=f"flow:{paso.id}",
+        latencia_ms=int((time.perf_counter() - inicio) * 1000),
+    )
+    if paso.op == "leer":
+        # Lo leido del PC puede ser `nunca-sale`: desde ahora la pasarela lo vigila.
+        if salida.nivel is Nivel.NUNCA_SALE:
+            r.rec.proteger(salida.texto)
+        return sanear_valor(salida.texto)[0]
+    return sanear_valor(salida)[0]
+
+
+def _lista_urls(valor: Any) -> list[str]:
+    if isinstance(valor, str):
+        try:
+            valor = json.loads(valor)
+        except json.JSONDecodeError:
+            return valor.split()
+    if isinstance(valor, list):
+        return [v if isinstance(v, str) else str(v.get("url", "")) if isinstance(v, dict) else str(v) for v in valor]
+    return []
+
+
+async def ejecutar_web(paso: WebStep, contexto: Mapping[str, Any], r: Recursos) -> Any:
+    if r.web is None:
+        raise PasoError("este motor no tiene acceso web", reintentable=False)
+    proposito = f"flow:{paso.id}"
+
+    def campo(valor: str | None) -> str:
+        return _texto(template.render(valor, contexto)) if valor is not None else ""
+
+    async def completar(sistema: str, mensaje: str) -> str:
+        cliente = r.local if paso.tier == "local" else r.remote
+        if cliente is None:
+            raise PasoError(f"no hay proveedor {paso.tier}: corre `lymi setup`", reintentable=False)
+        try:
+            enviados, sistema_final, redactor = r.rec.preparar(cliente, [Message("user", mensaje)], sistema)
+        except (EgressBloqueado, Detenido, PresupuestoAgotado) as exc:
+            raise PasoError(str(exc), reintentable=False) from None
+        completion = await asyncio.to_thread(cliente.complete, enviados, system=sistema_final, max_tokens=2048)
+        if redactor is not None:
+            completion.text = redactor.rehidratar(completion.text)
+        r.rec.registrar(
+            completion, enviados, purpose=proposito, system=sistema_final,
+            redacciones=redactor.total if redactor is not None else 0,
+        )
+        return completion.text
+
+    try:
+        if paso.op in {"extraer", "mapear"}:
+            url = campo(paso.url)
+            r.rec.verificar_protegido(url)
+            if paso.op == "extraer":
+                salida: Any = (await r.web.extraer(url)).como_dict()
+            else:
+                mapa = await r.web.mapear(url, max_paginas=paso.max_paginas, profundidad=paso.profundidad)
+                salida = mapa.como_dict()
+        elif paso.op == "buscar":
+            consulta = campo(paso.consulta)
+            r.rec.verificar_protegido(consulta)
+            if r.buscador is None:
+                raise PasoError("no hay buscador: define LYMI_BUSCADOR_URL (ej. SearXNG local)", reintentable=False)
+            salida = [x.como_dict() for x in await r.buscador.buscar(consulta, paso.max_resultados)]
+        else:
+            pregunta = campo(paso.pregunta)
+            r.rec.verificar_protegido(pregunta)
+            urls = _lista_urls(template.render(paso.urls, contexto)) if paso.urls else []
+            informe = await investigar(
+                pregunta, web=r.web, buscador=r.buscador, urls=urls, completar=completar,
+                max_fuentes=paso.max_resultados,
+            )
+            salida = informe.como_dict()
+    except EgressBloqueado as exc:
+        raise PasoError(str(exc), reintentable=False) from None
+    except WebError as exc:
+        raise PasoError(str(exc), reintentable=exc.reintentable) from None
+    finally:
+        eventos = r.web.vaciar_eventos() + (r.buscador.vaciar_eventos() if r.buscador is not None else [])
+        for ev in eventos:
+            r.rec.integracion(
+                tipo=ev.tipo, destino=ev.host, proposito=proposito, payload=ev.payload,
+                latencia_ms=ev.latencia_ms, ok=ev.ok, error=ev.error,
+            )
+    return sanear_valor(salida)[0]
 
 
 async def ejecutar(paso: Any, contexto: Mapping[str, Any], r: Recursos, flujo: Workflow) -> Any:
     """Despacha el paso a su nodo."""
+    if isinstance(paso, WebStep):
+        return await ejecutar_web(paso, contexto, r)
+    if isinstance(paso, PcStep):
+        return await ejecutar_pc(paso, contexto, r)
     if isinstance(paso, LlmStep):
         return await ejecutar_llm(paso, contexto, r)
     if isinstance(paso, TransformStep):
@@ -575,6 +735,10 @@ def destino_de(paso: Any, contexto: Mapping[str, Any]) -> tuple[str, str | None]
         return host, paso.method
     if isinstance(paso, ToolStep):
         return f"mcp:{paso.integration}.{paso.tool}", None
+    if isinstance(paso, PcStep):
+        valores, _ = _campos_pc(paso, contexto)
+        objetivo = paso.comando if paso.op == "ejecutar" else valores.get("ruta", "?")
+        return f"pc:{objetivo}", paso.op.upper()
     return "?", None
 
 
@@ -589,4 +753,15 @@ def vista_previa(paso: Any, contexto: Mapping[str, Any]) -> str:
     if isinstance(paso, ToolStep):
         argumentos = _texto(template.render(paso.args, contexto))[:600]
         return f"mcp {paso.integration}.{paso.tool}({argumentos})"
+    if isinstance(paso, PcStep):
+        valores, args = _campos_pc(paso, contexto)
+        if paso.op == "ejecutar":
+            return f"ejecutar en este PC: {paso.comando} {' '.join(args)}".rstrip()
+        linea = f"{paso.op} en este PC: {valores.get('ruta', '')}"
+        if "destino" in valores:
+            linea += f" -> {valores['destino']}"
+        if "contenido" in valores:
+            contenido = valores["contenido"]
+            return f"{linea} ({len(contenido.encode('utf-8'))} bytes)\n{contenido[:600]}"
+        return linea
     return str(getattr(paso, "id", paso))

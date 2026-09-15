@@ -19,9 +19,11 @@ terminar y anota el cambio en `BITACORA.md`. Una tarea solo se marca con prueba.
 
 - [x] `lymi bench snake` sin `--demo` contra suscripcion + Ollama (2026-09-13).
       Destapo seis defectos de contabilidad, corregidos (ver BITACORA).
-- [ ] Quitar el sesgo de orden: calentar la cache del proveedor antes de ambas
-      corridas (llamada descartada y registrada aparte) o alternar el orden en
-      repeticiones. Hoy el recibo solo se niega a anunciar.
+- [x] Calentamiento de cache antes de medir (`--calentar`, activo por defecto;
+      corrida aparte `calentamiento` en el ledger). Falta confirmarlo en una
+      corrida real: si la cache heredada vuelve a aparecer, alternar el orden.
+      Intento del 2026-09-14: la linea base paso con calentamiento, pero la
+      suscripcion llego a su limite de sesion a mitad de lymi. Repetir.
 - [ ] `--repeticiones N` con mediana e intervalo: una corrida no es evidencia.
 - [ ] Medir el costo fijo del harness: `claude -p` arrastra ~28k tokens de
       prefijo por llamada. Para llamadas chicas puede convenir la API directa.
@@ -40,7 +42,8 @@ terminar y anota el cambio en `BITACORA.md`. Una tarea solo se marca con prueba.
       (`flows/aprobaciones.py`)
 - [ ] Aprobacion remota (ej. mensaje con boton) — depende de la mensajeria (oleada 3).
 - [ ] Aprobacion por umbral de costo estimado del paso.
-- [ ] Comandos para listar y olvidar decisiones recordadas.
+- [x] Comandos para listar y olvidar decisiones recordadas
+      (`lymi flow approvals list|forget`).
 - [ ] Probar OAuth por dispositivo contra un servidor de autorizacion real.
 - [ ] `lymi integrations login` probado contra un servidor OAuth real.
 - [ ] Probar el puente de n8n del catalogo contra una instancia real.
@@ -49,13 +52,24 @@ terminar y anota el cambio en `BITACORA.md`. Una tarea solo se marca con prueba.
 
 Ver `ARQUITECTURA_AGENTE_SEGURO.md`.
 
-- [ ] Saneamiento de Unicode invisible y bidi en toda entrada ajena.
-- [ ] Etiquetas de sensibilidad y bloqueo en el gateway de egress.
-- [ ] Redaccion reversible de secretos y PII.
+- [x] Saneamiento de Unicode invisible y bidi en toda entrada ajena: entradas de
+      workflows, salidas de herramientas y HTTP, y todo mensaje a un modelo
+      (`privacidad/unicode.py`).
+- [x] Etiquetas de sensibilidad y bloqueo en el gateway de egress: niveles por
+      ruta con piso fijo (`privacidad/etiquetas.py`, `sensibilidad.yml`); el texto
+      literal `nunca-sale` no llega a remoto, MCP ni HTTP; claves privadas bloquean.
+- [x] Redaccion reversible de secretos y PII antes de salir, rehidratada al volver,
+      contada en el ledger (`privacidad/redaccion.py`, columna `redacciones`).
+- [ ] Etiquetas en la interfaz y en entradas que no vienen de archivo (hoy solo
+      `flow run -i x=@archivo`).
 - [ ] Memoria markdown (compatible Obsidian) + diario de sesion + recuperacion acotada.
 - [ ] Ejecutor del host con RPC cerrada, capacidades por ruta, diario de deshacer.
 - [ ] Sandbox para codigo generado; worktrees para cambios en repos.
-- [ ] Interruptor de parada y presupuestos por tarea.
+- [x] Interruptor de parada (`lymi stop|resume`, boton en la app que ademas
+      revoca aprobaciones pendientes) y presupuestos por tarea
+      (`flow run --max-tokens-remotos --max-llamadas`) (`control.py`).
+- [ ] Tecla global de parada; presupuesto de archivos tocados (llega con el
+      ejecutor del host).
 
 ## 4. Oleada 2 — agente
 
@@ -95,7 +109,14 @@ Mensajeria, conocimiento, interfaces y el resto: ver la matriz de
 - [x] Aplicar la direccion risografia al sitio (`design/sitio-lymi.html`, publicado).
 - [x] Aplicar la risografia a las 7 pantallas de la app (`design/*.dc.html`,
       canvas republicado en la misma URL).
-- [ ] Editor de temas funcional sobre `~/.config/lymi/theme.toml`.
+- [x] App navegable `lymi ui` sobre datos reales: inicio, proveedores, medir,
+      corridas y detalle, workflows (plan, entradas, correr, aprobar desde el
+      navegador), egress y apariencia.
+- [x] Editor de temas funcional sobre `~/.config/lymi/theme.toml` (en la app).
+- [ ] App: pantallas que aun son maqueta (mapa de costos, lienzo de nodos,
+      sesion de agente) llegan cuando exista lo que muestran.
+- [ ] App: fuentes de la risografia empaquetadas localmente (hoy usa las del
+      sistema para no pedir nada a internet).
 - [ ] Lienzo de nodos estilo n8n sobre el YAML, ida y vuelta sin perder
       comentarios: posiciones en `meta.canvas`, paleta arrastrable, rama si/no.
       El YAML sigue siendo la fuente de verdad. Diseno hecho (`Workflow.dc.html`).
