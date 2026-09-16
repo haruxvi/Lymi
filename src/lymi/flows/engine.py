@@ -25,10 +25,10 @@ from lymi.flows import condition, template
 from lymi.flows.aprobaciones import Politica, Solicitud, resolver_aprobacion
 from lymi.flows.nodes import McpPool, PasoError, Recursos, destino_de, ejecutar, vista_previa
 from lymi.flows.schema import InputSpec, McpIntegration, PcStep, WebStep, Workflow
-from lymi.web import Buscador, Web, buscador_configurado
 from lymi.ledger import Billing, Ledger
 from lymi.privacidad import sanear_valor
 from lymi.providers.base import LLMClient
+from lymi.web import Buscador, Web, buscador_configurado
 
 Aprobador = Callable[..., bool | Awaitable[bool]]
 """Recibe el id del paso y una vista previa de lo que va a hacer, y decide."""

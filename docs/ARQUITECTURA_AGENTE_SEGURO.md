@@ -30,27 +30,42 @@ ejecutor acotado aplica; todo se puede deshacer.
 1. **Plan / apply.** Cada accion con efectos se describe primero como plan
    (archivos, comandos, destino). El usuario o una politica lo aprueba. Ya existe
    para workflows: pasos con efectos piden aprobacion y no se reintentan.
-2. **Ejecutor del host separado.** Proceso pequeno con una API RPC estrecha: una
-   lista cerrada de operaciones (`leer`, `escribir`, `ejecutar`, `ui`), cada una
-   con parametros validados. El modelo nunca obtiene un shell.
-3. **Capacidades por ruta.** Lista blanca de directorios escribibles por perfil.
-   Denegacion fija de rutas del sistema (`C:\Windows`, `Program Files`, registro,
-   `%APPDATA%` ajeno, `.ssh`, gestores de claves) aunque la politica diga otra cosa.
-4. **Diario de deshacer.** Antes de modificar o borrar, copia del original a
-   `runs/diario/<corrida>/`. Borrar = mover al diario, nunca eliminar. Comando
-   `lymi undo <corrida>`.
+2. **Ejecutor del host separado.** [hecho: `src/lymi/ejecutor/`] Lista cerrada de
+   seis operaciones (`leer`, `listar`, `escribir`, `mover`, `borrar`, `ejecutar`),
+   cada una con parametros validados. El modelo nunca obtiene un shell: los
+   interpretes (cmd, powershell, bash, wsl...) y los `.bat`/`.cmd` se rechazan al
+   cargar el perfil o al ejecutar, el proceso corre con `shell=False`, sin stdin y
+   con un entorno minimo (las claves de API de lymi no le llegan).
+3. **Capacidades por ruta.** [hecho: `ejecutor/capacidades.py`, `ejecutor.example.yml`]
+   Lista blanca de directorios legibles y escribibles por perfil; por defecto solo
+   `./salidas`. Denegacion fija de rutas del sistema (`C:\Windows`, `Program Files`,
+   `%APPDATA%\Microsoft`, `.ssh`, `.aws`, `.gnupg`...) y tambien de `runs/` y `.git`:
+   el agente no reescribe su propia auditoria. Las rutas se resuelven antes de
+   juzgarlas (un enlace simbolico se juzga por su destino) y se rechazan las formas
+   que esquivan una comparacion de prefijos: rutas de red (UNC), flujos alternativos
+   de NTFS (`archivo:oculto`) y nombres de dispositivo (`CON`, `NUL`).
+4. **Diario de deshacer.** [hecho: `ejecutor/diario.py`] Antes de modificar o
+   borrar, copia del original a `runs/diario/<corrida>/`. Borrar = mover al diario,
+   nunca eliminar; lo que se quita al deshacer tambien se guarda. `lymi undo
+   <corrida>` revierte en orden inverso y no se puede aplicar dos veces. Un comando
+   no se deshace, pero queda anotado con su codigo de salida.
 5. **Codigo en worktrees.** Cambios en repositorios van a un `git worktree`
    aislado (patron de orca); se integran solo tras aprobar el diff.
 6. **Ejecucion no confiable en sandbox.** Codigo generado corre en un contenedor o
    Windows Sandbox sin red por defecto, con limites de CPU, memoria y tiempo.
 7. **Interruptor de parada.** Tecla global y `lymi stop` que cancelan toda corrida
    en curso y revocan aprobaciones pendientes.
-8. **Presupuestos.** Tope de acciones, archivos tocados y tokens por tarea; al
-   excederse, se detiene y pregunta.
+8. **Presupuestos.** [hecho] Tope de tokens y llamadas (`control.Presupuesto`) y
+   de archivos distintos tocados por corrida (`max_archivos` del perfil).
 
 **Puerta:** una suite de pruebas "destructivas" (borrar una carpeta, sobrescribir
 un archivo, `rm -rf`, editar el registro) donde cada caso termina bloqueado o
-deshecho sin perdida.
+deshecho sin perdida. **Cumplida** en `tests/test_ejecutor.py` y
+`tests/test_pc_flujo.py`: escribir en `C:\Windows` o en `~/.ssh` con el perfil mas
+permisivo posible, salir de la carpeta con `..`, seguir un enlace hacia afuera,
+pedir un shell, correr un `.cmd`, y sobrescribir/borrar/mover con `lymi undo`
+devolviendo cada byte. Falta la capa de sandbox del sistema operativo (punto 6):
+hoy la frontera es la lista blanca, no el kernel.
 
 ---
 

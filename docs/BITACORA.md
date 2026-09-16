@@ -222,9 +222,58 @@ Contrastado contra las filas del ledger de las corridas `1f85e5ee2e1c` y
   rota cuentas para esquivar limites de uso). dify ya estaba evaluado.
 - 480 pruebas verdes, ruff limpio.
 
+## [2026-09-15] codigo | Ejecutor del host y capa web propia
+
+Dos bloques que cierran el fallo 1 y abren la lectura de internet sin depender de
+nadie. Decision del usuario: **no integrar** Firecrawl, Playwright ni Perplexity
+como servicios; tomar lo que hacen bien y construirlo dentro de lymi.
+
+**Ejecutor del host** (`src/lymi/ejecutor/`, paso `pc`, `lymi undo`)
+
+- Seis operaciones cerradas. Nunca un shell: interpretes y `.bat`/`.cmd`
+  rechazados, `shell=False`, sin stdin, entorno minimo (probado: una variable
+  secreta del entorno de lymi no llega al proceso hijo).
+- Tres capas de capacidades: zonas vetadas fijas (sistema, credenciales, `runs/`,
+  `.git`), forma de la ruta (UNC, `archivo:flujo`, `CON`/`NUL`) y perfil
+  (`ejecutor.yml`; por defecto solo `./salidas` y ningun comando).
+- Diario: copia antes de tocar, borrar = mover al diario, `lymi undo <corrida>`
+  revierte en orden inverso y una sola vez.
+- Leer un archivo etiquetado `nunca-sale` (ej. `.env`) protege su texto para el
+  resto de la corrida: el paso siguiente que quiera mandarlo a un modelo remoto
+  falla. Probado de punta a punta.
+
+**Capa web** (`src/lymi/web/`, paso `web`, `lymi web leer|mapear|buscar|investigar`)
+
+- HTML a markdown con la libreria estandar: se queda con `main`/`article` y tira
+  menus, pies, scripts y **lo que el navegador no muestra** (`hidden`,
+  `aria-hidden`, `display:none`, letra de tamano cero), que es la via barata de
+  inyeccion de instrucciones.
+- Guardia SSRF real: se resuelve el nombre, se exige que TODAS sus direcciones
+  sean publicas y se conecta a la IP comprobada con el nombre en `Host` y en SNI
+  (el certificado se sigue validando). Las redirecciones se repiten igual. Una IP
+  literal se juzga sin pasar por el DNS.
+- La URL y la consulta son egress: el Redactor las revisa y un correo, una clave
+  o una tarjeta en la URL bloquean la peticion. Cada salto queda en el ledger
+  (`provider = web`), incluido el robots.txt.
+- `investigar`: pasajes elegidos en local con BM25 y **citas verificadas** contra
+  la fuente. Primera corrida real (qwen2.5:3b sobre la RFC 2606): el modelo cito
+  una fuente `[4]` que no existia y dejo una oracion sin respaldo; la verificacion
+  lo dijo. Eso es exactamente lo que tiene que pasar.
+- Se acepta cualquier tipo de comilla en las citas: un modelo pequeno cambia el
+  simbolo y una cita real no puede quedar sin verificar por tipografia.
+
+Ejemplos nuevos: `workflows/investigar-y-archivar.yml`, `workflows/resumen-de-pagina.yml`,
+`ejecutor.example.yml`.
+
+559 pruebas verdes, ruff limpio.
+
 ### Hilos abiertos al cierre
 
 - Bloqueante del usuario: primer commit (configurar correo noreply antes).
+- Navegador propio (CDP sobre el Edge/Chrome instalado, perfil aislado) para lo
+  que no se puede leer con HTTP.
+- Probar `lymi web buscar` contra un SearXNG real.
+- Pasos `foreach` en workflows.
 - Repetir `lymi bench snake` real con calentamiento cuando la suscripcion se restablezca.
 - Primera medicion real.
 - Editor de temas funcional sobre `theme.toml`.

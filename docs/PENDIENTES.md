@@ -63,13 +63,54 @@ Ver `ARQUITECTURA_AGENTE_SEGURO.md`.
 - [ ] Etiquetas en la interfaz y en entradas que no vienen de archivo (hoy solo
       `flow run -i x=@archivo`).
 - [ ] Memoria markdown (compatible Obsidian) + diario de sesion + recuperacion acotada.
-- [ ] Ejecutor del host con RPC cerrada, capacidades por ruta, diario de deshacer.
+- [x] Ejecutor del host con operaciones cerradas (leer, listar, escribir, mover,
+      borrar, ejecutar), capacidades por ruta y diario de deshacer (`ejecutor/`,
+      paso `pc` en workflows, `lymi undo <corrida>`, `ejecutor.example.yml`).
+      Nunca hay shell: los interpretes y los .bat/.cmd se rechazan, el comando
+      corre con `shell=False` y sin las variables de entorno de lymi. Vetado
+      siempre: sistema operativo, credenciales del usuario, `runs/` y `.git`.
+      41 pruebas destructivas en `tests/test_ejecutor.py` y `tests/test_pc_flujo.py`.
 - [ ] Sandbox para codigo generado; worktrees para cambios en repos.
 - [x] Interruptor de parada (`lymi stop|resume`, boton en la app que ademas
       revoca aprobaciones pendientes) y presupuestos por tarea
       (`flow run --max-tokens-remotos --max-llamadas`) (`control.py`).
-- [ ] Tecla global de parada; presupuesto de archivos tocados (llega con el
-      ejecutor del host).
+- [x] Presupuesto de archivos tocados por corrida (`max_archivos` del perfil).
+- [ ] Tecla global de parada.
+- [ ] Sandbox del sistema operativo por debajo del ejecutor (hoy la frontera es
+      la lista blanca, no el kernel).
+
+## 3b. Capa web propia (sin servicios de terceros)
+
+Construida a partir de lo que hacen bien Firecrawl (pagina a markdown, mapa de
+sitio) y los buscadores con respuesta tipo Perplexity, con codigo propio y las
+garantias de lymi. Ver `src/lymi/web/`.
+
+- [x] Pagina a markdown limpio: se queda con `main`/`article`, descarta menus,
+      pies, formularios, scripts y **todo lo que el navegador no muestra**
+      (`hidden`, `aria-hidden`, `display:none`, letra de tamano cero), que es la
+      via barata de inyectar instrucciones. (`web/markdown.py`)
+- [x] Guardia de red contra SSRF: cada salto resuelve el nombre, exige que todas
+      sus direcciones sean publicas y conecta a la IP ya comprobada (el nombre
+      viaja en `Host` y en SNI, asi el certificado se sigue validando). Las
+      redirecciones se siguen a mano repitiendo la comprobacion. (`web/red.py`)
+- [x] La URL y la consulta son egress: si llevan un secreto o un dato personal,
+      no salen; cada peticion queda en el ledger.
+- [x] robots.txt respetado, tope de bytes, solo tipos de texto, aviso cuando la
+      pagina intenta dar ordenes a un modelo.
+- [x] Mapa de sitio (sitemap + enlaces, mismo host) y busqueda con el buscador
+      del usuario (SearXNG local via `LYMI_BUSCADOR_URL`).
+- [x] `investigar`: elige los pasajes en local con BM25 (no manda la pagina
+      entera) y **verifica cada cita textual contra su fuente**; las inventadas y
+      las referencias a fuentes inexistentes se reportan. (`web/investigar.py`)
+- [x] Paso `web` en workflows y comandos `lymi web leer|mapear|buscar|investigar`.
+- [ ] Probar `buscar` contra una instancia real de SearXNG del usuario.
+- [ ] Navegador propio para lo que no se puede leer con HTTP (paginas que se
+      arman con JavaScript, formularios): driver CDP contra el Edge/Chrome ya
+      instalado, con perfil temporal aislado (sin las cookies del usuario),
+      lista blanca de dominios, acciones cerradas (navegar, leer, clic por
+      referencia de accesibilidad, escribir, captura) y aprobacion para cada
+      envio. Idea tomada de Playwright; implementacion propia.
+- [ ] Cache local de paginas por corrida (hoy cada lectura vuelve a pedir).
 
 ## 4. Oleada 2 — agente
 
@@ -117,6 +158,9 @@ Mensajeria, conocimiento, interfaces y el resto: ver la matriz de
       sesion de agente) llegan cuando exista lo que muestran.
 - [ ] App: fuentes de la risografia empaquetadas localmente (hoy usa las del
       sistema para no pedir nada a internet).
+- [ ] Pasos de repeticion en workflows (`foreach` sobre una lista, con tope de
+      iteraciones y presupuesto compartido): hoy un mapa de sitio se recorre
+      dentro del nodo, no en el workflow.
 - [ ] Lienzo de nodos estilo n8n sobre el YAML, ida y vuelta sin perder
       comentarios: posiciones en `meta.canvas`, paleta arrastrable, rama si/no.
       El YAML sigue siendo la fuente de verdad. Diseno hecho (`Workflow.dc.html`).

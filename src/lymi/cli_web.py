@@ -86,7 +86,8 @@ def leer(
         return await web.extraer(url, max_caracteres=max_caracteres)
 
     extraccion, run_id = _correr("leer", db, trabajo)
-    if extraccion.titulo:
+    # El titulo solo se imprime si el markdown no empieza ya con el mismo encabezado.
+    if extraccion.titulo and not extraccion.markdown.lstrip().startswith(f"# {extraccion.titulo}"):
         typer.secho(f"# {extraccion.titulo}", bold=True)
         typer.echo()
     typer.echo(extraccion.markdown)
@@ -177,8 +178,11 @@ def investigar_cmd(
     typer.echo(informe.respuesta)
     typer.echo()
     for fuente in informe.fuentes:
-        typer.secho(f"  [{fuente.n}] {fuente.titulo or fuente.url}", bold=True)
-        typer.secho(f"      {fuente.url}", fg=typer.colors.CYAN)
+        if fuente.titulo:
+            typer.secho(f"  [{fuente.n}] {fuente.titulo}", bold=True)
+            typer.secho(f"      {fuente.url}", fg=typer.colors.CYAN)
+        else:
+            typer.secho(f"  [{fuente.n}] {fuente.url}", fg=typer.colors.CYAN)
     typer.echo()
     v = informe.verificacion
     color = typer.colors.GREEN if not v.problemas else typer.colors.YELLOW

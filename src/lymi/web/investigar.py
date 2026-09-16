@@ -34,12 +34,15 @@ Responde en el idioma de la pregunta."""
 
 MIN_CARACTERES_FUENTE = 200
 _PALABRA = re.compile(r"\w{3,}", re.UNICODE)
-_VACIAS = frozenset(
-    "que los las del por para con una uno como mas pero sus este esta son fue ser hay entre sobre "
-    "the and for with that this from are was have not you which what how who when where why "
-    "cual cuales donde cuando quien cuanto".split()
-)
-_CITA = re.compile(r"«([^»]{4,500})»\s*\[(\d{1,2})\]")
+_VACIAS = frozenset({
+    "que", "los", "las", "del", "por", "para", "con", "una", "uno", "como", "mas", "pero",
+    "sus", "este", "esta", "son", "fue", "ser", "hay", "entre", "sobre", "the", "and", "for",
+    "with", "that", "this", "from", "are", "was", "have", "not", "you", "which", "what", "how",
+    "who", "when", "where", "why", "cual", "cuales", "donde", "cuando", "quien", "cuanto"
+})
+# Se pide «», pero se acepta cualquier comilla: un modelo pequeno cambia el simbolo
+# y una cita real no debe quedar sin verificar por un detalle tipografico.
+_CITA = re.compile(r"[«\"“]([^»\"”]{4,500})[»\"”]\s*\[(\d{1,2})\]")
 _REFERENCIA = re.compile(r"\[(\d{1,2})\]")
 _ORACION = re.compile(r"(?<=[.!?\]])\s+(?=[A-ZÁÉÍÓÚÑ¿¡«\"])|\n+")
 
@@ -140,7 +143,14 @@ def construir_mensaje(pregunta: str, fuentes: Sequence[Fuente], pasajes: Sequenc
         cuerpo = "\n[...]\n".join(propios).replace("</fuente", "</ fuente")
         titulo = fuente.titulo.replace('"', "'")
         bloques.append(f'<fuente n="{fuente.n}" url="{fuente.url}" titulo="{titulo}">\n{cuerpo}\n</fuente>')
-    return f"Pregunta: {pregunta}\n\nFuentes:\n\n" + "\n\n".join(bloques)
+    numeros = ", ".join(str(f.n) for f in fuentes if any(p.fuente == f.n for p in pasajes))
+    # El recordatorio final vale sobre todo para los modelos locales pequenos, que
+    # olvidan el formato del sistema y se inventan numeros de fuente.
+    cierre = (
+        f"\n\nLas unicas fuentes que existen son: {numeros}. No uses ningun otro numero.\n"
+        "Formato de cada afirmacion: texto «frase exacta copiada de la fuente» [n]."
+    )
+    return f"Pregunta: {pregunta}\n\nFuentes:\n\n" + "\n\n".join(bloques) + cierre
 
 
 @dataclass(slots=True)

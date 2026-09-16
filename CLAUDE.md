@@ -70,7 +70,7 @@ uv run --extra dev pytest -q
 node design/estilos/sincronizar.mjs --check
 ```
 
-Estado al 2026-09-13: **378 pruebas verdes, ruff limpio, estilos sincronizados.**
+Estado al 2026-09-15: **559 pruebas verdes, ruff limpio, estilos sincronizados.**
 La CI (`.github/workflows/ci.yml`) corre lo mismo en cada push y PR.
 
 ## Trampas conocidas (ya costaron tiempo)
@@ -101,6 +101,11 @@ src/lymi/
                supervisor MCP), engine, plan, aprobaciones, catalogo (manifiestos
                de Hermes), oauth (navegador), oauth_dispositivo (RFC 8628)
   triggers/    cron, agenda, webhook, ganchos, politica desatendida, servidor
+  ejecutor/    la unica puerta al PC: capacidades por ruta y comando, operaciones
+               cerradas, diario de deshacer (`lymi undo`). Nunca hay shell
+  web/         lectura de la web hecha por lymi: red (guardia SSRF + robots),
+               markdown (HTML limpio), buscar (SearXNG), investigar (pasajes por
+               BM25 y citas verificadas contra la fuente)
   privacidad/  unicode (saneamiento), redaccion (reversible, bloqueo), etiquetas
                (sensibilidad por ruta). La pasarela que los aplica es
                `bench/runner.Recorder.preparar`: toda llamada a un modelo pasa por ahi

@@ -1,0 +1,29 @@
+# Perfil del ejecutor del host: que puede tocar lymi en este PC.
+# Copialo como `ejecutor.yml`. Sin archivo, lymi solo escribe en ./salidas y no
+# ejecuta ningun comando.
+#
+# Vetado siempre, diga lo que diga este archivo: el sistema operativo, los
+# programas instalados, las carpetas de credenciales (~/.ssh, ~/.aws, ~/.gnupg...),
+# `runs/` (ledger y diario) y `.git`.
+
+# Donde puede escribir, mover y borrar. Borrar es mover al diario: `lymi undo <corrida>`
+# devuelve todo a como estaba.
+escribibles:
+  - salidas
+  - borradores
+
+# Donde puede leer (ademas de lo escribible). La raiz del proyecto ya viene incluida.
+legibles:
+  - docs
+
+# Lista blanca de comandos. Sin `subcomandos`, se permite cualquier argumento.
+# Los interpretes (cmd, powershell, bash, wsl...) se rechazan: permitirlos seria
+# devolverle el shell al modelo. Los .bat y .cmd tambien, porque pasan por cmd.exe.
+comandos:
+  git:
+    subcomandos: [status, diff, log]
+  python: {}
+
+# Topes por corrida.
+max_archivos: 50      # archivos distintos que puede modificar, mover o borrar
+max_bytes: 5000000    # tamano maximo de una escritura

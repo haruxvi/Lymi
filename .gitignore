@@ -7,6 +7,12 @@ __pycache__/
 .ruff_cache/
 # datos de corridas: reproducibles, no versionados
 runs/
+salidas/
+
+# Perfil del ejecutor y reglas de sensibilidad: son de cada maquina.
+# Los ejemplos versionados son ejecutor.example.yml y sensibilidad.example.yml.
+ejecutor.yml
+sensibilidad.yml
 *.sqlite3
 *.sqlite3-journal
 

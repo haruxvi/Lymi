@@ -1,0 +1,44 @@
+name: investigar_y_archivar
+description: >
+  Investiga una pregunta en la web con fuentes verificadas, resume en local y
+  guarda el informe en disco. Sin claves de terceros: lee las paginas lymi y
+  responde tu modelo local.
+
+inputs:
+  pregunta:
+    type: string
+    description: La pregunta a investigar.
+  archivo:
+    type: string
+    required: false
+    default: salidas/informe.md
+    description: Donde se guarda el informe.
+
+steps:
+  # Busca (LYMI_BUSCADOR_URL) o usa las URLs que le pases, lee cada fuente,
+  # elige los pasajes en local y comprueba cada cita contra su fuente.
+  - id: investigacion
+    type: web
+    op: investigar
+    pregunta: "{{ inputs.pregunta }}"
+    tier: local
+    max_resultados: 5
+    timeout_s: 300
+
+  - id: informe
+    type: transform
+    set:
+      texto: |
+        # {{ inputs.pregunta }}
+
+        {{ steps.investigacion.output.respuesta }}
+
+        ## Verificacion de citas
+        {{ steps.investigacion.output.verificacion.resumen }}
+
+  # Pide aprobacion: escribir en disco es un efecto. `lymi undo` lo revierte.
+  - id: guardar
+    type: pc
+    op: escribir
+    ruta: "{{ inputs.archivo }}"
+    contenido: "{{ steps.informe.output.texto }}"

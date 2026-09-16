@@ -168,7 +168,7 @@ def ledger(
         costo = "n/d" if f["cost_usd"] is None else f"${f['cost_usd']:.4f}"
         aviso = "!" if f["unpriced_calls"] else " "
         typer.echo(
-            f"{f['id']:<14}{f['task_id']:<10}{f['variant']:<12}{f['status']:<9}"
+            f"{f['id']:<14}{f['task_id']:<10}{f['variant'][:11]:<12}{f['status']:<9}"
             f"{f['remote_tokens']:>10,}{f['local_tokens']:>10,}{costo:>10}{aviso}"
             f"{f['egress_calls']:>8}"
         )
@@ -286,7 +286,7 @@ app.add_typer(integ_app, name="integrations")
 app.add_typer(schedule_app, name="schedule")
 app.add_typer(hooks_app, name="hooks")
 
-from lymi.cli_web import web_app  # noqa: E402 - junto a su registro
+from lymi.cli_web import web_app
 
 app.add_typer(web_app, name="web")
 app.command("serve")(servir)

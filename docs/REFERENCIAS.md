@@ -176,3 +176,28 @@ Codex a la forma de la API de Anthropic.
 - **Ideas neutras que si sirven**: avisar antes de agotar la cuota (lymi ya tiene el
   consumo por llamada en el ledger), atribucion de uso por proyecto, export/import
   cifrado de la configuracion.
+
+### Firecrawl, Playwright y Perplexity — ideas, no dependencias
+
+El usuario propuso integrarlos y luego preciso el criterio: **no enchufar las
+plataformas, sino potenciar sus funcionalidades dentro de lymi**. Lo que se tomo
+es la forma del producto, no su codigo:
+
+- De un scraper tipo Firecrawl: "pagina a markdown limpio" y "mapa de un sitio"
+  como operaciones de primera clase. Implementacion propia con `html.parser`
+  (`web/markdown.py`), mas lo que ellos no hacen: descartar el texto oculto y
+  avisar cuando la pagina intenta dar instrucciones a un modelo.
+- De un buscador con respuesta tipo Perplexity: la respuesta con fuentes
+  numeradas. Implementacion propia (`web/investigar.py`) con dos diferencias:
+  los pasajes se eligen en local con BM25 (no se paga por mandar la pagina
+  entera) y **cada cita textual se busca en su fuente**, asi una cita inventada
+  queda marcada. La busqueda la hace el buscador del usuario (SearXNG local,
+  AGPL, consumido por su API HTTP; no se distribuye ni se enlaza su codigo).
+- De Playwright: la idea de manejar un navegador con acciones nombradas. Queda
+  pendiente como driver CDP propio contra el navegador ya instalado, con perfil
+  temporal aislado y lista blanca de dominios.
+
+No se copio codigo de ninguno de los tres. Lo mismo vale para OpenClaw y Hermes
+Agent: de ellos se toma **que** resuelven (actuar en el PC, automatizar), no
+**como**; sus desventajas (shell abierto, sin diario de deshacer, sin cuenta del
+egress) son justamente lo que lymi corrige.

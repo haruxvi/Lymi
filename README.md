@@ -66,6 +66,14 @@ configurados y omite los demas.
   existe para no cometer.
 - Sin `shell=True` en subprocesos, SQL siempre parametrizado, timeouts explicitos
   en toda llamada de red.
+- **Acciones en tu PC** (paso `pc`) solo por el ejecutor: seis operaciones, lista
+  blanca de carpetas y comandos, jamas un shell, y un diario que `lymi undo`
+  revierte. El sistema operativo, tus credenciales, `runs/` y `.git` estan vetados
+  aunque el perfil diga otra cosa.
+- **Lectura de la web** (paso `web`) con guardia contra SSRF: cada salto se resuelve
+  y se conecta a la IP ya comprobada, nunca a tu red interna; se respeta robots.txt;
+  una URL o consulta con un secreto no sale; el texto oculto de las paginas se
+  descarta antes de que lo vea un modelo.
 
 ## Uso rapido
 
@@ -74,6 +82,11 @@ uv run lymi ui             # la app en el navegador, solo en esta maquina
 uv run lymi setup          # que proveedores estan listos y que falta
 uv run lymi bench snake    # mide una tarea contra la linea base y emite el recibo
 uv run lymi ledger         # corridas registradas
+
+uv run lymi web leer https://ejemplo.com          # la pagina como markdown limpio
+uv run lymi web investigar "tu pregunta"          # responde con fuentes y verifica cada cita
+uv run lymi flow run workflows/resumen-de-pagina.yml -i url=https://ejemplo.com
+uv run lymi undo <corrida>                        # deshace lo que una corrida hizo en tus archivos
 ```
 
 ## Desarrollo

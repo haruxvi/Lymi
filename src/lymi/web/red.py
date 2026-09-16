@@ -204,9 +204,16 @@ class Web:
         except ValueError:
             raise DestinoBloqueado("puerto invalido") from None
         try:
-            ips = await asyncio.to_thread(self._resolver, host)
-        except OSError:
-            raise WebError(f"no se pudo resolver {host}", reintentable=True) from None
+            # Una IP literal se juzga tal cual: no hay nombre que resolver, y pasar
+            # por el DNS solo abriria la puerta a que el sistema la reescriba.
+            ipaddress.ip_address(host)
+        except ValueError:
+            try:
+                ips = await asyncio.to_thread(self._resolver, host)
+            except OSError:
+                raise WebError(f"no se pudo resolver {host}", reintentable=True) from None
+        else:
+            ips = [host]
         if not ips:
             raise WebError(f"{host} no tiene direcciones", reintentable=True)
         internas = [ip for ip in ips if not es_publica(ip)]

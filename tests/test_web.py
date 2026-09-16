@@ -122,7 +122,7 @@ class TestGuardiaDeRed:
             ("http://mixto.com/", "red interna"),
             ("http://127.0.0.1:8770/api/resumen", "red interna"),
             ("file:///etc/passwd", "esquema"),
-            ("https://usuario:clave@ejemplo.com/", "usuario o contrasena"),
+            ("https://usuario:clave@ejemplo.com/", "credencial"),
             ("https://ejemplo.com/?correo=vicente%40ejemplo.cl", "email"),
             ("https://ejemplo.com/?k=sk-ant-api03-AAAAAAAAAAAAAAAAAAAAAAAA", "clave api"),
         ],
@@ -281,16 +281,17 @@ class TestInvestigar:
     def test_verificar_citas(self) -> None:
         textos = {1: "El volcán Villarrica tiene **2.847 metros** de altura.", 2: "Otra fuente."}
         respuesta = (
+            'Con comillas rectas: "El volcán Villarrica" [1]. '
             "El Villarrica mide «tiene 2.847 metros de altura» [1]. "
             "Tambien seria «el volcán más alto del mundo» [2]. "
             "Y segun otra «frase cualquiera inventada» [7]. "
             "Esta oracion larga no cita ninguna fuente y deberia marcarse."
         )
         v = verificar_citas(respuesta, textos)
-        assert [c.estado for c in v.citas] == ["verificada", "no_encontrada", "fuente_inexistente"]
+        assert [c.estado for c in v.citas] == ["verificada", "verificada", "no_encontrada", "fuente_inexistente"]
         assert v.inexistentes == [7]
         assert len(v.sin_fuente) == 1
-        assert "1/3 citas" in v.resumen()
+        assert "2/4 citas" in v.resumen()
 
     def test_recorrido_completo_con_urls_fijas(self) -> None:
         recibido: list[tuple[str, str]] = []
@@ -384,7 +385,7 @@ class TestPasoWeb:
             assert resultado.salidas["leer"]["titulo"] == "Cafe en Chile"
             assert resultado.salidas["responder"]["verificacion"]["verificadas"] == 1
             filas = ledger.conn.execute(
-                "SELECT provider, model, egress, payload FROM calls WHERE run_id = ? ORDER BY rowid", (resultado.run_id,)
+                "SELECT provider, model, egress, payload_bytes FROM calls WHERE run_id = ? ORDER BY rowid", (resultado.run_id,)
             ).fetchall()
             proveedores = [f["provider"] for f in filas]
             assert proveedores.count("web") >= 2 and "ollama" in proveedores
