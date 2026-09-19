@@ -287,6 +287,33 @@ class CodigoStep(_Paso):
         return self
 
 
+class CorreoStep(_Paso):
+    """Lee el buzon local de Thunderbird. Solo lectura: nunca escribe ni envia.
+
+    `resumen` arma el informe con los datos del archivo y le pide al modelo del
+    tier elegido unicamente las anotaciones (prioridad y accion) de cada mensaje.
+    """
+
+    type: Literal["correo"]
+    op: Literal["listar", "leer", "resumen"]
+    carpeta: str = "INBOX"
+    n: int = Field(20, ge=1, le=200)
+    dias: int | None = Field(None, ge=1, le=90)
+    solo_sin_leer: bool = False
+    mensaje: int | None = Field(None, ge=1)
+    """Solo leer: el numero del mensaje dentro de la carpeta."""
+    tier: Literal["local", "remote"] = "local"
+    """Solo resumen: quien anota. El correo es privado; por defecto, el modelo local."""
+
+    @model_validator(mode="after")
+    def _campos(self) -> CorreoStep:
+        if self.op == "leer" and self.mensaje is None:
+            raise ValueError(f"paso {self.id!r}: leer requiere mensaje")
+        if self.op != "leer" and self.mensaje is not None:
+            raise ValueError(f"paso {self.id!r}: mensaje solo aplica a op leer")
+        return self
+
+
 class MemoriaStep(_Paso):
     """Busca en la memoria de lymi o anota algo en ella.
 
@@ -335,7 +362,8 @@ class AgenciaStep(_Paso):
 
 
 Step = Annotated[
-    LlmStep | ToolStep | HttpStep | TransformStep | PcStep | WebStep | CodigoStep | MemoriaStep | AgenciaStep,
+    LlmStep | ToolStep | HttpStep | TransformStep | PcStep | WebStep | CodigoStep | MemoriaStep
+    | CorreoStep | AgenciaStep,
     Field(discriminator="type"),
 ]
 

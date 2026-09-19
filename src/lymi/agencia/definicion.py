@@ -30,6 +30,9 @@ HERRAMIENTAS: dict[str, tuple[bool, str]] = {
     "codigo.llamadores": (False, 'quien llama a una funcion. args: {"nombre", "raiz"?}'),
     "codigo.impacto": (False, 'que codigo y pruebas toca un cambio. args: {"nombre", "raiz"?}'),
     "codigo.mapa": (False, 'archivos y dependencias. args: {"ruta"?, "raiz"?}'),
+    "correo.listar": (False, 'tus correos recientes. args: {"carpeta"?, "n"?, "dias"?}'),
+    "correo.leer": (False, 'un correo completo. args: {"mensaje": <numero>, "carpeta"?}'),
+    "correo.resumen": (False, 'resumen del correo reciente, anotado por el modelo. args: {"dias"?, "n"?}'),
     "memoria.buscar": (False, 'busca en la memoria; marca lo SIN REVISAR. args: {"consulta"}'),
     "memoria.anotar": (
         False,

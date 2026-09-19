@@ -193,6 +193,26 @@ Ver `REFERENCIAS.md`. Cada una se mide en el ledger antes de declararla util.
       bench antes de recomendarlos: una personalidad larga cuesta tokens en cada llamada.
 - [ ] Graficos via mcp-server-chart solo con servidor de render propio.
 
+## 4c. Correo y proactividad
+
+- [x] Lector del buzon local de Thunderbird (`src/lymi/correo/`, `lymi correo`,
+      paso `correo`, herramientas `correo.listar|leer|resumen`). Solo lectura:
+      lymi no ve tus claves, no abre conexiones y nunca escribe en los archivos de
+      Thunderbird. El indice guarda posiciones y fechas, jamas asuntos ni cuerpos.
+- [x] Resumen diario donde el modelo SOLO anota: fechas, remitentes y asuntos los
+      pone lymi desde el archivo, y el modelo devuelve prioridad y accion por
+      numero. Si responde cualquier otra cosa, el resumen sale igual y lo dice.
+- [x] Boletines detectados sin modelo (cabeceras, subdominios de envio masivo,
+      buzones tipo `noreply@`) y prioridad limitada si el correo no venia dirigido
+      a ti (identidades leidas de Thunderbird). Medido con correo real: 8 de 8
+      clasificados, 0 tokens gastados.
+- [ ] Borradores de respuesta como archivo `.eml` en `salidas/`, con aprobacion.
+      lymi no envia correo nunca.
+- [ ] Resumen diario programado (`lymi schedule`) con aviso al celular.
+- [ ] Calendario (`.ics` local o CalDAV de solo lectura).
+- [ ] Hilos: agrupar por `In-Reply-To`/`References` en vez de mensaje suelto.
+- [ ] Probar con un perfil que tenga varias cuentas y carpetas locales.
+
 ## 5. Oleadas 3-6
 
 Mensajeria, conocimiento, interfaces y el resto: ver la matriz de

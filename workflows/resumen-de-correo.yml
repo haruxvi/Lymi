@@ -1,0 +1,30 @@
+name: resumen_de_correo
+description: >
+  Lee el correo que Thunderbird tiene en este equipo, lo resume con el modelo
+  local y deja el informe en salidas/. Cero tokens remotos y cero conexiones:
+  lymi no ve tus claves ni habla con Gmail.
+
+inputs:
+  dias:
+    type: number
+    required: false
+    default: 1
+    description: Ventana de correo a resumir.
+
+steps:
+  # Los datos (fecha, remitente, asunto) salen del archivo; el modelo solo anota
+  # prioridad y que pide cada correo.
+  - id: resumen
+    type: correo
+    op: resumen
+    dias: 1
+    n: 60
+    tier: local
+    timeout_s: 600
+
+  # Escribir en disco es un efecto: pide aprobacion y `lymi undo` lo revierte.
+  - id: guardar
+    type: pc
+    op: escribir
+    ruta: salidas/correo-hoy.md
+    contenido: "{{ steps.resumen.output.texto }}"

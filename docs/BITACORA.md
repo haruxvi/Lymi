@@ -353,6 +353,35 @@ Pregunta del usuario: si qwen falla tanto, ¿conviene la suscripcion de Claude?
 
 651 pruebas verdes y 1 omitida; la de rendimiento del disco sigue fallando. Ruff limpio.
 
+## [2026-09-19] codigo | Correo local: leer sin credenciales y resumir sin inventar
+
+Decision con el usuario: nada de construir un gestor de correo ni de manejar su
+navegador con la sesion abierta. Thunderbird resuelve OAuth, cuentas y carpetas;
+lymi solo lee los archivos que deja en disco.
+
+- `src/lymi/correo/`: indice propio sobre mbox. La libreria estandar tarda 15 s en
+  un buzon de 5.238 mensajes; contar separadores y leer las cabeceras del bloque ya
+  cargado baja a ~8 s la primera vez y a 0,1 s despues (solo se relee la cola).
+- El indice guarda posiciones, fechas y banderas. Nunca asuntos, remitentes ni
+  cuerpos: el correo vive en un solo lugar. Hay una prueba que lo verifica.
+- Nunca se escribe: ni en los mbox ni en los `.msf`. Tambien con prueba.
+- El resumen reparte el trabajo al reves de lo habitual: los datos los pone lymi
+  desde el archivo y el modelo solo anota prioridad y accion por numero. No puede
+  inventar un remitente ni un asunto, y si contesta cualquier cosa el resumen sale
+  igual, diciendolo.
+- Clasificacion sin modelo: cabeceras de lista, subdominios de envio masivo
+  (`hello@news.railway.app` no traia `List-Unsubscribe`) y buzones `noreply@`.
+  Ademas, si tu direccion no esta en Para/CC, la prioridad no puede ser alta,
+  diga lo que diga el modelo.
+- Hallazgos del correo real: los 5.238 mensajes estan marcados como leidos (Gmail
+  los marca en la web), asi que el resumen va por fechas, no por "no leidos". Y
+  un mensaje pesaba 12 MB por un PDF: se lee con tope y sin cargar adjuntos.
+- Primera corrida real: qwen2.5:3b marco un boletin como "atiende primero". Tras
+  agregar las senales deterministas, los 8 correos de esos dias se clasificaron
+  solos y el resumen costo 0 tokens: el modelo ni siquiera hizo falta.
+
+674 pruebas verdes y 1 omitida; la de rendimiento del disco sigue fallando. Ruff limpio.
+
 ### Hilos abiertos al cierre
 
 - Bloqueante del usuario: primer commit (configurar correo noreply antes).
@@ -363,6 +392,7 @@ Pregunta del usuario: si qwen falla tanto, ¿conviene la suscripcion de Claude?
 - Medir el mapa de codigo en el bench (tarea `repo`) con puerta de correccion.
 - Verificar las `ruta:linea` que afirme un agente contra el indice de codigo.
 - Agencia en la app y con modelo remoto medido.
+- Correo: borradores `.eml` con aprobacion, resumen programado y calendario.
 - Revisar la latencia del disco antes de volver a correr `test_perf.py`.
 - Repetir `lymi bench snake` real con calentamiento cuando la suscripcion se restablezca.
 - Primera medicion real.

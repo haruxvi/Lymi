@@ -70,7 +70,7 @@ uv run --extra dev pytest -q
 node design/estilos/sincronizar.mjs --check
 ```
 
-Estado al 2026-09-19: **653 pruebas: 651 verdes, 1 omitida, 1 de rendimiento que falla por el disco; ruff limpio, estilos sincronizados.**
+Estado al 2026-09-19: **676 pruebas: 674 verdes, 1 omitida, 1 de rendimiento que falla por el disco; ruff limpio, estilos sincronizados.**
 La que falla es `test_perf.py::test_registro_de_llamadas_es_despreciable` y depende
 del disco: ese dia un commit de SQLite en crudo tardaba 10 ms por fila en esta
 maquina (el ledger, 2,3 ms; limite 1 ms). El codigo del ledger no cambio.
@@ -96,6 +96,11 @@ La CI (`.github/workflows/ci.yml`) corre lo mismo en cada push y PR.
   commit en crudo antes de sospechar del codigo (o de relajar el umbral).
 - Los modelos pequenos mandan `""` o `null` en argumentos opcionales: el motor de
   la agencia los descarta antes de validar. No "arreglarlo" en cada herramienta.
+- Thunderbird guarda el correo en mbox; `mailbox` de la libreria estandar tarda 15 s
+  en un buzon de 5.000 mensajes. Por eso el indice propio cuenta separadores y lee
+  las cabeceras del mismo bloque que ya tiene en memoria.
+- Gmail marca todo como leido al leerlo en la web: no sirve filtrar por "no leidos";
+  el resumen va por fechas.
 - La suscripcion de Claude que usan los agentes remotos es la MISMA que usa Claude
   Code: medir con ella gasta la cuota de la sesion de trabajo. Preguntar antes.
 - `.gitignore`: anclar a la raiz (`/memoria/`). `memoria/` a secas ignoraba tambien
@@ -124,6 +129,7 @@ src/lymi/
   agencia/     departamentos de agentes: definicion (YAML + roles .md), protocolo
                (una accion JSON por turno), motor (delegacion, ayudantes, topes,
                parada), enrutador. Las herramientas son pasos de workflow
+  correo/      buzon local de Thunderbird (mbox) de solo lectura y resumen anotado
   memoria/     afirmaciones de agentes y hechos promovidos por personas, en markdown
   codigo/      mapa del codigo (extraer con `ast`, indice SQLite fresco, formato
                compacto, servidor MCP). `lymi codigo servir` para otros agentes

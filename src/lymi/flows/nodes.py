@@ -40,6 +40,7 @@ from lymi.flows import template
 from lymi.flows.schema import (
     AgenciaStep,
     CodigoStep,
+    CorreoStep,
     HttpIntegration,
     HttpStep,
     LlmStep,
@@ -771,6 +772,84 @@ async def ejecutar_codigo(paso: CodigoStep, contexto: Mapping[str, Any], r: Recu
     return salida
 
 
+def _leer_correo(paso: CorreoStep) -> Any:
+    from lymi.correo import Buzon
+
+    with Buzon() as buzon:
+        if paso.op == "leer":
+            return buzon.leer(paso.carpeta, paso.mensaje or 1)
+        return buzon.listar(paso.carpeta, n=paso.n, dias=paso.dias, solo_sin_leer=paso.solo_sin_leer)
+
+
+async def ejecutar_correo(paso: CorreoStep, contexto: Mapping[str, Any], r: Recursos) -> Any:
+    from lymi.correo import CorreoError, Mensaje, render, resumir
+
+    inicio = time.perf_counter()
+
+    def anotar(ok: bool, error: str | None = None) -> None:
+        r.rec.accion_local(
+            tipo="correo", destino=f"{paso.op}:{paso.carpeta}", proposito=f"flow:{paso.id}",
+            latencia_ms=int((time.perf_counter() - inicio) * 1000), ok=ok, error=error,
+        )
+
+    try:
+        leido = await asyncio.to_thread(_leer_correo, paso)
+    except (CorreoError, OSError) as exc:
+        anotar(False, str(exc)[:300])
+        raise PasoError(str(exc), reintentable=False) from None
+    anotar(True)
+
+    if isinstance(leido, Mensaje):
+        salida: Any = {"texto": _mensaje_a_texto(leido), "datos": _mensaje_a_dict(leido)}
+    elif paso.op == "listar":
+        salida = {
+            "texto": "\n".join(m.resumen() for m in leido) or "sin mensajes",
+            "datos": [_mensaje_a_dict(m) for m in leido],
+        }
+    else:
+        cliente = r.local if paso.tier == "local" else r.remote
+        if cliente is None:
+            raise PasoError(f"no hay proveedor {paso.tier}: corre `lymi setup`", reintentable=False)
+
+        async def completar(sistema: str, texto: str) -> str:
+            try:
+                enviados, sistema_final, redactor = r.rec.preparar(cliente, [Message("user", texto)], sistema)
+            except (EgressBloqueado, Detenido, PresupuestoAgotado) as exc:
+                raise PasoError(str(exc), reintentable=False) from None
+            completion = await asyncio.to_thread(
+                cliente.complete, enviados, system=sistema_final, max_tokens=1500
+            )
+            if redactor is not None:
+                completion.text = redactor.rehidratar(completion.text)
+            r.rec.registrar(
+                completion, enviados, purpose=f"flow:{paso.id}", system=sistema_final,
+                redacciones=redactor.total if redactor is not None else 0,
+            )
+            return completion.text
+
+        resumen = await resumir(leido, completar)
+        salida = {
+            "texto": render(resumen),
+            "datos": {"directos": len(resumen.mensajes), "boletines": len(resumen.boletines),
+                      "avisos": resumen.avisos},
+        }
+    return sanear_valor(salida)[0]
+
+
+def _mensaje_a_dict(m: Any) -> dict[str, Any]:
+    return {
+        "id": m.id, "n": m.n, "fecha": m.fecha.isoformat() if m.fecha else None, "de": m.de,
+        "asunto": m.asunto, "leido": m.leido, "boletin": m.boletin, "para_mi": m.para_mi,
+        "adjuntos": m.adjuntos, "avisos": m.avisos,
+    }
+
+
+def _mensaje_a_texto(m: Any) -> str:
+    cuando = m.fecha.strftime("%Y-%m-%d %H:%M") if m.fecha else "sin fecha"
+    adjuntos = f"\nAdjuntos: {', '.join(m.adjuntos)}" if m.adjuntos else ""
+    return f"De: {m.de}\nFecha: {cuando}\nAsunto: {m.asunto}{adjuntos}\n\n{m.cuerpo}"
+
+
 def _operar_memoria(paso: MemoriaStep, valores: dict[str, str], corrida: str | None) -> dict[str, Any]:
     from lymi.memoria import Memoria, formato
 
@@ -854,6 +933,8 @@ async def ejecutar(paso: Any, contexto: Mapping[str, Any], r: Recursos, flujo: W
         return await ejecutar_agencia(paso, contexto, r)
     if isinstance(paso, MemoriaStep):
         return await ejecutar_memoria(paso, contexto, r)
+    if isinstance(paso, CorreoStep):
+        return await ejecutar_correo(paso, contexto, r)
     if isinstance(paso, CodigoStep):
         return await ejecutar_codigo(paso, contexto, r)
     if isinstance(paso, WebStep):
