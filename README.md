@@ -91,6 +91,9 @@ uv run lymi undo <corrida>                        # deshace lo que una corrida h
 uv run lymi codigo esqueleto src/lymi/web/red.py  # firmas sin cuerpos, con el ahorro medido
 uv run lymi codigo impacto revisar_saliente        # que codigo y que pruebas toca un cambio
 claude mcp add lymi-codigo -- uv run lymi codigo servir   # el mismo mapa para Claude Code
+
+uv run lymi agencia plan agencias/startup.example.yml     # organigrama, permisos y topes duros
+uv run lymi agencia correr agencias/startup.example.yml "@producto donde se valida una URL?"
 ```
 
 ## Desarrollo

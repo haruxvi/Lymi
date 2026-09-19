@@ -297,6 +297,37 @@ repositorio en cada tarea. Implementacion propia en `src/lymi/codigo/`.
 
 583 pruebas verdes (1 de rendimiento falla por el disco), ruff limpio.
 
+## [2026-09-19] codigo | Agencia: departamentos que delegan, en paralelo y con ayudantes
+
+Pedido del usuario: departamentos con flujo de agentes, tareas derivadas y agentes
+que crean otros, sincronico y asincronico. FounderOS aporto la forma (departamentos,
+conductor, rol como archivo), pero no tenia delegacion: es diseno de lymi.
+
+- Un agente es un bucle: el modelo propone UNA accion JSON (usar, delegar, crear,
+  esperar, enviar, terminar) y lymi la valida y la ejecuta. Uniforme para el modelo
+  local y el remoto, sin depender del "tool calling" de cada proveedor.
+- Las herramientas SON pasos de workflow: heredan pasarela, ledger, perfil del
+  ejecutor y aprobaciones sin codigo nuevo. Y un workflow puede entregarle una
+  tarea a un departamento (paso `agencia`): los dos se enriquecen.
+- Seguridad: topes compartidos por el arbol (profundidad, agentes, simultaneos,
+  turnos, llamadas, tokens, tiempo); delegacion solo por aristas declaradas; un
+  ayudante tiene un subconjunto de las herramientas de su creador y no delega ni
+  crea; esperar no ocupa cupo y solo se esperan hijas (sin bloqueos mutuos); la
+  parada, un tope o una falla cancelan a los descendientes.
+- Dos defectos hallados por las pruebas: (1) `esperar` sin lista solo recogia las
+  hijas aun en curso, y el resultado de una hija rapida se perdia; ahora se
+  entrega todo resultado no recibido. (2) Una accion decidida despues de `lymi stop`
+  alcanzaba a ejecutarse; ahora se verifica la parada antes de actuar.
+- Corrida real con qwen2.5:3b sobre el codigo de lymi: el motor funciono (protocolo,
+  herramientas, 0 tokens remotos). Destapo un tercer defecto: el modelo manda
+  `"raiz": ""`; ahora un argumento vacio cuenta como no enviado. Pero el modelo no
+  es confiable: una vez acerto la ubicacion y nego llamadores que existen; otra vez
+  invento `buscar.py:39`. Conclusion documentada, no maquillada: el local de 3B
+  sirve para enrutar y destilar; razonar varios pasos pide el remoto, y hace falta
+  verificar cada `ruta:linea` que afirme un agente.
+
+611 pruebas verdes y 1 omitida; la de rendimiento del disco sigue fallando. Ruff limpio.
+
 ### Hilos abiertos al cierre
 
 - Bloqueante del usuario: primer commit (configurar correo noreply antes).
@@ -305,6 +336,8 @@ repositorio en cada tarea. Implementacion propia en `src/lymi/codigo/`.
 - Probar `lymi web buscar` contra un SearXNG real.
 - Pasos `foreach` en workflows.
 - Medir el mapa de codigo en el bench (tarea `repo`) con puerta de correccion.
+- Verificar las `ruta:linea` que afirme un agente contra el indice de codigo.
+- Agencia en la app y con modelo remoto medido.
 - Revisar la latencia del disco antes de volver a correr `test_perf.py`.
 - Repetir `lymi bench snake` real con calentamiento cuando la suscripcion se restablezca.
 - Primera medicion real.

@@ -287,8 +287,30 @@ class CodigoStep(_Paso):
         return self
 
 
+class AgenciaStep(_Paso):
+    """Entrega una tarea a un departamento o agente de una agencia (`lymi agencia`).
+
+    El paso no pide aprobacion: la piden los agentes, efecto por efecto, con el
+    mismo aprobador del workflow. Por eso no se reintenta: una segunda corrida
+    podria repetir efectos ya aprobados.
+    """
+
+    type: Literal["agencia"]
+    archivo: str
+    tarea: str = Field(min_length=1)
+    agente: str | None = None
+    """`departamento`, `departamento.agente` o `agente`. Sin esto, enruta la agencia."""
+
+    @model_validator(mode="after")
+    def _sin_reintentos(self) -> AgenciaStep:
+        if self.retries:
+            raise ValueError(f"paso {self.id!r}: un paso agencia no se reintenta (sus agentes pueden tener efectos)")
+        return self
+
+
 Step = Annotated[
-    LlmStep | ToolStep | HttpStep | TransformStep | PcStep | WebStep | CodigoStep, Field(discriminator="type")
+    LlmStep | ToolStep | HttpStep | TransformStep | PcStep | WebStep | CodigoStep | AgenciaStep,
+    Field(discriminator="type"),
 ]
 
 

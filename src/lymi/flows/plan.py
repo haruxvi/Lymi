@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from urllib.parse import urlparse
 
 from lymi.flows.schema import (
+    AgenciaStep,
     CodigoStep,
     HttpStep,
     LlmStep,
@@ -44,6 +45,19 @@ class ResumenPlan:
     condicionales: int
 
 
+def _costo_agencia(archivo: str) -> str:
+    """Lee la agencia para decir si algun agente usa el modelo remoto. Sin ejecutar nada."""
+    from lymi.agencia import AgenciaError, cargar_agencia
+
+    try:
+        agencia = cargar_agencia(archivo)
+    except AgenciaError:
+        return "externo"  # no se pudo leer: el lado prudente
+    remotos = any(a.tier == "remote" for a in agencia.agentes().values())
+    webs = any(h.startswith("web.") for a in agencia.agentes().values() for h in a.herramientas)
+    return "tokens remotos" if remotos else "externo" if webs else "gratis"
+
+
 def planificar(flujo: Workflow) -> list[FilaPlan]:
     filas: list[FilaPlan] = []
     for paso in flujo.steps:
@@ -57,6 +71,9 @@ def planificar(flujo: Workflow) -> list[FilaPlan]:
         elif isinstance(paso, HttpStep):
             host = urlparse(paso.url).hostname or "?"
             destino, costo = f"{paso.method} {host}", "externo"
+        elif isinstance(paso, AgenciaStep):
+            costo = _costo_agencia(paso.archivo)
+            destino = f"agencia {paso.archivo} -> {paso.agente or 'enrutada'} (sus agentes piden aprobacion)"
         elif isinstance(paso, CodigoStep):
             objetivo = paso.consulta or paso.nombre or paso.ruta or ""
             destino, costo = f"este PC: codigo {paso.op} {objetivo}".rstrip(), "gratis"

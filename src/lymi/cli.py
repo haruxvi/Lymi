@@ -293,6 +293,10 @@ app.add_typer(web_app, name="web")
 from lymi.cli_codigo import codigo_app
 
 app.add_typer(codigo_app, name="codigo")
+
+from lymi.cli_agencia import agencia_app
+
+app.add_typer(agencia_app, name="agencia")
 app.command("serve")(servir)
 
 

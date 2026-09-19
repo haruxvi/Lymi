@@ -114,7 +114,28 @@ garantias de lymi. Ver `src/lymi/web/`.
 
 ## 4. Oleada 2 — agente
 
-- [ ] Bucle de agente con herramientas (sobre MCP y el ejecutor del host).
+- [x] Agencia: departamentos de agentes con lider, enrutador (`@agente` o modelo
+      local), delegacion sincronica y en paralelo, ayudantes temporales, mensajes
+      entre tareas relacionadas y espera de resultados (`src/lymi/agencia/`,
+      `lymi agencia validar|plan|correr`, paso `agencia` en workflows). Las
+      herramientas de un agente son los pasos de workflow (web, codigo, pc,
+      workflows enteros). Topes duros compartidos por todo el arbol; nadie gana
+      permisos al delegar o crear; la parada corta el arbol; cada llamada en el
+      ledger con su tarea. 28 pruebas, incluido el escenario de colaboracion completo.
+- [ ] **Verificar lo que afirma un agente.** Corrida real con qwen2.5:3b: el motor
+      funciono, pero el modelo cito `buscar.py:39` cuando la herramienta le habia
+      dicho `red.py:91`. Toda `ruta:linea` de un resultado debe comprobarse contra
+      el indice de codigo, como ya se hace con las citas web.
+- [ ] Medir la agencia en el bench con modelo remoto: el local de 3B sirve para
+      enrutar y destilar, no para razonar varios pasos.
+- [ ] Agencia en la app (`lymi ui`): organigrama, arbol de tareas en vivo y
+      aprobaciones desde el navegador.
+- [ ] Tareas programadas por departamento (reusar `lymi schedule`).
+- [ ] Memoria con promocion (fuente -> afirmacion -> hecho) antes de que un agente
+      la use como verdad. Idea de FounderOS.
+- [ ] Respaldo de modelo sin ciclos cuando el remoto agota su cuota (FounderOS lo
+      aprendio con una cadena que oscilaba).
+- [ ] Bucle de agente con herramientas MCP ajenas (hoy: pasos propios y workflows).
 - [x] Mapa de codigo propio (`src/lymi/codigo/`, `lymi codigo ...`, paso `codigo`,
       servidor MCP `lymi codigo servir`): esqueleto, fragmento, buscar, llamadores,
       impacto y mapa. Fresco antes de cada consulta, sin re-analizar lo que no

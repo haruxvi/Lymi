@@ -181,7 +181,10 @@ async def ejecutar_flujo(
         if any(isinstance(p, WebStep) for p in flujo.steps):
             web = web or Web(cliente_http)
             buscador = buscador or buscador_configurado(entorno, cliente_http)
-        recursos = Recursos(grabador, local, remote, pool, cliente_http, entorno, ejecutor, web, buscador)
+        recursos = Recursos(
+            grabador, local, remote, pool, cliente_http, entorno, ejecutor, web, buscador,
+            aprobar=aprobar, politica=politica, tiempo_aprobacion=tiempo_aprobacion, ledger=ledger,
+        )
 
         def terminar_mal(estado: EstadoPaso) -> ResultadoFlujo:
             estados.append(estado)

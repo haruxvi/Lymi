@@ -251,3 +251,25 @@ de parada, cadena de validacion, registro de decisiones. Su prueba de fuego
 ("observa un evento real mientras no estas y produce algo mejor que tu") es lo que
 los disparadores de lymi ya permiten, con la diferencia de que aqui cada salida
 queda en el ledger.
+
+### FounderOS-DEMO (MIT, Next.js) — ideas tomadas; la delegacion no existia
+
+Demo de un "sistema operativo" para un negocio de una persona: departamentos,
+agentes con nombre, conductor, tablero de aprobaciones, memoria gobernada. Casi
+todo es interfaz sobre datos sembrados; sus agentes son funciones `run()` sin
+bucle, y **no hay agentes que deleguen ni creen otros**: eso lo diseno lymi.
+
+Tomado (sin copiar codigo):
+- Departamentos con lider y un organigrama declarado.
+- Conductor: primero `@agente` explicito, si no lo elige un modelo, y nunca falla
+  por un nombre desconocido. En lymi enruta el modelo local, gratis.
+- El rol como archivo markdown que ES el prompt (que recibe, que entrega, reglas),
+  con la regla "nunca afirmes una cifra que no te dieron".
+- Estado honesto de cada conector (lymi ya lo hacia).
+
+Pendiente, anotado en PENDIENTES:
+- Memoria con promocion (fuente -> senal -> afirmacion -> hecho): los agentes
+  escriben afirmaciones; solo lo revisado se vuelve hecho.
+- Respaldo de modelo al agotarse la cuota, con una cadena **sin ciclos** (su propio
+  codigo documenta una que oscilo entre dos modelos durante hora y media).
+- Cola de aprobaciones por tipo (decision, borrador, compuerta) con plazo.

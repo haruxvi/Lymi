@@ -70,7 +70,7 @@ uv run --extra dev pytest -q
 node design/estilos/sincronizar.mjs --check
 ```
 
-Estado al 2026-09-19: **584 pruebas (583 verdes), ruff limpio, estilos sincronizados.**
+Estado al 2026-09-19: **613 pruebas: 611 verdes, 1 omitida, 1 de rendimiento que falla por el disco; ruff limpio, estilos sincronizados.**
 La que falla es `test_perf.py::test_registro_de_llamadas_es_despreciable` y depende
 del disco: ese dia un commit de SQLite en crudo tardaba 10 ms por fila en esta
 maquina (el ledger, 2,3 ms; limite 1 ms). El codigo del ledger no cambio.
@@ -94,6 +94,13 @@ La CI (`.github/workflows/ci.yml`) corre lo mismo en cada push y PR.
 - `--bare` de Claude Code **no** usa la suscripcion (solo API key).
 - `test_perf.py` mide escrituras a SQLite: si falla, medir primero la latencia de un
   commit en crudo antes de sospechar del codigo (o de relajar el umbral).
+- Los modelos pequenos mandan `""` o `null` en argumentos opcionales: el motor de
+  la agencia los descarta antes de validar. No "arreglarlo" en cada herramienta.
+- qwen2.5:3b sigue el protocolo de acciones pero no es confiable redactando lo que
+  leyo (inventa rutas y lineas). No ajustar prompts para que una demo salga bien:
+  medir y documentar.
+- Bash del harness: un heredoc largo con comillas escapadas puede romperse al
+  interpretarse. Para scripts de edicion, escribir un .py en el scratchpad.
 - El indice de codigo guarda su `VERSION` de extractor: si cambia lo que se extrae,
   subirla, o los archivos sin cambios conservan datos viejos.
 
@@ -110,6 +117,9 @@ src/lymi/
   triggers/    cron, agenda, webhook, ganchos, politica desatendida, servidor
   ejecutor/    la unica puerta al PC: capacidades por ruta y comando, operaciones
                cerradas, diario de deshacer (`lymi undo`). Nunca hay shell
+  agencia/     departamentos de agentes: definicion (YAML + roles .md), protocolo
+               (una accion JSON por turno), motor (delegacion, ayudantes, topes,
+               parada), enrutador. Las herramientas son pasos de workflow
   codigo/      mapa del codigo (extraer con `ast`, indice SQLite fresco, formato
                compacto, servidor MCP). `lymi codigo servir` para otros agentes
   web/         lectura de la web hecha por lymi: red (guardia SSRF + robots),

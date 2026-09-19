@@ -38,6 +38,7 @@ from lymi.control import Detenido, PresupuestoAgotado
 from lymi.ejecutor import CapacidadDenegada, Ejecutor, EjecutorError
 from lymi.flows import template
 from lymi.flows.schema import (
+    AgenciaStep,
     CodigoStep,
     HttpIntegration,
     HttpStep,
@@ -472,6 +473,11 @@ class Recursos:
     ejecutor: Ejecutor | None = None
     web: Web | None = None
     buscador: Buscador | None = None
+    aprobar: Callable[..., Any] | None = None
+    """Lo usan los pasos que piden aprobacion desde dentro (los agentes de una agencia)."""
+    politica: Any = None
+    tiempo_aprobacion: float | None = None
+    ledger: Any = None
 
 
 async def ejecutar_llm(paso: LlmStep, contexto: Mapping[str, Any], r: Recursos) -> Any:
@@ -764,8 +770,41 @@ async def ejecutar_codigo(paso: CodigoStep, contexto: Mapping[str, Any], r: Recu
     return salida
 
 
+async def ejecutar_agencia(paso: AgenciaStep, contexto: Mapping[str, Any], r: Recursos) -> Any:
+    from lymi.agencia import AgenciaError, Orquestador, cargar_agencia, enrutar
+    from lymi.agencia.motor import raiz_trazas
+
+    try:
+        agencia = cargar_agencia(Path(paso.archivo))
+    except AgenciaError as exc:
+        raise PasoError(str(exc), reintentable=False) from None
+    texto = _texto(template.render(paso.tarea, contexto))
+    if paso.agente is not None:
+        destino, motivo = _texto(template.render(paso.agente, contexto)), "declarado en el paso"
+    else:
+        destino, texto, motivo = await enrutar(agencia, texto, r.local, r.rec)
+    orquestador = Orquestador(
+        agencia, r, aprobar=r.aprobar, politica=r.politica, tiempo_aprobacion=r.tiempo_aprobacion,
+        ledger=r.ledger, traza=raiz_trazas() / f"{agencia.name}-{paso.id}-{int(time.time())}.jsonl",
+    )
+    try:
+        raiz = await orquestador.correr(texto, destino)
+    except ValueError as exc:
+        raise PasoError(str(exc), reintentable=False) from None
+    if raiz.estado != "hecha":
+        raise PasoError(f"la agencia no termino ({raiz.agente}): {raiz.error}", reintentable=False)
+    return {
+        "resultado": raiz.resultado,
+        "agente": raiz.agente,
+        "ruta": motivo,
+        "tareas": [t.resumen() for t in orquestador.tareas.values()],
+    }
+
+
 async def ejecutar(paso: Any, contexto: Mapping[str, Any], r: Recursos, flujo: Workflow) -> Any:
     """Despacha el paso a su nodo."""
+    if isinstance(paso, AgenciaStep):
+        return await ejecutar_agencia(paso, contexto, r)
     if isinstance(paso, CodigoStep):
         return await ejecutar_codigo(paso, contexto, r)
     if isinstance(paso, WebStep):

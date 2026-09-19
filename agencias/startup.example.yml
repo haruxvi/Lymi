@@ -1,0 +1,48 @@
+name: startup
+description: >
+  Agencia de ejemplo para una startup pequena: direccion reparte, investigacion
+  lee la web, producto responde sobre el codigo y contenido escribe el informe.
+  Todo en el modelo local por defecto: cero tokens remotos.
+
+limites:
+  profundidad: 2        # direccion -> departamento -> ayudante
+  simultaneos: 2        # con 4 GB de VRAM, mas de dos a la vez solo hace cola
+  agentes_totales: 8
+  turnos_por_agente: 8
+  llamadas: 60
+  segundos: 1200
+
+departamentos:
+  direccion:
+    descripcion: Recibe los pedidos y los reparte entre los departamentos.
+    agentes:
+      coordinador:
+        descripcion: Parte la tarea, la delega y resume los resultados.
+        rol: archivo:roles/coordinador.md
+        delega_a: [investigacion, producto, contenido]
+
+  investigacion:
+    descripcion: Mercado, competencia y cualquier pregunta que se responda con la web.
+    agentes:
+      analista:
+        descripcion: Investiga en la web con fuentes verificadas.
+        rol: archivo:roles/analista.md
+        herramientas: [web.investigar, web.extraer, web.buscar]
+        puede_crear: true
+        delega_a: [contenido.redactor]
+
+  producto:
+    descripcion: Preguntas sobre el codigo y el impacto de un cambio.
+    agentes:
+      ingeniero:
+        descripcion: Responde sobre el codigo citando ruta y linea.
+        rol: archivo:roles/ingeniero.md
+        herramientas: [codigo.buscar, codigo.esqueleto, codigo.fragmento, codigo.llamadores, codigo.impacto]
+
+  contenido:
+    descripcion: Documentos e informes a partir de material ya reunido.
+    agentes:
+      redactor:
+        descripcion: Escribe informes en markdown en salidas/.
+        rol: archivo:roles/redactor.md
+        herramientas: [pc.escribir]
