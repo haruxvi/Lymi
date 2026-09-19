@@ -27,6 +27,7 @@ import time
 from collections.abc import AsyncIterator, Callable, Mapping
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlparse
 
@@ -37,6 +38,7 @@ from lymi.control import Detenido, PresupuestoAgotado
 from lymi.ejecutor import CapacidadDenegada, Ejecutor, EjecutorError
 from lymi.flows import template
 from lymi.flows.schema import (
+    CodigoStep,
     HttpIntegration,
     HttpStep,
     LlmStep,
@@ -706,8 +708,66 @@ async def ejecutar_web(paso: WebStep, contexto: Mapping[str, Any], r: Recursos) 
     return sanear_valor(salida)[0]
 
 
+def _consultar_codigo(paso: CodigoStep, raiz: str, valores: dict[str, str]) -> dict[str, Any]:
+    """Corre en un hilo: abre, pone al dia, consulta y cierra el indice en ese mismo hilo."""
+    from lymi.codigo import abrir
+    from lymi.codigo import formato as fmt
+    from lymi.ejecutor import cargar_perfil
+
+    base = Path.cwd()
+    carpeta = cargar_perfil(base / "ejecutor.yml", base).resolver_lectura(raiz, base)
+    with abrir(carpeta) as indice:
+        if paso.op == "buscar":
+            datos: Any = indice.buscar(valores["consulta"])
+            texto = fmt.buscar(datos)
+        elif paso.op == "esqueleto":
+            datos = indice.esqueleto(valores["ruta"])
+            texto = fmt.esqueleto(datos)
+        elif paso.op == "fragmento":
+            datos = indice.fragmento(valores["nombre"])
+            texto = fmt.fragmentos(datos)
+        elif paso.op == "llamadores":
+            datos = indice.llamadores(valores["nombre"])
+            texto = fmt.llamadores(valores["nombre"], datos)
+        elif paso.op == "impacto":
+            datos = indice.impacto(valores["nombre"], paso.profundidad)
+            texto = fmt.impacto(datos)
+        else:
+            datos = indice.mapa(valores.get("ruta", ""))
+            texto = fmt.mapa(datos)
+    return {"texto": texto, "datos": datos}
+
+
+async def ejecutar_codigo(paso: CodigoStep, contexto: Mapping[str, Any], r: Recursos) -> Any:
+    from lymi.codigo import IndiceError
+
+    raiz = _texto(template.render(paso.raiz, contexto))
+    valores = {
+        campo: _texto(template.render(getattr(paso, campo), contexto))
+        for campo in ("consulta", "ruta", "nombre")
+        if getattr(paso, campo) is not None
+    }
+    destino = f"codigo:{paso.op}:{next(iter(valores.values()), '')}"[:200]
+    inicio = time.perf_counter()
+    try:
+        salida = await asyncio.to_thread(_consultar_codigo, paso, raiz, valores)
+    except (IndiceError, CapacidadDenegada, OSError) as exc:
+        r.rec.accion_local(
+            tipo="codigo", destino=destino, proposito=f"flow:{paso.id}",
+            latencia_ms=int((time.perf_counter() - inicio) * 1000), ok=False, error=str(exc)[:300],
+        )
+        raise PasoError(str(exc), reintentable=False) from None
+    r.rec.accion_local(
+        tipo="codigo", destino=destino, proposito=f"flow:{paso.id}",
+        latencia_ms=int((time.perf_counter() - inicio) * 1000),
+    )
+    return salida
+
+
 async def ejecutar(paso: Any, contexto: Mapping[str, Any], r: Recursos, flujo: Workflow) -> Any:
     """Despacha el paso a su nodo."""
+    if isinstance(paso, CodigoStep):
+        return await ejecutar_codigo(paso, contexto, r)
     if isinstance(paso, WebStep):
         return await ejecutar_web(paso, contexto, r)
     if isinstance(paso, PcStep):

@@ -267,6 +267,36 @@ Ejemplos nuevos: `workflows/investigar-y-archivar.yml`, `workflows/resumen-de-pa
 
 559 pruebas verdes, ruff limpio.
 
+## [2026-09-19] codigo | Mapa del codigo: menos lectura a ciegas, medido
+
+Cinco repos evaluados (ver REFERENCIAS). El que aporta ahorro demostrable es la
+idea compartida por Graft y codebase-memory-mcp: que un agente no re-explore el
+repositorio en cada tarea. Implementacion propia en `src/lymi/codigo/`.
+
+- `ast` de la libreria estandar para Python (exacto, sin ejecutar nada); JS/TS,
+  Go y Rust por patrones, marcados como aproximados en cada respuesta.
+- Indice SQLite fresco antes de cada consulta: en lymi, 104 archivos en 1 s la
+  primera vez y 0,1 s cuando nada cambio. Version de extractor: si cambia, se rehace.
+- Consultas: `buscar`, `esqueleto`, `fragmento`, `llamadores`, `impacto`, `mapa`.
+  Por terminal (`lymi codigo`), en workflows (paso `codigo`, raiz juzgada por el
+  perfil del ejecutor) y por MCP (`lymi codigo servir`, probado de punta a punta
+  con el cliente MCP de lymi contra el proceso real).
+- **Defecto encontrado al usarlo**: el impacto arrastraba homonimos (`Agenda.obtener`
+  aparecia como afectado por un cambio en `Web.obtener`). Ahora una llamada solo
+  se confirma si el archivo importa el modulo que define el simbolo (con un salto a
+  traves del `__init__` del paquete); el resto se informa como "posibles homonimos",
+  sin esconderlo. El impacto de `revisar_saliente` paso de seis archivos de prueba
+  a uno, el correcto.
+- Medido sobre las 66 fuentes de lymi: esqueletos 82% menos bytes que los archivos;
+  un `fragmento`, 95% menos que el archivo que contiene la funcion (564 funciones).
+  Son bytes de contexto. Si un agente acierta igual con menos contexto se mide
+  despues en el bench, con puerta de correccion.
+- `test_perf.py::test_registro_de_llamadas_es_despreciable` falla: 2,3 ms por
+  registro contra 1 ms. Causa medida: el disco. Un commit de SQLite en crudo tarda
+  10 ms por fila en esta maquina hoy; el ledger no cambio. No se relajo el umbral.
+
+583 pruebas verdes (1 de rendimiento falla por el disco), ruff limpio.
+
 ### Hilos abiertos al cierre
 
 - Bloqueante del usuario: primer commit (configurar correo noreply antes).
@@ -274,6 +304,8 @@ Ejemplos nuevos: `workflows/investigar-y-archivar.yml`, `workflows/resumen-de-pa
   que no se puede leer con HTTP.
 - Probar `lymi web buscar` contra un SearXNG real.
 - Pasos `foreach` en workflows.
+- Medir el mapa de codigo en el bench (tarea `repo`) con puerta de correccion.
+- Revisar la latencia del disco antes de volver a correr `test_perf.py`.
 - Repetir `lymi bench snake` real con calentamiento cuando la suscripcion se restablezca.
 - Primera medicion real.
 - Editor de temas funcional sobre `theme.toml`.

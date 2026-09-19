@@ -70,7 +70,10 @@ uv run --extra dev pytest -q
 node design/estilos/sincronizar.mjs --check
 ```
 
-Estado al 2026-09-15: **559 pruebas verdes, ruff limpio, estilos sincronizados.**
+Estado al 2026-09-19: **584 pruebas (583 verdes), ruff limpio, estilos sincronizados.**
+La que falla es `test_perf.py::test_registro_de_llamadas_es_despreciable` y depende
+del disco: ese dia un commit de SQLite en crudo tardaba 10 ms por fila en esta
+maquina (el ledger, 2,3 ms; limite 1 ms). El codigo del ledger no cambio.
 La CI (`.github/workflows/ci.yml`) corre lo mismo en cada push y PR.
 
 ## Trampas conocidas (ya costaron tiempo)
@@ -89,6 +92,10 @@ La CI (`.github/workflows/ci.yml`) corre lo mismo en cada push y PR.
 - Un modulo cargado con `importlib` debe registrarse en `sys.modules` antes de
   ejecutarse, o `@dataclass` falla.
 - `--bare` de Claude Code **no** usa la suscripcion (solo API key).
+- `test_perf.py` mide escrituras a SQLite: si falla, medir primero la latencia de un
+  commit en crudo antes de sospechar del codigo (o de relajar el umbral).
+- El indice de codigo guarda su `VERSION` de extractor: si cambia lo que se extrae,
+  subirla, o los archivos sin cambios conservan datos viejos.
 
 ## Mapa del codigo
 
@@ -103,6 +110,8 @@ src/lymi/
   triggers/    cron, agenda, webhook, ganchos, politica desatendida, servidor
   ejecutor/    la unica puerta al PC: capacidades por ruta y comando, operaciones
                cerradas, diario de deshacer (`lymi undo`). Nunca hay shell
+  codigo/      mapa del codigo (extraer con `ast`, indice SQLite fresco, formato
+               compacto, servidor MCP). `lymi codigo servir` para otros agentes
   web/         lectura de la web hecha por lymi: red (guardia SSRF + robots),
                markdown (HTML limpio), buscar (SearXNG), investigar (pasajes por
                BM25 y citas verificadas contra la fuente)

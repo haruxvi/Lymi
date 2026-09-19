@@ -250,8 +250,45 @@ class WebStep(_Paso):
         return self
 
 
+_CAMPOS_CODIGO = {
+    "buscar": ({"consulta"}, set()),
+    "esqueleto": ({"ruta"}, set()),
+    "fragmento": ({"nombre"}, set()),
+    "llamadores": ({"nombre"}, set()),
+    "impacto": ({"nombre"}, set()),
+    "mapa": (set(), {"ruta"}),
+}
+
+
+class CodigoStep(_Paso):
+    """Consulta al mapa del codigo de un repositorio: local, de solo lectura, gratis.
+
+    La salida trae `texto` (compacto, para un prompt) y `datos` (para encadenar).
+    La raiz se juzga contra el perfil del ejecutor, igual que una lectura del PC.
+    """
+
+    type: Literal["codigo"]
+    op: Literal["buscar", "esqueleto", "fragmento", "llamadores", "impacto", "mapa"]
+    raiz: str = "."
+    consulta: str | None = None
+    ruta: str | None = None
+    """esqueleto: el archivo. mapa: prefijo de carpeta opcional."""
+    nombre: str | None = None
+    profundidad: int = Field(3, ge=1, le=6)
+
+    @model_validator(mode="after")
+    def _campos(self) -> CodigoStep:
+        presentes = {c for c in ("consulta", "ruta", "nombre") if getattr(self, c) is not None}
+        requeridos, opcionales = _CAMPOS_CODIGO[self.op]
+        if faltan := requeridos - presentes:
+            raise ValueError(f"paso {self.id!r}: op {self.op} requiere {', '.join(sorted(faltan))}")
+        if sobran := presentes - requeridos - opcionales:
+            raise ValueError(f"paso {self.id!r}: op {self.op} no admite {', '.join(sorted(sobran))}")
+        return self
+
+
 Step = Annotated[
-    LlmStep | ToolStep | HttpStep | TransformStep | PcStep | WebStep, Field(discriminator="type")
+    LlmStep | ToolStep | HttpStep | TransformStep | PcStep | WebStep | CodigoStep, Field(discriminator="type")
 ]
 
 

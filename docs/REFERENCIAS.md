@@ -201,3 +201,53 @@ No se copio codigo de ninguno de los tres. Lo mismo vale para OpenClaw y Hermes
 Agent: de ellos se toma **que** resuelven (actuar en el PC, automatizar), no
 **como**; sus desventajas (shell abierto, sin diario de deshacer, sin cuenta del
 egress) son justamente lo que lymi corrige.
+
+## Evaluacion del 2026-09-19
+
+Criterio del usuario: ideas funcionales, sin humo, demostrables. Las cinco
+licencias son permisivas; no se copio codigo de ninguna.
+
+### codebase-memory-mcp (MIT, C) — idea tomada: mapa estructural por MCP
+
+Grafo de conocimiento del codigo con tree-sitter (162 lenguajes), 15 herramientas
+MCP, analisis de impacto. Se tomo la forma: consultas estructurales servidas a un
+agente por MCP e impacto transitivo de un cambio. No se tomo: el instalador que
+escribe la configuracion de decenas de clientes (invasivo) ni el binario nativo.
+Sus cifras ("120x menos tokens") no las verificamos; las nuestras se miden sobre
+lymi y se publican con su metodo.
+
+### Graft (MIT, TypeScript) — ideas tomadas: frescura, cache por hash, metodo de medicion
+
+- Refrescar el indice antes de cada consulta comparando fecha y tamano, y no
+  re-analizar lo que tiene el mismo hash: el indice nunca describe codigo viejo.
+- Comandos esqueleto / llamadores / mapa como primera clase.
+- **Su metodo de benchmark**: una puerta de correccion con palabras obligatorias,
+  para que una respuesta rapida y equivocada no gane; costo con la cache contada.
+  Queda como pendiente para la tarea `repo` del bench.
+- No se tomo: los resumenes escritos por un modelo (gastan tokens; si llegan,
+  medidos) ni la telemetria, aunque sea opcional: lymi no manda nada sin que se vea.
+
+### agency-agents (MIT) — sin codigo que tomar; formato reutilizable
+
+Coleccion de prompts de "personalidades" de agente en markdown con frontmatter.
+Una personalidad larga se paga en tokens en cada llamada y el repo no mide si
+mejora algo. Queda como pendiente solo el formato: importar un rol como `system`
+de un paso, con su costo visible en `flow plan` y medido en el bench.
+
+### colibri (Apache 2.0, C) — principio tomado; motor no aplicable
+
+Motor de inferencia para modelos MoE enormes repartiendo VRAM, RAM y disco. Su
+propia demo usa seis GPU de gama alta para 4 tokens/s: no aplica a una maquina
+con 4 GB de VRAM. Se tomo su principio: "sin garantia de velocidad, garantia dura
+de semantica: nunca cambiar la precision en silencio". Pendiente: registrar la
+cuantizacion del modelo local en el ledger y el recibo.
+
+### AIS-OS (MIT, kit de markdown) — confirma el rumbo; marcas registradas
+
+Kit de carpetas y comandos para un "sistema operativo" personal con IA. Sus
+marcos (Three Ms, Four Cs) son marcas registradas: no se usan sus nombres. Coincide
+con decisiones ya tomadas en lymi: los workflows ganan a los agentes, interruptor
+de parada, cadena de validacion, registro de decisiones. Su prueba de fuego
+("observa un evento real mientras no estas y produce algo mejor que tu") es lo que
+los disparadores de lymi ya permiten, con la diferencia de que aqui cada salida
+queda en el ledger.

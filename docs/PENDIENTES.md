@@ -115,7 +115,18 @@ garantias de lymi. Ver `src/lymi/web/`.
 ## 4. Oleada 2 — agente
 
 - [ ] Bucle de agente con herramientas (sobre MCP y el ejecutor del host).
-- [ ] Retrieval simbolico (Serena/`solidlsp`) + curva de escalamiento plana.
+- [x] Mapa de codigo propio (`src/lymi/codigo/`, `lymi codigo ...`, paso `codigo`,
+      servidor MCP `lymi codigo servir`): esqueleto, fragmento, buscar, llamadores,
+      impacto y mapa. Fresco antes de cada consulta, sin re-analizar lo que no
+      cambio, sin indexar lo `nunca-sale`. Llamadas confirmadas por importacion; los
+      homonimos se reportan aparte. Medido sobre lymi: esqueletos 82% menos bytes
+      que los archivos; un fragmento, 95% menos que el archivo que lo contiene.
+- [ ] Medir el mapa en el bench (tarea `repo`): agente con y sin mapa, con puerta
+      de correccion (palabras obligatorias o pruebas) para que una respuesta rapida
+      y equivocada no gane. Idea de metodo tomada de Graft.
+- [ ] Analisis exacto para mas lenguajes (hoy solo Python; JS/TS, Go y Rust son
+      aproximados y lo dicen). Candidato: tree-sitter (MIT).
+- [ ] Retrieval simbolico con tipos (Serena/`solidlsp`) + curva de escalamiento plana.
 - [ ] Compresion de contexto con presupuesto duro.
 - [ ] Subagentes en worktrees; router de modelos medido.
 
@@ -138,6 +149,12 @@ Ver `REFERENCIAS.md`. Cada una se mide en el ledger antes de declararla util.
 - [ ] Contexto de pantalla via arbol de accesibilidad, no capturas. Idea de
       Everywhere (BSL: implementacion propia).
 - [ ] Evaluar RTK sobre la salida de herramientas y zvec como indice local.
+- [ ] Registrar la cuantizacion del modelo local (Ollama `/api/show`) en el ledger y
+      el recibo: comparar contra un modelo sin decir su precision es humo. Principio
+      tomado de colibri: nunca cambiar la precision en silencio.
+- [ ] Roles de agente importables desde markdown con frontmatter (formato de
+      agency-agents), con su costo en tokens visible en `flow plan` y medidos en el
+      bench antes de recomendarlos: una personalidad larga cuesta tokens en cada llamada.
 - [ ] Graficos via mcp-server-chart solo con servidor de render propio.
 
 ## 5. Oleadas 3-6

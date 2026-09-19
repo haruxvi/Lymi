@@ -10,7 +10,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
-from lymi.flows.schema import HttpStep, LlmStep, PcStep, ToolStep, TransformStep, WebStep, Workflow
+from lymi.flows.schema import (
+    CodigoStep,
+    HttpStep,
+    LlmStep,
+    PcStep,
+    ToolStep,
+    TransformStep,
+    WebStep,
+    Workflow,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,6 +57,9 @@ def planificar(flujo: Workflow) -> list[FilaPlan]:
         elif isinstance(paso, HttpStep):
             host = urlparse(paso.url).hostname or "?"
             destino, costo = f"{paso.method} {host}", "externo"
+        elif isinstance(paso, CodigoStep):
+            objetivo = paso.consulta or paso.nombre or paso.ruta or ""
+            destino, costo = f"este PC: codigo {paso.op} {objetivo}".rstrip(), "gratis"
         elif isinstance(paso, WebStep):
             objetivo = paso.url or paso.consulta or paso.pregunta or "?"
             destino = f"web: {paso.op} {objetivo}"[:90]

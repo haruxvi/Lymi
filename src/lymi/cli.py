@@ -289,6 +289,10 @@ app.add_typer(hooks_app, name="hooks")
 from lymi.cli_web import web_app
 
 app.add_typer(web_app, name="web")
+
+from lymi.cli_codigo import codigo_app
+
+app.add_typer(codigo_app, name="codigo")
 app.command("serve")(servir)
 
 

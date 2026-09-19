@@ -87,6 +87,10 @@ uv run lymi web leer https://ejemplo.com          # la pagina como markdown limp
 uv run lymi web investigar "tu pregunta"          # responde con fuentes y verifica cada cita
 uv run lymi flow run workflows/resumen-de-pagina.yml -i url=https://ejemplo.com
 uv run lymi undo <corrida>                        # deshace lo que una corrida hizo en tus archivos
+
+uv run lymi codigo esqueleto src/lymi/web/red.py  # firmas sin cuerpos, con el ahorro medido
+uv run lymi codigo impacto revisar_saliente        # que codigo y que pruebas toca un cambio
+claude mcp add lymi-codigo -- uv run lymi codigo servir   # el mismo mapa para Claude Code
 ```
 
 ## Desarrollo
