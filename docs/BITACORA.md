@@ -382,6 +382,25 @@ lymi solo lee los archivos que deja en disco.
 
 674 pruebas verdes y 1 omitida; la de rendimiento del disco sigue fallando. Ruff limpio.
 
+## [2026-09-19] codigo | Borradores de respuesta, sin forma de enviarlos
+
+- `lymi correo borrador <id>`: el modelo escribe SOLO el cuerpo; a quien, el asunto
+  y el hilo los arma lymi desde el correo original. Un modelo distraido no puede
+  cambiar el destinatario.
+- El borrador queda como `.eml` escrito por el ejecutor (aprobacion y `lymi undo`).
+  lymi no envia correo: no hay SMTP en el paquete y hay una prueba que recorre las
+  fuentes para comprobarlo.
+- Defecto encontrado con correo real: el `Message-ID` de GitHub mide 86 caracteres
+  sin espacios; `email` no lo puede plegar en 78 y lo codifica como `=?utf-8?q?...`,
+  con lo que el cliente pierde el hilo. Los borradores se escriben con el limite
+  real del estandar (998) y hay prueba de regresion.
+- Presentacion del resumen: `1 mensaje` en singular y el remitente con su dominio
+  (`Vicente (github.com)`), que se veia como si el usuario se escribiera a si mismo.
+- El resumen diario no necesito codigo nuevo: `lymi schedule add` ya programa el
+  workflow y preaprueba el paso que escribe. Probado en una agenda temporal.
+
+679 pruebas verdes y 1 omitida; la de rendimiento del disco sigue fallando. Ruff limpio.
+
 ### Hilos abiertos al cierre
 
 - Bloqueante del usuario: primer commit (configurar correo noreply antes).
@@ -392,7 +411,7 @@ lymi solo lee los archivos que deja en disco.
 - Medir el mapa de codigo en el bench (tarea `repo`) con puerta de correccion.
 - Verificar las `ruta:linea` que afirme un agente contra el indice de codigo.
 - Agencia en la app y con modelo remoto medido.
-- Correo: borradores `.eml` con aprobacion, resumen programado y calendario.
+- Correo: aviso al celular del resumen, agrupar por hilo y calendario.
 - Revisar la latencia del disco antes de volver a correr `test_perf.py`.
 - Repetir `lymi bench snake` real con calentamiento cuando la suscripcion se restablezca.
 - Primera medicion real.

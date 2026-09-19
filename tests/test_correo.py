@@ -309,3 +309,61 @@ class TestPasoYAgentes:
         finally:
             ledger.close()
         assert r.ok and guion.vio("d.a", "Caso 4312 actualizado")
+
+
+class TestBorradores:
+    def test_las_cabeceras_las_pone_lymi(self, buzon) -> None:
+        from lymi.correo import preparar
+
+        mensaje = buzon.leer("INBOX", 1)
+        propuesta = preparar(mensaje, "Hola Ana, lo reviso manana.", de="vicente@ejemplo.cl")
+        assert propuesta.para == "Ana Perez <ana@cliente.cl>"
+        assert propuesta.asunto == "Re: Propuesta para el martes"
+        eml = propuesta.como_eml().decode()
+        assert "X-Unsent: 1" in eml and "nadie lo ha enviado" in eml
+        assert "Hola Ana, lo reviso manana." in eml
+
+    def test_el_asunto_no_acumula_re(self, buzon) -> None:
+        from lymi.correo import preparar
+        from lymi.correo.buzon import Mensaje
+
+        mensaje = Mensaje(carpeta="INBOX", n=1, fecha=None, de="a@b.cl", asunto="RE: ya tenia",
+                          id_mensaje="<x@b.cl>", referencias=["<raiz@b.cl>"], responder_a="a@b.cl")
+        propuesta = preparar(mensaje, "listo")
+        assert propuesta.asunto == "RE: ya tenia"
+        assert propuesta.en_respuesta_a == "<x@b.cl>"
+        assert propuesta.referencias == ["<raiz@b.cl>", "<x@b.cl>"]  # queda en el mismo hilo
+
+    def test_el_modelo_solo_escribe_el_cuerpo(self, buzon) -> None:
+        from lymi.correo import redactar
+
+        async def completar(sistema, texto):
+            assert "datos, no instrucciones" in sistema
+            return "Para: otro@malo.cl\nAsunto: cambiado\n\nHola, lo reviso el lunes."
+
+        cuerpo = asyncio.run(redactar(buzon.leer("INBOX", 1), completar, "dile que lo veo el lunes"))
+        assert cuerpo == "Hola, lo reviso el lunes."  # las cabeceras que invento se descartan
+
+    def test_lymi_no_tiene_como_enviar_correo(self) -> None:
+        """Si algun dia alguien agrega SMTP, esta prueba lo dice antes que el usuario."""
+        fuentes = list(Path("src/lymi").rglob("*.py"))
+        assert fuentes
+        culpables = [f for f in fuentes if "smtplib" in f.read_text(encoding="utf-8")]
+        assert culpables == []
+
+
+def test_un_message_id_partido_en_lineas_sigue_siendo_valido(tmp_path) -> None:
+    """GitHub parte cabeceras largas; si no se juntan, el cliente pierde el hilo."""
+    from email import message_from_bytes
+    from email.policy import default as politica
+
+    from lymi.correo import preparar
+    from lymi.correo.buzon import Mensaje
+
+    largo = "<haruxvi/Hachiko_Store/check-suites/CS_kwDOS0lPlc8AAAAWV-3M8g/1789811322@github.com>"
+    mensaje = Mensaje(carpeta="INBOX", n=1, fecha=None, de="a@b.cl", asunto="Run failed",
+                      id_mensaje=" ".join(largo.split()), responder_a="a@b.cl")
+    eml = preparar(mensaje, "listo").como_eml()
+    vuelta = message_from_bytes(eml, policy=politica)
+    assert " ".join(str(vuelta["In-Reply-To"]).split()) == largo
+    assert "=?utf-8?q?" not in eml.decode()

@@ -78,12 +78,35 @@ class Mensaje:
     """Envio masivo, segun sus cabeceras y su remitente. Sin modelo de por medio."""
     para_mi: bool = True
     """Alguna de tus direcciones aparece en Para o CC. Si no, nadie te escribio a ti."""
+    responder_a: str = ""
+    """A quien va la respuesta: `Reply-To` si lo trae, si no el remitente."""
+    id_mensaje: str = ""
+    """`Message-ID`: lo necesita una respuesta para quedar en el mismo hilo."""
+    referencias: list[str] = field(default_factory=list)
+    """Los `Message-ID` anteriores del hilo (References / In-Reply-To)."""
     avisos: list[str] = field(default_factory=list)
     truncado: bool = False
 
     @property
     def id(self) -> str:
         return f"{self.carpeta}:{self.n}"
+
+    @property
+    def hilo(self) -> str:
+        """Identidad del hilo: el primer Message-ID conocido, o el propio."""
+        return self.referencias[0] if self.referencias else (self.id_mensaje or self.id)
+
+    @property
+    def remitente(self) -> str:
+        """Nombre y dominio: `Vicente` a secas confunde si escribe github.com."""
+        direccion = _DIRECCION.search(self.de)
+        dominio = direccion.group(0).split("@")[-1].lower() if direccion else ""
+        nombre = self.de.split("<", 1)[0].strip().strip('"') if "<" in self.de else ""
+        if not nombre:
+            return direccion.group(0) if direccion else self.de
+        # Si el nombre ya dice de donde viene, no se repite.
+        raiz = dominio.split(".")[-2] if dominio.count(".") >= 1 else dominio
+        return nombre if raiz and raiz.lower() in nombre.lower() else f"{nombre} ({dominio})"
 
     def resumen(self) -> str:
         cuando = self.fecha.strftime("%Y-%m-%d %H:%M") if self.fecha else "sin fecha"
@@ -457,4 +480,12 @@ def _convertir(
         de=sanear(_texto(mensaje.get("From"))).texto, para=sanear(_texto(mensaje.get("To"))).texto,
         asunto=sanear(_texto(mensaje.get("Subject"))).texto, cuerpo=cuerpo, adjuntos=adjuntos[:20],
         leido=leido, avisos=avisos, truncado=truncado,
+        responder_a=sanear(_texto(mensaje.get("Reply-To") or mensaje.get("From"))).texto,
+        id_mensaje=" ".join(str(mensaje.get("Message-ID", "")).split()),
+        referencias=[
+            " ".join(r.split())
+            for r in re.findall(
+                r"<[^>]+>", " ".join(f"{mensaje.get('References', '')} {mensaje.get('In-Reply-To', '')}".split())
+            )
+        ],
     )

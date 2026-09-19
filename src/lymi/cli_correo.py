@@ -165,3 +165,101 @@ def resumen(
         f"  |  corrida {run.run_id}",
         fg=typer.colors.BRIGHT_BLACK,
     )
+
+
+@correo_app.command("borrador")
+def borrador(
+    id_mensaje: Annotated[str, typer.Argument(help="Mensaje a responder, como aparece en `ver`.")],
+    instruccion: Annotated[str, typer.Option(help="Que quieres responder, en tus palabras.")] = "",
+    carpeta: Annotated[str, typer.Option(help="Carpeta si el id es solo un numero.")] = "INBOX",
+    remoto: Annotated[bool, typer.Option("--remoto", help="Redacta el modelo remoto (gasta tokens).")] = False,
+    si: Annotated[bool, typer.Option("--yes", "-y", help="Guarda sin preguntar.")] = False,
+    db: Annotated[Path, typer.Option(help="Ruta del ledger.")] = _DB,
+) -> None:
+    """Propone una respuesta y la deja como archivo .eml. lymi no envia correo: lo envias tu."""
+    from lymi.bench.wiring import proveedores
+    from lymi.correo import preparar, redactar
+    from lymi.ejecutor import (
+        CapacidadDenegada,
+        Diario,
+        Ejecutor,
+        EjecutorError,
+        cargar_perfil,
+        raiz_diario,
+    )
+
+    if ":" in id_mensaje:
+        carpeta, _, numero = id_mensaje.rpartition(":")
+    else:
+        numero = id_mensaje
+    if not numero.isdigit():
+        typer.secho("  el id es carpeta:numero, o un numero con --carpeta", fg=typer.colors.RED)
+        raise typer.Exit(1)
+
+    local, etiqueta_local, cliente_remoto, etiqueta_remota = proveedores()
+    cliente = cliente_remoto if remoto else local
+    if cliente is None:
+        typer.secho(f"  no hay modelo {'remoto' if remoto else 'local'}: corre `lymi setup`", fg=typer.colors.RED)
+        raise typer.Exit(1)
+    typer.secho(f"  redacta: {etiqueta_remota if remoto else etiqueta_local}", fg=typer.colors.CYAN, err=True)
+
+    with _buzon() as buzon:
+        try:
+            mensaje = buzon.leer(carpeta, int(numero))
+        except CorreoError as exc:
+            typer.secho(f"  {exc}", fg=typer.colors.RED)
+            raise typer.Exit(1) from None
+        mias = sorted(buzon.direcciones())
+
+    ledger = Ledger(db)
+    try:
+        with ledger.run("correo", "borrador", cliente.billing) as run:
+            rec = Recorder(run)
+
+            async def completar(sistema: str, texto: str) -> str:
+                enviados, sistema_final, redactor = rec.preparar(cliente, [Message("user", texto)], sistema)
+                completion = await asyncio.to_thread(
+                    cliente.complete, enviados, system=sistema_final, max_tokens=1200
+                )
+                if redactor is not None:
+                    completion.text = redactor.rehidratar(completion.text)
+                rec.registrar(
+                    completion, enviados, purpose="correo:borrador", system=sistema_final,
+                    redacciones=redactor.total if redactor is not None else 0,
+                )
+                return completion.text
+
+            cuerpo = asyncio.run(redactar(mensaje, completar, instruccion))
+    finally:
+        ledger.close()
+
+    if not cuerpo:
+        typer.secho("  el modelo no escribio nada utilizable", fg=typer.colors.YELLOW)
+        raise typer.Exit(1)
+    propuesta = preparar(mensaje, cuerpo, de=mias[0] if mias else "")
+    ruta = f"salidas/respuesta-{int(numero)}.eml"
+
+    typer.echo()
+    typer.secho(f"  Para: {propuesta.para}", bold=True)
+    typer.echo(f"  Asunto: {propuesta.asunto}\n")
+    for linea in propuesta.cuerpo.splitlines():
+        typer.echo(f"    {linea}")
+    typer.echo()
+    if not si and not typer.confirm(f"  ¿Guardar como {ruta}?", default=False):
+        typer.secho("  no se guardo nada", fg=typer.colors.YELLOW)
+        raise typer.Exit(1)
+
+    base = Path.cwd()
+    ejecutor = Ejecutor(
+        cargar_perfil(base / "ejecutor.yml", base), Diario(raiz_diario() / "borradores"), base=base
+    )
+    try:
+        escrito = ejecutor.escribir(ruta, propuesta.como_eml().decode("utf-8"))
+    except (CapacidadDenegada, EjecutorError, OSError) as exc:
+        typer.secho(f"  {exc}", fg=typer.colors.RED)
+        raise typer.Exit(1) from None
+    typer.secho(f"  {escrito['ruta']}", fg=typer.colors.GREEN)
+    typer.secho(
+        "  Abrelo con doble clic en Thunderbird, revisalo y envialo tu. lymi no envia correo.",
+        fg=typer.colors.BRIGHT_BLACK,
+    )

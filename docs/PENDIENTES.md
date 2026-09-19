@@ -206,9 +206,15 @@ Ver `REFERENCIAS.md`. Cada una se mide en el ledger antes de declararla util.
       buzones tipo `noreply@`) y prioridad limitada si el correo no venia dirigido
       a ti (identidades leidas de Thunderbird). Medido con correo real: 8 de 8
       clasificados, 0 tokens gastados.
-- [ ] Borradores de respuesta como archivo `.eml` en `salidas/`, con aprobacion.
-      lymi no envia correo nunca.
-- [ ] Resumen diario programado (`lymi schedule`) con aviso al celular.
+- [x] Borradores de respuesta (`lymi correo borrador <id>`): el modelo escribe solo
+      el cuerpo, las cabeceras (a quien, asunto, hilo) las arma lymi desde el correo
+      original. Queda como `.eml` en `salidas/`, con aprobacion y deshacible.
+      **lymi no envia correo**: no hay SMTP en el codigo, y una prueba lo verifica.
+- [x] El resumen diario se programa con lo que ya existe:
+      `lymi schedule add workflows/resumen-de-correo.yml "0 8 * * *" --zona America/Santiago
+      --aprobar guardar` (corre mientras `lymi serve` este activo).
+- [ ] Aviso al celular cuando el resumen queda listo (Telegram, ntfy o similar).
+- [ ] Agrupar el resumen por hilo (ya se leen `Message-ID` y `References`).
 - [ ] Calendario (`.ics` local o CalDAV de solo lectura).
 - [ ] Hilos: agrupar por `In-Reply-To`/`References` en vez de mensaje suelto.
 - [ ] Probar con un perfil que tenga varias cuentas y carpetas locales.
