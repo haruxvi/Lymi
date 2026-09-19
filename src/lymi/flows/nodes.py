@@ -44,6 +44,7 @@ from lymi.flows.schema import (
     HttpStep,
     LlmStep,
     McpIntegration,
+    MemoriaStep,
     PcStep,
     ToolStep,
     TransformStep,
@@ -770,6 +771,52 @@ async def ejecutar_codigo(paso: CodigoStep, contexto: Mapping[str, Any], r: Recu
     return salida
 
 
+def _operar_memoria(paso: MemoriaStep, valores: dict[str, str], corrida: str | None) -> dict[str, Any]:
+    from lymi.memoria import Memoria, formato
+
+    memoria = Memoria()
+    if paso.op == "buscar":
+        recuerdos = memoria.buscar(valores["consulta"], paso.n, solo_hechos=paso.solo_hechos)
+        datos = [
+            {"estado": x.nota.estado, "id": x.nota.id, "ruta": x.nota.ruta.as_posix(), "linea": x.linea,
+             "fuente": x.nota.fuente, "fragmento": x.fragmento}
+            for x in recuerdos
+        ]
+        return {"texto": formato(recuerdos, memoria.raiz), "datos": datos}
+    nota = memoria.anotar(
+        valores["texto"], fuente=valores["fuente"], agente=paso.autor or f"flow:{paso.id}", corrida=corrida
+    )
+    return {
+        "texto": f"anotado como afirmacion {nota.id}: queda SIN REVISAR hasta que una persona la promueva",
+        "datos": {"id": nota.id, "estado": nota.estado},
+    }
+
+
+async def ejecutar_memoria(paso: MemoriaStep, contexto: Mapping[str, Any], r: Recursos) -> Any:
+    from lymi.memoria import MemoriaError
+
+    valores = {
+        campo: _texto(template.render(getattr(paso, campo), contexto))
+        for campo in ("consulta", "texto", "fuente")
+        if getattr(paso, campo) is not None
+    }
+    destino = f"memoria:{paso.op}"
+    inicio = time.perf_counter()
+    try:
+        salida = await asyncio.to_thread(_operar_memoria, paso, valores, r.rec.run_id)
+    except (MemoriaError, OSError) as exc:
+        r.rec.accion_local(
+            tipo="memoria", destino=destino, proposito=f"flow:{paso.id}",
+            latencia_ms=int((time.perf_counter() - inicio) * 1000), ok=False, error=str(exc)[:300],
+        )
+        raise PasoError(str(exc), reintentable=False) from None
+    r.rec.accion_local(
+        tipo="memoria", destino=destino, proposito=f"flow:{paso.id}",
+        latencia_ms=int((time.perf_counter() - inicio) * 1000),
+    )
+    return salida
+
+
 async def ejecutar_agencia(paso: AgenciaStep, contexto: Mapping[str, Any], r: Recursos) -> Any:
     from lymi.agencia import AgenciaError, Orquestador, cargar_agencia, enrutar
     from lymi.agencia.motor import raiz_trazas
@@ -805,6 +852,8 @@ async def ejecutar(paso: Any, contexto: Mapping[str, Any], r: Recursos, flujo: W
     """Despacha el paso a su nodo."""
     if isinstance(paso, AgenciaStep):
         return await ejecutar_agencia(paso, contexto, r)
+    if isinstance(paso, MemoriaStep):
+        return await ejecutar_memoria(paso, contexto, r)
     if isinstance(paso, CodigoStep):
         return await ejecutar_codigo(paso, contexto, r)
     if isinstance(paso, WebStep):

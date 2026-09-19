@@ -297,6 +297,10 @@ app.add_typer(codigo_app, name="codigo")
 from lymi.cli_agencia import agencia_app
 
 app.add_typer(agencia_app, name="agencia")
+
+from lymi.cli_memoria import memoria_app
+
+app.add_typer(memoria_app, name="memoria")
 app.command("serve")(servir)
 
 

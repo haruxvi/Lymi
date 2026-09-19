@@ -62,7 +62,14 @@ Ver `ARQUITECTURA_AGENTE_SEGURO.md`.
       contada en el ledger (`privacidad/redaccion.py`, columna `redacciones`).
 - [ ] Etiquetas en la interfaz y en entradas que no vienen de archivo (hoy solo
       `flow run -i x=@archivo`).
-- [ ] Memoria markdown (compatible Obsidian) + diario de sesion + recuperacion acotada.
+- [x] Memoria entre sesiones (`src/lymi/memoria/`, `lymi memoria`, paso `memoria`,
+      herramientas `memoria.buscar|anotar` de los agentes). Markdown compatible con
+      Obsidian (`LYMI_MEMORIA` puede apuntar al vault). Promocion: lo que anota un
+      agente queda como afirmacion SIN REVISAR hasta que una persona la promueve;
+      nada se borra (descartadas/). No guarda secretos. Busqueda BM25 local con
+      `ruta:linea` citable y verificable.
+- [ ] Memoria: busqueda semantica (hoy lexica), diario de sesion automatico y
+      resumen de lo aprendido al cerrar una corrida.
 - [x] Ejecutor del host con operaciones cerradas (leer, listar, escribir, mover,
       borrar, ejecutar), capacidades por ruta y diario de deshacer (`ejecutor/`,
       paso `pc` en workflows, `lymi undo <corrida>`, `ejecutor.example.yml`).
@@ -122,12 +129,20 @@ garantias de lymi. Ver `src/lymi/web/`.
       workflows enteros). Topes duros compartidos por todo el arbol; nadie gana
       permisos al delegar o crear; la parada corta el arbol; cada llamada en el
       ledger con su tarea. 28 pruebas, incluido el escenario de colaboracion completo.
-- [ ] **Verificar lo que afirma un agente.** Corrida real con qwen2.5:3b: el motor
-      funciono, pero el modelo cito `buscar.py:39` cuando la herramienta le habia
-      dicho `red.py:91`. Toda `ruta:linea` de un resultado debe comprobarse contra
-      el indice de codigo, como ya se hace con las citas web.
-- [ ] Medir la agencia en el bench con modelo remoto: el local de 3B sirve para
-      enrutar y destilar, no para razonar varios pasos.
+- [x] Procedencia de citas (`agencia/citas.py`): un agente solo puede citar un
+      `ruta:linea` o una URL que haya visto. Si cita algo inventado, se le devuelve
+      una vez; si insiste, queda marcado en el arbol como "sin respaldo".
+- [x] `lymi agencia evaluar`: preguntas del propio codigo corregidas contra el
+      indice, sin juez. Medido (2026-09-19, RTX 3050 4 GB): qwen2.5:3b 3/10 aciertos,
+      0/10 citas inventadas tras la verificacion, 7 s por pregunta; qwen3:4b 1/2,
+      ~9 min por pregunta (33% del modelo en CPU: no cabe en la VRAM libre).
+- [x] Modelo por agente (`modelo: qwen3:4b`) y respaldo remoto -> local ante el
+      limite de la suscripcion, visible en el arbol (`respaldo: local`).
+- [x] `lymi setup` avisa si un modelo local no cabe entero en la GPU (`gpu local`).
+- [ ] Medir el remoto con `lymi agencia evaluar --remoto`: el intento del 2026-09-19
+      encontro la suscripcion en su limite de sesion (la comparte Claude Code).
+- [ ] Probar un modelo remoto por API (Haiku) como cerebro de agentes: no comparte
+      la cuota del usuario y cobra por token, medible en el ledger.
 - [ ] Agencia en la app (`lymi ui`): organigrama, arbol de tareas en vivo y
       aprobaciones desde el navegador.
 - [ ] Tareas programadas por departamento (reusar `lymi schedule`).

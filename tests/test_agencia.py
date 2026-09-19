@@ -418,3 +418,136 @@ class TestPasoAgencia:
         with pytest.raises(ValueError, match="no se reintenta"):
             Workflow.model_validate({"name": "x", "steps": [
                 {"id": "a", "type": "agencia", "archivo": "a.yml", "tarea": "t", "retries": 1}]})
+
+
+class TestProtocolo:
+    @pytest.mark.parametrize("texto,esperado", [
+        ('{"accion": "codigo.buscar", "consulta": "x"}', ("usar", "codigo.buscar", {"consulta": "x"})),
+        ('{"accion": "codigo.buscar", "args": {"consulta": "x"}}', ("usar", "codigo.buscar", {"consulta": "x"})),
+        ('{"herramienta": "web.extraer", "args": {"url": "u"}}', ("usar", "web.extraer", {"url": "u"})),
+    ])
+    def test_formas_inequivocas_de_usar(self, texto, esperado) -> None:
+        from lymi.agencia.protocolo import interpretar
+
+        accion = interpretar(texto)
+        assert (accion.accion, accion.herramienta, accion.args) == esperado
+
+    def test_terminar_con_otra_clave(self) -> None:
+        from lymi.agencia.protocolo import interpretar
+
+        assert interpretar('{"accion": "terminar", "respuesta": "listo"}').resultado == "listo"
+
+    @pytest.mark.parametrize("texto", [
+        '{"accion": "volar"}',
+        '{"accion": "terminar"}',
+        '{"accion": "codigo.buscar", "args": {"consulta": "x"}, "extra": 1}',
+    ])
+    def test_lo_ambiguo_sigue_siendo_error(self, texto) -> None:
+        from lymi.agencia.protocolo import ProtocoloError, interpretar
+
+        with pytest.raises(ProtocoloError):
+            interpretar(texto)
+
+
+class RemotoAgotado:
+    provider = "claude-code"
+    model = "claude"
+    billing = Billing.SUBSCRIPTION
+    tier = "frontier"
+
+    def complete(self, messages, **kw):
+        from lymi.providers.claude_code import ClaudeCodeLimiteError
+
+        raise ClaudeCodeLimiteError("la suscripcion llego a su limite de uso")
+
+
+class TestModelos:
+    def _agencia(self, **agente) -> Agencia:
+        return Agencia.model_validate({"name": "m", "departamentos": {"d": {"agentes": {
+            "a": {"descripcion": "x", "rol": "r", **agente}}}}})
+
+    @pytest.mark.parametrize("agente,mensaje", [
+        ({"tier": "remote", "modelo": "qwen3:4b"}, "elige un modelo local"),
+        ({"tier": "local", "respaldo": "local"}, "solo tiene sentido en un agente remote"),
+    ])
+    def test_validacion(self, agente, mensaje) -> None:
+        with pytest.raises(ValueError, match=mensaje):
+            self._agencia(**agente)
+
+    def test_respaldo_local_visible(self, ledger) -> None:
+        local = Guion({"d.a": [T("lo hizo el local")]})
+        ag = self._agencia(tier="remote", respaldo="local")
+        r = asyncio.run(correr_agencia(ag, "x", ledger=ledger, local=local, remote=RemotoAgotado(), agente="d"))
+        assert r.ok and r.resultado == "lo hizo el local"
+        (t,) = r.tareas
+        assert t.tier == "local" and "agoto su cuota" in t.avisos[0]
+        assert "[aviso: el remoto agoto su cuota" in arbol(r.tareas)[0]
+
+    def test_sin_respaldo_falla_con_el_motivo(self, ledger) -> None:
+        ag = self._agencia(tier="remote")
+        r = asyncio.run(correr_agencia(ag, "x", ledger=ledger, local=Guion({}), remote=RemotoAgotado(), agente="d"))
+        assert not r.ok and "limite de uso" in r.detalle
+
+    def test_modelo_por_agente(self, ledger, monkeypatch) -> None:
+        creados: list[str] = []
+
+        class OllamaFalso(Guion):
+            def __init__(self, model: str) -> None:
+                super().__init__({"d.a": [T(f"respondio {model}")]})
+                creados.append(model)
+
+        monkeypatch.setattr("lymi.providers.local.OllamaClient", OllamaFalso)
+        ag = self._agencia(tier="local", modelo="qwen3:4b")
+        r = asyncio.run(correr_agencia(ag, "x", ledger=ledger, local=Guion({}), agente="d"))
+        assert r.resultado == "respondio qwen3:4b" and creados == ["qwen3:4b"]
+
+
+BUSCAR_REVISAR = {"accion": "usar", "herramienta": "codigo.buscar", "args": {"consulta": "revisar"}}
+
+
+class TestCitas:
+    def test_formatos(self) -> None:
+        from lymi.agencia.citas import citas, respaldada, vistas
+
+        v = vistas(
+            "# src/lymi/web/red.py (python, 400 lineas)\ndef f(): ...  # L91\n"
+            "# src/x.py:10-12  g\ncodigo\nver https://a.com/b.\n"
+        )
+        assert {"src/lymi/web/red.py:91", "src/x.py:10", "src/x.py:12", "https://a.com/b"} <= v
+        assert citas("en red.py:91 y ./src/x.py:11, ver https://a.com/b.") == [
+            "red.py:91", "src/x.py:11", "https://a.com/b"]
+        assert respaldada("red.py:91", v) and respaldada("src/x.py:11", v)
+        assert not respaldada("buscar.py:39", v) and not respaldada("https://otra.com", v)
+        assert citas("ver .github/ci.yml:3") == [".github/ci.yml:3"]
+
+    @pytest.fixture
+    def repo(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("LYMI_CODIGO", str(tmp_path / "indices"))
+        (tmp_path / "m.py").write_text("def revisar():\n    pass\n", encoding="utf-8")
+        return tmp_path
+
+    def test_una_cita_inventada_se_devuelve_y_despues_se_marca(self, ledger, repo) -> None:
+        inventada = T("esta en m.py:1 y en otro.py:39")
+        guion = Guion({"inv.a": [BUSCAR_REVISAR, inventada, inventada]})
+        r = correr(agencia(), guion, ledger, agente="inv")
+        assert r.ok
+        # El aviso nombra la cita, pero no la vuelve "vista": el segundo intento sigue marcado.
+        assert guion.vio("inv.a", "no aparecen en nada de lo que viste: otro.py:39")
+        assert por_agente(r, "inv.a").sin_respaldo == ["otro.py:39"]
+        assert "citas sin respaldo: otro.py:39" in "\n".join(arbol(r.tareas))
+
+    def test_corregir_limpia_la_marca(self, ledger, repo) -> None:
+        guion = Guion({"inv.a": [BUSCAR_REVISAR, T("esta en otro.py:39"), T("esta en m.py:1")]})
+        r = correr(agencia(), guion, ledger, agente="inv")
+        assert r.resultado == "esta en m.py:1" and por_agente(r, "inv.a").sin_respaldo == []
+
+    def test_se_puede_citar_la_tarea_y_lo_que_entrega_una_hija(self, ledger) -> None:
+        guion = Guion({
+            "dir.jefe": [{"accion": "delegar", "a": "prod", "tarea": "revisa src/a.py:5"},
+                         T("src/a.py:5 revisado; ver https://ejemplo.com/doc")],
+            "prod.b": [T("src/a.py:5 esta bien, fuente https://ejemplo.com/doc")],
+        })
+        r = correr(agencia(), guion, ledger, texto="revisa src/a.py:5 segun https://ejemplo.com/doc")
+        assert r.ok and all(not t.sin_respaldo for t in r.tareas)
+        assert not guion.vio("dir.jefe", "no aparecen en nada")

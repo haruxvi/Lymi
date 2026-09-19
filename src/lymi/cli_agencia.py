@@ -89,6 +89,74 @@ def plan(archivo: Annotated[Path, typer.Argument(help="Agencia YAML.")]) -> None
     typer.echo(f"    llamadas {lim.llamadas} (peor caso real: {peor})  |  tokens remotos {tokens}  |  {lim.segundos:g} s")
 
 
+@agencia_app.command("evaluar")
+def evaluar_cmd(
+    modelo: Annotated[
+        list[str] | None, typer.Option("--modelo", help="Modelo local de Ollama a evaluar; repetible.")
+    ] = None,
+    remoto: Annotated[bool, typer.Option("--remoto", help="Evalua tambien el modelo remoto (gasta tokens).")] = False,
+    n: Annotated[int, typer.Option("-n", min=1, max=30, help="Preguntas.")] = 5,
+    raiz: Annotated[Path, typer.Option(help="Repositorio del que salen las preguntas.")] = Path("."),
+    db: Annotated[Path, typer.Option(help="Ruta del ledger.")] = Path("runs/lymi.sqlite3"),
+) -> None:
+    """Que modelo sirve como agente: preguntas del codigo corregidas contra el indice, sin juez."""
+    from lymi.bench.agentes import evaluar, preguntas
+    from lymi.bench.wiring import proveedores
+    from lymi.providers.local import OllamaClient
+
+    lista = preguntas(raiz, n)
+    if not lista:
+        typer.secho("  no hay funciones con llamadores confirmados para preguntar", fg=typer.colors.RED)
+        raise typer.Exit(1)
+    candidatos: list[tuple[str, str, object]] = [(m, "local", OllamaClient(model=m)) for m in (modelo or [])]
+    if remoto:
+        _, _, cliente_remoto, etiqueta = proveedores()
+        if cliente_remoto is None:
+            typer.secho("  no hay modelo remoto: corre `lymi setup`", fg=typer.colors.RED)
+            raise typer.Exit(1)
+        candidatos.append((etiqueta or "remoto", "remote", cliente_remoto))
+    if not candidatos:
+        typer.secho("  indica --modelo <ollama> y/o --remoto", fg=typer.colors.YELLOW)
+        raise typer.Exit(1)
+
+    typer.echo(f"\n  {len(lista)} preguntas de {raiz.resolve().name}:")
+    for p in lista:
+        typer.echo(f"    {p.simbolo}  ({p.ruta}:{p.linea}, {len(p.llamadores)} llamadores)")
+    filas = []
+    ledger = Ledger(db)
+    try:
+        for nombre, tier, cliente in candidatos:
+            typer.echo()
+            typer.secho(f"  {nombre}", bold=True)
+
+            def mostrar(r) -> None:
+                marca = typer.style("ok " if r.aprobada else "no ", fg=typer.colors.GREEN if r.aprobada else typer.colors.RED)
+                typer.echo(f"    {marca} {r.pregunta.simbolo:<40} {r.segundos:5.0f} s  {r.motivo}")
+
+            try:
+                respuestas = asyncio.run(evaluar(cliente, tier, lista, ledger=ledger, al_responder=mostrar))
+            except (Detenido, PresupuestoAgotado) as exc:
+                typer.secho(f"    {exc}", fg=typer.colors.RED)
+                break
+            filas.append((nombre, respuestas))
+    finally:
+        ledger.close()
+
+    typer.echo()
+    typer.secho(f"  {'modelo':<32}{'aciertos':>10}{'inventa citas':>15}{'turnos':>8}{'tokens':>12}{'s/preg':>8}",
+                bold=True)
+    for nombre, respuestas in filas:
+        total = len(respuestas)
+        aciertos = sum(r.aprobada for r in respuestas)
+        inventa = sum(bool(r.sin_respaldo) for r in respuestas)
+        turnos = sum(r.turnos for r in respuestas) / total
+        tokens = sum(r.tokens_locales + r.tokens_remotos for r in respuestas) / total
+        segundos = sum(r.segundos for r in respuestas) / total
+        typer.echo(f"  {nombre:<32}{f'{aciertos}/{total}':>10}{f'{inventa}/{total}':>15}{turnos:>8.1f}"
+                   f"{tokens:>12,.0f}{segundos:>8.0f}")
+    typer.secho("  tokens por pregunta; las corridas quedan en el ledger (lymi ledger)", fg=typer.colors.BRIGHT_BLACK)
+
+
 @agencia_app.command("correr")
 def correr(
     archivo: Annotated[Path, typer.Argument(help="Agencia YAML.")],

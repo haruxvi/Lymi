@@ -141,3 +141,40 @@ class TestResumen:
 
     def test_con_clave_de_api_tambien(self) -> None:
         assert self._diag(**{"anthropic api": Estado.OK}).puede_medir is True
+
+
+class TestResidenciaGpu:
+    """`/api/ps` de Ollama: cuanto de cada modelo cargado vive en la GPU."""
+
+    def _ps(self, monkeypatch, modelos):
+        class Resp:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {"models": modelos}
+
+        monkeypatch.setattr(httpx, "get", lambda *a, **k: Resp())
+
+    def test_modelo_partido_entre_cpu_y_gpu_avisa(self, monkeypatch) -> None:
+        from lymi.doctor import Estado, _chequear_residencia
+
+        self._ps(monkeypatch, [{"name": "qwen3:4b", "size": 3_500, "size_vram": 2_345,
+                                "details": {"quantization_level": "Q4_K_M"}}])
+        c = _chequear_residencia("http://127.0.0.1:11434")
+        assert c.estado is Estado.FALTA and "qwen3:4b Q4_K_M 67% en GPU" in c.detalle
+        assert "sera lento" in c.arreglo
+
+    def test_modelo_entero_en_gpu(self, monkeypatch) -> None:
+        from lymi.doctor import Estado, _chequear_residencia
+
+        self._ps(monkeypatch, [{"name": "qwen2.5:3b", "size": 2_000, "size_vram": 2_000,
+                                "details": {"quantization_level": "Q4_K_M"}}])
+        c = _chequear_residencia("http://127.0.0.1:11434")
+        assert c.estado is Estado.OK and "100% en GPU" in c.detalle
+
+    def test_no_decide_si_hay_tier_local(self) -> None:
+        from lymi.doctor import Chequeo, Diagnostico, Estado
+
+        d = Diagnostico([Chequeo("ollama servidor", Estado.OK, ""), Chequeo("gpu local", Estado.FALTA, "")])
+        assert d.tier_local

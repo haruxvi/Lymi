@@ -15,6 +15,7 @@ from lymi.flows.schema import (
     CodigoStep,
     HttpStep,
     LlmStep,
+    MemoriaStep,
     PcStep,
     ToolStep,
     TransformStep,
@@ -71,6 +72,9 @@ def planificar(flujo: Workflow) -> list[FilaPlan]:
         elif isinstance(paso, HttpStep):
             host = urlparse(paso.url).hostname or "?"
             destino, costo = f"{paso.method} {host}", "externo"
+        elif isinstance(paso, MemoriaStep):
+            objetivo = paso.consulta if paso.op == "buscar" else "(queda sin revisar)"
+            destino, costo = f"este PC: memoria {paso.op} {objetivo}", "gratis"
         elif isinstance(paso, AgenciaStep):
             costo = _costo_agencia(paso.archivo)
             destino = f"agencia {paso.archivo} -> {paso.agente or 'enrutada'} (sus agentes piden aprobacion)"

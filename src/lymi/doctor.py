@@ -158,6 +158,37 @@ def _chequear_modelo_local(modelo: str, modelos: list[str]) -> Chequeo:
     )
 
 
+def _chequear_residencia(url: str) -> Chequeo | None:
+    """Cuanto de cada modelo cargado vive en la GPU, y con que precision.
+
+    Medido en esta maquina: qwen3:4b quedo 33% en CPU (la VRAM la comparte el
+    escritorio) y tardo minutos por respuesta. Nadie lo habria sabido sin mirar.
+    No cambia si hay tier local: un modelo lento sigue funcionando. Solo avisa.
+    """
+    try:
+        resp = httpx.get(f"{url.rstrip('/')}/api/ps", timeout=3.0)
+        resp.raise_for_status()
+        cargados = resp.json().get("models", [])
+    except (httpx.HTTPError, ValueError):
+        return None
+    if not cargados:
+        return Chequeo("gpu local", Estado.OK, "ningun modelo cargado ahora; se mide al usarlo")
+    partes, parciales = [], []
+    for m in cargados:
+        total, vram = m.get("size") or 0, m.get("size_vram") or 0
+        en_gpu = vram / total if total else 0.0
+        precision = (m.get("details") or {}).get("quantization_level", "?")
+        partes.append(f"{m.get('name', '?')} {precision} {en_gpu:.0%} en GPU")
+        if en_gpu < 0.99:
+            parciales.append(m.get("name", "?"))
+    if parciales:
+        return Chequeo(
+            "gpu local", Estado.FALTA, "; ".join(partes),
+            "no cabe entero en la GPU y sera lento: usa un modelo mas chico o libera VRAM",
+        )
+    return Chequeo("gpu local", Estado.OK, "; ".join(partes))
+
+
 def _chequear_claude_code(probar: bool) -> Chequeo:
     from lymi.providers import claude_code
 
@@ -208,11 +239,13 @@ def diagnosticar(
     servidor, modelos = _chequear_ollama_servidor(url)
     binario = _chequear_ollama_instalado(servidor_vivo=servidor.estado is Estado.OK)
 
+    residencia = _chequear_residencia(url) if servidor.estado is Estado.OK else None
     return Diagnostico(
         [
             binario,
             servidor,
             _chequear_modelo_local(modelo, modelos),
+            *([residencia] if residencia is not None else []),
             _chequear_claude_code(probar_claude),
             _chequear_clave("anthropic api", "ANTHROPIC_API_KEY"),
             _chequear_clave("openai api", "OPENAI_API_KEY"),

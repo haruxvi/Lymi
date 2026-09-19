@@ -30,6 +30,14 @@ HERRAMIENTAS: dict[str, tuple[bool, str]] = {
     "codigo.llamadores": (False, 'quien llama a una funcion. args: {"nombre", "raiz"?}'),
     "codigo.impacto": (False, 'que codigo y pruebas toca un cambio. args: {"nombre", "raiz"?}'),
     "codigo.mapa": (False, 'archivos y dependencias. args: {"ruta"?, "raiz"?}'),
+    "memoria.buscar": (False, 'busca en la memoria; marca lo SIN REVISAR. args: {"consulta"}'),
+    "memoria.anotar": (
+        False,
+        (
+            "anota algo para recordarlo; queda SIN REVISAR hasta que una persona lo promueva. "
+            'args: {"texto", "fuente"}'
+        ),
+    ),
     "pc.leer": (False, 'lee un archivo permitido. args: {"ruta"}'),
     "pc.listar": (False, 'lista una carpeta permitida. args: {"ruta"}'),
     "pc.escribir": (True, 'escribe un archivo (pide aprobacion). args: {"ruta", "contenido"}'),
@@ -72,6 +80,19 @@ class AgenteDef(_Base):
     puede_crear: bool = False
     """Si puede crear ayudantes temporales, con un subconjunto de sus herramientas."""
     max_turnos: int | None = Field(None, ge=1, le=50)
+    modelo: str | None = Field(None, pattern=r"^[\w.:/-]{1,80}$")
+    """Solo tier local: el modelo de Ollama de este agente (ej. `qwen3:4b`). Sin esto, el de lymi."""
+    respaldo: Literal["local"] | None = None
+    """Solo tier remote: si la suscripcion o la API agotan su cuota, sigue con el local.
+    El cambio queda avisado en la tarea: nunca se baja de modelo en silencio."""
+
+    @model_validator(mode="after")
+    def _modelo_segun_tier(self) -> AgenteDef:
+        if self.modelo is not None and self.tier != "local":
+            raise ValueError("`modelo` elige un modelo local; el remoto es el configurado en lymi")
+        if self.respaldo is not None and self.tier != "remote":
+            raise ValueError("`respaldo: local` solo tiene sentido en un agente remote")
+        return self
 
 
 class Departamento(_Base):

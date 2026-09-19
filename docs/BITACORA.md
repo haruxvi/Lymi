@@ -328,6 +328,31 @@ conductor, rol como archivo), pero no tenia delegacion: es diseno de lymi.
 
 611 pruebas verdes y 1 omitida; la de rendimiento del disco sigue fallando. Ruff limpio.
 
+## [2026-09-19] medicion | Que modelo sirve como agente, medido; memoria entre sesiones
+
+Pregunta del usuario: si qwen falla tanto, ¿conviene la suscripcion de Claude?
+
+- `lymi agencia evaluar`: preguntas del codigo de lymi (donde se define X y quien la
+  llama) corregidas contra el indice. Sin juez: cita exacta, llamador real y ninguna
+  cita sin respaldo.
+- qwen2.5:3b: 3/10, 7 s por pregunta, 3k tokens locales. Tras la verificacion de
+  procedencia, 0/10 citas inventadas: el mecanismo funciona; el razonamiento no.
+- qwen3:4b: 1/2 y ~9 minutos por pregunta. Causa medida con `ollama ps`: 3,5 GB con
+  contexto, 33% en CPU porque el escritorio ocupa ~2 GB de los 4 GB de VRAM.
+  `lymi setup` ahora lo avisa (`gpu local`).
+- Remoto: no se pudo medir; la suscripcion estaba en su limite de sesion (la misma
+  que usa Claude Code). lymi lo reporto en una linea, sin gastar tokens.
+- Tolerancia del protocolo a dos errores inequivocos de modelos pequenos (herramienta
+  como accion; terminar sin `resultado`), sin relajar permisos ni verificacion.
+- Procedencia de citas en la agencia: solo se cita lo visto; el aviso de lymi no
+  cuenta como visto (defecto encontrado y cerrado antes de publicarlo).
+- Modelo por agente y respaldo remoto -> local visible.
+- Memoria (fallo 2): afirmaciones de agentes SIN REVISAR, hechos promovidos por una
+  persona, notas propias del vault, sin secretos, BM25 con `ruta:linea`.
+- Defecto de `.gitignore` corregido: `memoria/` ignoraba `src/lymi/memoria/`.
+
+651 pruebas verdes y 1 omitida; la de rendimiento del disco sigue fallando. Ruff limpio.
+
 ### Hilos abiertos al cierre
 
 - Bloqueante del usuario: primer commit (configurar correo noreply antes).

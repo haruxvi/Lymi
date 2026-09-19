@@ -257,6 +257,16 @@ class Indice:
             for f in sorted(filas, key=orden)[:limite]
         ]
 
+    def simbolos(self, prefijo: str = "", tipos: tuple[str, ...] = ("funcion", "metodo")) -> list[dict[str, Any]]:
+        """Simbolos indexados bajo un prefijo de ruta, en orden estable."""
+        marcas = ",".join("?" * len(tipos))
+        filas = self._conn.execute(
+            f"SELECT nombre, simple, tipo, ruta, linea FROM simbolos WHERE tipo IN ({marcas}) "
+            "AND ruta LIKE ? ESCAPE '\\' ORDER BY ruta, linea",
+            (*tipos, relativa(prefijo).replace("%", "\\%").replace("_", "\\_") + "%"),
+        ).fetchall()
+        return [dict(f) for f in filas]
+
     def esqueleto(self, ruta: str) -> dict[str, Any]:
         fila = self._archivo(ruta)
         return {

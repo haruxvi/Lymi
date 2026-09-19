@@ -38,6 +38,7 @@ from typing import Any
 import httpx
 from pydantic import TypeAdapter, ValidationError
 
+from lymi.agencia.citas import sin_respaldo, vistas
 from lymi.agencia.definicion import Agencia, AgenteDef
 from lymi.agencia.protocolo import (
     Crear,
@@ -65,7 +66,7 @@ LIMITE_OBSERVACION = 6000
 MAX_TOKENS_RESPUESTA = 1200
 FALLOS_PROTOCOLO = 3
 _TERMINADAS = frozenset({"hecha", "fallida", "cancelada"})
-_ARGS_RESERVADOS = frozenset({"id", "type", "op", "when", "retries", "timeout_s", "tier"})
+_ARGS_RESERVADOS = frozenset({"id", "type", "op", "when", "retries", "timeout_s", "tier", "autor"})
 _PASO: TypeAdapter[Any] = TypeAdapter(Step)
 
 Aprobador = Callable[..., Any]
@@ -112,6 +113,14 @@ class Tarea:
     segundos: float = 0.0
     tarea_async: asyncio.Task | None = field(default=None, repr=False)
     _inicio: float = field(default=0.0, repr=False)
+    modelo: str | None = None
+    respaldo: str | None = None
+    avisos: list[str] = field(default_factory=list)
+    """Cambios que la persona debe ver (ej. bajar al modelo local por cuota)."""
+    sin_respaldo: list[str] = field(default_factory=list)
+    """Citas del resultado que no aparecen en nada de lo que la tarea vio."""
+    _vistas: set[str] = field(default_factory=set, repr=False)
+    _corrigio: bool = field(default=False, repr=False)
     _insistio: bool = field(default=False, repr=False)
     _entregadas: set[str] = field(default_factory=set, repr=False)
     """Hijas cuyo resultado ya se le dio a esta tarea."""
@@ -121,7 +130,8 @@ class Tarea:
             "id": self.id, "agente": self.agente, "padre": self.padre, "origen": self.origen,
             "paralela": self.paralela, "estado": self.estado, "turnos": self.turnos, "llamadas": self.llamadas,
             "tokens_remotos": self.tokens_remotos, "tokens_locales": self.tokens_locales,
-            "segundos": round(self.segundos, 2), "error": self.error,
+            "segundos": round(self.segundos, 2), "error": self.error, "sin_respaldo": self.sin_respaldo,
+            "modelo": self.modelo, "avisos": self.avisos,
         }
 
 
@@ -151,6 +161,7 @@ class Orquestador:
         self.max_activos = 0
         self._activos = 0
         self._cupo = asyncio.Semaphore(self.lim.simultaneos)
+        self._locales: dict[str, LLMClient] = {}
         self._inicio = time.monotonic()
         self._creados = 0
 
@@ -191,14 +202,17 @@ class Orquestador:
         rol: str = "",
         herramientas: frozenset[str] = frozenset(),
         tier: str = "local",
+        modelo: str | None = None,
     ) -> Tarea:
         if len(self.tareas) >= self.lim.agentes_totales:
             raise LimiteAgencia(f"se alcanzo el tope de {self.lim.agentes_totales} agentes por corrida")
         profundidad = 0 if padre is None else self.tareas[padre].profundidad + 1
         if profundidad > self.lim.profundidad:
             raise LimiteAgencia(f"se alcanzo la profundidad maxima de delegacion ({self.lim.profundidad})")
+        respaldo = None
         if definicion is not None:
             rol, tier = definicion.rol, definicion.tier
+            modelo, respaldo = definicion.modelo, definicion.respaldo
             herramientas = frozenset(definicion.herramientas)
             destinos, puede_crear = self.agencia.destinos(agente), definicion.puede_crear
             max_turnos = definicion.max_turnos or self.lim.turnos_por_agente
@@ -209,6 +223,7 @@ class Orquestador:
             id=f"t{len(self.tareas) + 1}", agente=agente, descripcion=descripcion, rol=rol, tier=tier,
             herramientas=herramientas, destinos=destinos, puede_crear=puede_crear, max_turnos=max_turnos,
             profundidad=profundidad, padre=padre, origen=origen, paralela=paralela,
+            modelo=modelo, respaldo=respaldo,
         )
         self.tareas[tarea.id] = tarea
         if padre is not None:
@@ -255,14 +270,37 @@ class Orquestador:
         if time.monotonic() - self._inicio > self.lim.segundos:
             raise LimiteAgencia(f"se agoto el tiempo de la corrida ({self.lim.segundos:g} s)")
 
-    def _cliente(self, tier: str) -> LLMClient:
-        cliente = self.r.local if tier == "local" else self.r.remote
+    def _cliente(self, tarea: Tarea) -> LLMClient:
+        if tarea.tier == "local" and tarea.modelo:
+            if tarea.modelo not in self._locales:
+                if self.r.local is None:
+                    raise LimiteAgencia("no hay modelo local: corre `lymi setup`")
+                from lymi.providers.local import OllamaClient
+
+                self._locales[tarea.modelo] = OllamaClient(model=tarea.modelo)
+            return self._locales[tarea.modelo]
+        cliente = self.r.local if tarea.tier == "local" else self.r.remote
         if cliente is None:
-            raise LimiteAgencia(f"no hay modelo {tier}: corre `lymi setup`")
+            raise LimiteAgencia(f"no hay modelo {tarea.tier}: corre `lymi setup`")
         return cliente
 
     async def _modelo(self, tarea: Tarea, sistema: str, mensajes: list[Message]) -> str:
-        cliente = self._cliente(tarea.tier)
+        from lymi.providers.claude_code import ClaudeCodeLimiteError
+
+        try:
+            return await self._llamar(tarea, sistema, mensajes)
+        except ClaudeCodeLimiteError as exc:
+            # Respaldo sin ciclos: remoto -> local, y el local no tiene respaldo.
+            if tarea.tier != "remote" or tarea.respaldo != "local" or self.r.local is None:
+                raise LimiteAgencia(str(exc)) from None
+            aviso = f"el remoto agoto su cuota en el turno {tarea.turnos}: sigue con el modelo local"
+            tarea.tier, tarea.respaldo = "local", None
+            tarea.avisos.append(aviso)
+            self._anotar(tarea, "respaldo", aviso)
+            return await self._llamar(tarea, sistema, mensajes)
+
+    async def _llamar(self, tarea: Tarea, sistema: str, mensajes: list[Message]) -> str:
+        cliente = self._cliente(tarea)
         self._verificar_limites()
         enviados, sistema_final, redactor = self.r.rec.preparar(cliente, mensajes, sistema)
         remoto = getattr(cliente, "billing", Billing.API) is not Billing.LOCAL
@@ -318,8 +356,12 @@ class Orquestador:
                 if tarea.turnos >= tarea.max_turnos:
                     raise LimiteAgencia(f"agoto sus {tarea.max_turnos} turnos sin terminar")
                 tarea.turnos += 1
+                if tarea.turnos == 1:
+                    tarea._vistas |= vistas(tarea.descripcion)
                 if tarea.buzon:
-                    pendiente += "\n\nMensajes nuevos:\n" + "\n".join(tarea.buzon)
+                    recibidos = "\n".join(tarea.buzon)
+                    tarea._vistas |= vistas(recibidos)
+                    pendiente += "\n\nMensajes nuevos:\n" + recibidos
                     tarea.buzon.clear()
                 mensajes.append(Message("user", pendiente))
                 texto = await self._modelo(tarea, sistema, mensajes)
@@ -343,6 +385,16 @@ class Orquestador:
                             " o vuelve a terminar para cancelarlas."
                         )
                         continue
+                    faltan = sin_respaldo(accion.resultado, tarea._vistas)
+                    if faltan and not tarea._corrigio:
+                        tarea._corrigio = True
+                        self._anotar(tarea, "sin_respaldo", ", ".join(faltan))
+                        pendiente = (
+                            "Estas referencias no aparecen en nada de lo que viste: "
+                            f"{', '.join(faltan[:10])}. Verificalas con una herramienta o quitalas, y termina de nuevo."
+                        )
+                        continue
+                    tarea.sin_respaldo = faltan
                     self._cancelar_hijos(tarea, f"{tarea.id} termino sin esperarla")
                     tarea.resultado = accion.resultado
                     tarea.estado = "hecha"
@@ -354,6 +406,9 @@ class Orquestador:
                 observacion = await self._actuar(tarea, accion)
                 if len(observacion) > LIMITE_OBSERVACION:
                     observacion = observacion[:LIMITE_OBSERVACION] + f"\n[recortado: {len(observacion)} caracteres]"
+                # Solo lo que el agente recibio puede citarse: la tarea, sus mensajes y
+                # estos resultados. Los avisos de lymi (como el de citas) no cuentan.
+                tarea._vistas |= vistas(observacion)
                 pendiente = f"Resultado:\n{observacion}"
         except asyncio.CancelledError:
             tarea.estado = "cancelada"
@@ -416,7 +471,7 @@ class Orquestador:
                 hija = self._nueva(
                     agente=f"{tarea.agente}>ayudante{self._creados}", descripcion=accion.tarea, padre=tarea.id,
                     origen="creada", paralela=not accion.esperar, rol=accion.rol, herramientas=pedidas,
-                    tier=tarea.tier,
+                    tier=tarea.tier, modelo=tarea.modelo,
                 )
             except LimiteAgencia as exc:
                 return f"no se pudo crear el ayudante: {exc}"
@@ -468,6 +523,8 @@ class Orquestador:
         datos: dict[str, Any] = {**args, "id": f"{tarea.id}_{tarea.turnos}", "type": familia, "op": op}
         if familia == "web" and op == "investigar":
             datos["tier"] = "local" if tarea.tier == "local" else "remote"
+        if familia == "memoria" and op == "anotar":
+            datos["autor"] = f"{tarea.agente} ({tarea.id})"
         try:
             paso = _PASO.validate_python(datos)
         except ValidationError as exc:
@@ -684,6 +741,10 @@ def arbol(tareas: list[Tarea]) -> list[str]:
         modo = " (paralelo)" if t.paralela else ""
         tokens = f", {t.tokens_remotos:,} tok remotos" if t.tokens_remotos else ""
         estado = t.estado if t.estado == "hecha" else f"{t.estado}: {t.error}"
+        if t.sin_respaldo:
+            estado += f"  ({len(t.sin_respaldo)} citas sin respaldo: {', '.join(t.sin_respaldo[:3])})"
+        for aviso in t.avisos:
+            estado += f"  [aviso: {aviso}]"
         lineas.append(f"{prefijo}{rama}{t.id} {t.agente}{modo}  {estado}  [{t.turnos} turnos{tokens}]")
         hijos = por_padre.get(t.id, [])
         siguiente = prefijo if raiz else prefijo + ("   " if ultimo else "│  ")

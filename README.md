@@ -93,6 +93,8 @@ uv run lymi codigo impacto revisar_saliente        # que codigo y que pruebas to
 claude mcp add lymi-codigo -- uv run lymi codigo servir   # el mismo mapa para Claude Code
 
 uv run lymi agencia plan agencias/startup.example.yml     # organigrama, permisos y topes duros
+uv run lymi agencia evaluar --modelo qwen2.5:3b -n 10     # que modelo sirve como agente, medido
+uv run lymi memoria pendientes                            # lo que anotaron los agentes, por revisar
 uv run lymi agencia correr agencias/startup.example.yml "@producto donde se valida una URL?"
 ```
 

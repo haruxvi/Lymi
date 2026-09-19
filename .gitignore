@@ -8,6 +8,8 @@ __pycache__/
 # datos de corridas: reproducibles, no versionados
 runs/
 salidas/
+# memoria de lymi: datos personales de cada maquina
+/memoria/
 
 # Perfil del ejecutor y reglas de sensibilidad: son de cada maquina.
 # Los ejemplos versionados son ejecutor.example.yml y sensibilidad.example.yml.

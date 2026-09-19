@@ -287,6 +287,32 @@ class CodigoStep(_Paso):
         return self
 
 
+class MemoriaStep(_Paso):
+    """Busca en la memoria de lymi o anota algo en ella.
+
+    Anotar no pide aprobacion porque no toca nada tuyo: la nota queda como
+    afirmacion SIN REVISAR hasta que una persona la promueva (`lymi memoria`).
+    """
+
+    type: Literal["memoria"]
+    op: Literal["buscar", "anotar"]
+    consulta: str | None = None
+    texto: str | None = None
+    fuente: str | None = None
+    n: int = Field(5, ge=1, le=20)
+    solo_hechos: bool = False
+    autor: str | None = None
+    """Quien anota. En una agencia lo fija el motor: un agente no puede hacerse pasar por otro."""
+
+    @model_validator(mode="after")
+    def _campos(self) -> MemoriaStep:
+        if self.op == "buscar" and (self.consulta is None or self.texto is not None):
+            raise ValueError(f"paso {self.id!r}: buscar requiere consulta y no admite texto")
+        if self.op == "anotar" and (self.texto is None or self.fuente is None or self.consulta is not None):
+            raise ValueError(f"paso {self.id!r}: anotar requiere texto y fuente, y no admite consulta")
+        return self
+
+
 class AgenciaStep(_Paso):
     """Entrega una tarea a un departamento o agente de una agencia (`lymi agencia`).
 
@@ -309,7 +335,7 @@ class AgenciaStep(_Paso):
 
 
 Step = Annotated[
-    LlmStep | ToolStep | HttpStep | TransformStep | PcStep | WebStep | CodigoStep | AgenciaStep,
+    LlmStep | ToolStep | HttpStep | TransformStep | PcStep | WebStep | CodigoStep | MemoriaStep | AgenciaStep,
     Field(discriminator="type"),
 ]
 

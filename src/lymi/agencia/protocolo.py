@@ -65,6 +65,34 @@ class ProtocoloError(ValueError):
     """La respuesta del modelo no es una accion valida."""
 
 
+_SINONIMOS_RESULTADO = ("respuesta", "result", "resultado_final", "texto", "answer", "contenido")
+
+
+def _tolerar(datos: dict[str, Any]) -> dict[str, Any]:
+    """Formas equivocadas pero inequivocas que escriben los modelos pequenos.
+
+    Medido con qwen2.5:3b: pone el nombre de la herramienta como accion
+    (`{"accion": "codigo.buscar", "consulta": ...}`) o termina con otra clave en vez
+    de `resultado`. Se reescriben a la forma correcta solo si no hay duda de lo que
+    quiso; los permisos y la verificacion de citas se aplican igual despues.
+    """
+    accion = datos.get("accion")
+    if accion is None and isinstance(datos.get("herramienta"), str):
+        return {"accion": "usar", **datos}
+    if isinstance(accion, str) and (accion in HERRAMIENTAS or accion.startswith("workflow:")):
+        resto = {k: v for k, v in datos.items() if k != "accion"}
+        args = resto.pop("args", None)
+        if isinstance(args, dict) and not resto:
+            return {"accion": "usar", "herramienta": accion, "args": args}
+        if args is None:
+            return {"accion": "usar", "herramienta": accion, "args": resto}
+    if accion == "terminar" and "resultado" not in datos:
+        for clave in _SINONIMOS_RESULTADO:
+            if isinstance(datos.get(clave), str) and datos[clave].strip():
+                return {"accion": "terminar", "resultado": datos[clave]}
+    return datos
+
+
 def interpretar(texto: str) -> Any:
     from lymi.flows.nodes import PasoError, extraer_json
 
@@ -74,6 +102,7 @@ def interpretar(texto: str) -> Any:
         raise ProtocoloError("no es un objeto JSON") from None
     if not isinstance(datos, dict):
         raise ProtocoloError("se esperaba un objeto JSON con la clave `accion`")
+    datos = _tolerar(datos)
     try:
         return _ADAPTADOR.validate_python(datos)
     except ValidationError as exc:

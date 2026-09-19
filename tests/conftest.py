@@ -35,6 +35,7 @@ def parada_aislada(tmp_path_factory, monkeypatch):
     monkeypatch.setenv("LYMI_PARADA", str(tmp_path_factory.mktemp("parada") / "PARAR"))
     monkeypatch.setenv("LYMI_DIARIO", str(tmp_path_factory.mktemp("diario")))
     monkeypatch.setenv("LYMI_TRAZAS", str(tmp_path_factory.mktemp("trazas")))
+    monkeypatch.setenv("LYMI_MEMORIA", str(tmp_path_factory.mktemp("memoria")))
 
 
 @pytest.fixture

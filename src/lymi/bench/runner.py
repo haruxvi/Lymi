@@ -53,6 +53,10 @@ class Recorder:
         self._redactar = redactar
         self._protegidos = tuple(p for p in protegidos if p)
 
+    @property
+    def run_id(self) -> str:
+        return self._run.run_id
+
     def proteger(self, contenido: str) -> None:
         """Agrega un contenido `nunca-sale` descubierto durante la corrida (ej. leido del PC)."""
         self._protegidos = (*self._protegidos, *fragmentos_protegidos(contenido))
