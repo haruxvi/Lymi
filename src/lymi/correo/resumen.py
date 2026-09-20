@@ -47,11 +47,17 @@ class Resumen:
     mensajes: list[Mensaje]
     anotaciones: dict[int, Anotacion] = field(default_factory=dict)
     boletines: list[Mensaje] = field(default_factory=list)
+    conversacion: dict[int, list[Mensaje]] = field(default_factory=dict)
+    """Numero del mensaje que representa el hilo -> todos los del hilo, del mas nuevo al mas viejo."""
     avisos: list[str] = field(default_factory=list)
 
     @property
     def total(self) -> int:
         return len(self.mensajes) + len(self.boletines)
+
+
+def _plural(n: int, singular: str, plural: str) -> str:
+    return singular if n == 1 else plural
 
 
 def _quien(mensaje: Mensaje) -> str:
@@ -63,12 +69,15 @@ def _muestra(mensaje: Mensaje) -> str:
     return cuerpo[:MAX_CARACTERES_MUESTRA]
 
 
-def construir_mensaje(mensajes: list[Mensaje]) -> str:
+def construir_mensaje(mensajes: list[Mensaje], conversacion: dict[int, list[Mensaje]] | None = None) -> str:
+    conversacion = conversacion or {}
     bloques = []
     for m in mensajes:
         cuando = m.fecha.strftime("%d/%m %H:%M") if m.fecha else "sin fecha"
         adjuntos = f" (adjuntos: {', '.join(m.adjuntos[:3])})" if m.adjuntos else ""
-        bloques.append(f"[{m.n}] {cuando} de {_quien(m)}: {m.asunto}{adjuntos}\n{_muestra(m)}")
+        largo = len(conversacion.get(m.n, []))
+        hilo = f" (hilo de {largo} mensajes)" if largo > 1 else ""
+        bloques.append(f"[{m.n}] {cuando} de {_quien(m)}: {m.asunto}{adjuntos}{hilo}\n{_muestra(m)}")
     return "Correos:\n\n" + "\n\n".join(bloques)
 
 
@@ -107,8 +116,16 @@ async def resumir(
     hasta: datetime | None = None,
 ) -> Resumen:
     boletines = [m for m in mensajes if m.boletin]
-    directos = [m for m in mensajes if not m.boletin]
-    resumen = Resumen(desde=desde, hasta=hasta, mensajes=directos, boletines=boletines)
+    # Un ida y vuelta de cinco correos es un solo asunto: se agrupa por hilo y se
+    # muestra el mas reciente. Los `Message-ID` los pone el correo, no un modelo.
+    por_hilo: dict[str, list[Mensaje]] = {}
+    for m in (x for x in mensajes if not x.boletin):
+        por_hilo.setdefault(m.hilo, []).append(m)
+    conversacion = {grupo[0].n: grupo for grupo in por_hilo.values()}
+    directos = [grupo[0] for grupo in por_hilo.values()]
+    resumen = Resumen(
+        desde=desde, hasta=hasta, mensajes=directos, boletines=boletines, conversacion=conversacion
+    )
     if any(m.avisos for m in mensajes):
         resumen.avisos.append("algun correo intenta dar instrucciones a un modelo; se trato como dato")
     if completar is None or not directos:
@@ -116,7 +133,7 @@ async def resumir(
     anotables = directos[:MAX_ANOTADOS]
     if len(directos) > MAX_ANOTADOS:
         resumen.avisos.append(f"solo se anotaron los {MAX_ANOTADOS} mas recientes de {len(directos)}")
-    texto = await completar(SISTEMA, construir_mensaje(anotables))
+    texto = await completar(SISTEMA, construir_mensaje(anotables, conversacion))
     resumen.anotaciones = interpretar(texto, {m.n for m in anotables})
     # Un correo que no venia dirigido a ti no puede ser lo primero que atiendas,
     # diga lo que diga el modelo. Es un hecho de las cabeceras, no una opinion.
@@ -134,8 +151,12 @@ def render(resumen: Resumen) -> str:
     rango = ""
     if resumen.desde is not None:
         rango = f" desde el {resumen.desde:%d/%m}"
-    plural = "mensajes" if resumen.total != 1 else "mensaje"
-    cuenta = f"{resumen.total} {plural}: {len(resumen.mensajes)} directos, {len(resumen.boletines)} boletines."
+    directos, boletines = len(resumen.mensajes), len(resumen.boletines)
+    cuenta = (
+        f"{resumen.total} {_plural(resumen.total, 'mensaje', 'mensajes')}: "
+        f"{directos} {_plural(directos, 'directo', 'directos')}, "
+        f"{boletines} {_plural(boletines, 'boletin', 'boletines')}."
+    )
     lineas = [f"# Correo{rango}", "", cuenta]
     por_prioridad = {p: [] for p in PRIORIDADES}
     for m in resumen.mensajes:
@@ -149,7 +170,9 @@ def render(resumen: Resumen) -> str:
         lineas += ["", titulos[prioridad]]
         for m, anotacion in grupo:
             cuando = m.fecha.strftime("%d/%m %H:%M") if m.fecha else "sin fecha"
-            lineas.append(f"- **{_quien(m)}** — {m.asunto}  ({cuando}, `{m.id}`)")
+            largo = len(resumen.conversacion.get(m.n, []))
+            hilo = f", hilo de {largo}" if largo > 1 else ""
+            lineas.append(f"- **{_quien(m)}** — {m.asunto}  ({cuando}{hilo}, `{m.id}`)")
             if anotacion.accion:
                 lineas.append(f"  - {anotacion.accion}")
     if resumen.boletines:

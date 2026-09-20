@@ -367,3 +367,54 @@ def test_un_message_id_partido_en_lineas_sigue_siendo_valido(tmp_path) -> None:
     vuelta = message_from_bytes(eml, policy=politica)
     assert " ".join(str(vuelta["In-Reply-To"]).split()) == largo
     assert "=?utf-8?q?" not in eml.decode()
+
+
+HILO_1 = """From - Mon Sep 15 11:00:00 2026
+X-Mozilla-Status: 0001
+Date: Mon, 15 Sep 2026 11:00:00 +0000
+From: Ana Perez <ana@cliente.cl>
+To: vicente@ejemplo.cl
+Subject: Re: Propuesta para el martes
+Message-ID: <hilo-2@cliente.cl>
+References: <hilo-1@cliente.cl>
+Content-Type: text/plain; charset=utf-8
+
+Te reenvio el anexo que faltaba.
+"""
+
+HILO_2 = """From - Mon Sep 15 12:00:00 2026
+X-Mozilla-Status: 0000
+Date: Mon, 15 Sep 2026 12:00:00 +0000
+From: Ana Perez <ana@cliente.cl>
+To: vicente@ejemplo.cl
+Subject: Re: Propuesta para el martes
+Message-ID: <hilo-3@cliente.cl>
+References: <hilo-1@cliente.cl> <hilo-2@cliente.cl>
+Content-Type: text/plain; charset=utf-8
+
+Perdon, el anexo correcto es este.
+"""
+
+
+def test_un_hilo_ocupa_una_linea(perfil) -> None:
+    archivo = perfil / "ImapMail" / "imap.ejemplo.com" / "INBOX"
+    with archivo.open("a", encoding="utf-8") as f:
+        f.write(HILO_1 + HILO_2)
+    with Buzon(perfil) as buzon:
+        mensajes = buzon.listar("INBOX", n=50)
+    resumen = asyncio.run(resumir(mensajes))
+    (hilo,) = [m for m in resumen.mensajes if m.asunto.startswith("Re: ")]
+    assert hilo.n == 6  # representa el hilo el mas reciente
+    assert [m.n for m in resumen.conversacion[hilo.n]] == [6, 5]  # los dos con References comunes
+    # El correo original del buzon no trae Message-ID, asi que no hay como saber que
+    # es del mismo hilo: se deja aparte en vez de adivinar por el asunto.
+    assert len(resumen.mensajes) == 3
+    texto = render(resumen)
+    assert "hilo de 2" in texto and texto.count("`imap.ejemplo.com/INBOX:5`") == 0
+
+
+def test_plurales(buzon) -> None:
+    from lymi.correo.buzon import Mensaje
+
+    uno = Mensaje(carpeta="INBOX", n=1, fecha=None, de="a@b.cl", asunto="x", boletin=True)
+    assert "1 mensaje: 0 directos, 1 boletin." in render(asyncio.run(resumir([uno])))

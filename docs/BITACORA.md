@@ -401,6 +401,23 @@ lymi solo lee los archivos que deja en disco.
 
 679 pruebas verdes y 1 omitida; la de rendimiento del disco sigue fallando. Ruff limpio.
 
+## [2026-09-19] medicion | La cadena proactiva funciona, verificada
+
+El usuario programo el resumen diario. En vez de confiar, se probo: misma
+programacion cada minuto en una agenda temporal y `lymi serve` durante 90 s.
+
+- Resultado: la agenda disparo sola, el workflow corrio sin nadie delante, escribio
+  `salidas/correo-hoy.md` y la corrida quedo en el ledger como
+  `resumen_de_correo / agenda:<id> / passed / 2 pasos ok`.
+- Susto: el ledger que consulte aparecia vacio. No era lymi: en Git Bash `/tmp` y el
+  `C:\tmp` que ve Python son carpetas distintas, y estaba leyendo otra base. Anotado
+  en las trampas de CLAUDE.md.
+- Resumen agrupado por hilo (`Message-ID`/`References`): un ida y vuelta ocupa una
+  linea. Un correo sin `Message-ID` se deja aparte en vez de adivinar por asunto.
+- Plurales del informe: "1 mensaje", "1 boletin".
+
+681 pruebas verdes y 1 omitida; la de rendimiento del disco sigue fallando. Ruff limpio.
+
 ### Hilos abiertos al cierre
 
 - Bloqueante del usuario: primer commit (configurar correo noreply antes).
@@ -411,7 +428,8 @@ lymi solo lee los archivos que deja en disco.
 - Medir el mapa de codigo en el bench (tarea `repo`) con puerta de correccion.
 - Verificar las `ruta:linea` que afirme un agente contra el indice de codigo.
 - Agencia en la app y con modelo remoto medido.
-- Correo: aviso al celular del resumen, agrupar por hilo y calendario.
+- Correo: aviso al celular del resumen y calendario.
+- Que `lymi serve` arranque con Windows para que la agenda dispare sin recordarlo.
 - Revisar la latencia del disco antes de volver a correr `test_perf.py`.
 - Repetir `lymi bench snake` real con calentamiento cuando la suscripcion se restablezca.
 - Primera medicion real.

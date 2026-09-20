@@ -214,7 +214,14 @@ Ver `REFERENCIAS.md`. Cada una se mide en el ledger antes de declararla util.
       `lymi schedule add workflows/resumen-de-correo.yml "0 8 * * *" --zona America/Santiago
       --aprobar guardar` (corre mientras `lymi serve` este activo).
 - [ ] Aviso al celular cuando el resumen queda listo (Telegram, ntfy o similar).
-- [ ] Agrupar el resumen por hilo (ya se leen `Message-ID` y `References`).
+- [x] Resumen agrupado por hilo (`Message-ID` y `References`): un ida y vuelta de
+      cinco correos ocupa una linea. Si un correo no trae `Message-ID` se deja
+      aparte en vez de adivinar por el asunto.
+- [x] Cadena proactiva verificada de punta a punta: `lymi schedule add` +
+      `lymi serve` dispararon el resumen sin nadie delante, escribieron el informe
+      y la corrida quedo en el ledger con su origen (`agenda:<id>`).
+- [ ] Que `lymi serve` arranque con Windows (tarea programada del sistema), o el
+      resumen no se dispara si nadie lo deja corriendo.
 - [ ] Calendario (`.ics` local o CalDAV de solo lectura).
 - [ ] Hilos: agrupar por `In-Reply-To`/`References` en vez de mensaje suelto.
 - [ ] Probar con un perfil que tenga varias cuentas y carpetas locales.
