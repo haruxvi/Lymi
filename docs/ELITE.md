@@ -178,32 +178,43 @@ Reglas propias de este eje, que no existen en lo digital:
 ejecuta con aprobacion, queda en el ledger y `lymi stop` la revierte o la detiene
 dejando todo seguro.
 
-## 10b. Vista (camara)
+## 10b. Vista: acompanar un proyecto por camara
 
-Que pueda **mirar** y ayudar con lo que tienes delante: leer una etiqueta, decir
-si una pieza quedo bien montada, comparar un montaje con su plano, vigilar una
-impresion 3D. Sin esto, "ver" queda solo en la pantalla.
+No es "sacar una foto": es que **te acompane mientras trabajas**. La camara mira
+tu mesa, tu impresora o tu placa, y lymi te ayuda con ese proyecto: reconoce en
+que paso vas, avisa cuando algo se sale de lo esperado y responde preguntas sobre
+lo que tienes delante.
 
-- [ ] Instantanea bajo peticion desde una camara (USB o de red local).
-- [ ] Modelo de vision **local** primero (Ollama ya sirve modelos con vision);
-      el remoto solo si tu lo pides, porque una foto no se puede redactar.
-- [ ] Preguntar sobre lo que se ve ("¿que dice esta etiqueta?", "¿esta derecha?").
-- [ ] Vigilancia puntual con condicion de corte ("avisame si la impresion falla",
-      con tope de tiempo y de fotos).
-- [ ] Las imagenes se tratan como dato sensible: etiqueta `nunca-sale` por defecto
-      y cada envio a un modelo remoto pide aprobacion, foto por foto.
+Lo que tiene que saber hacer:
+
+- [ ] **Sesion de trabajo**: tu abres una sesion sobre un proyecto ("estoy armando
+      esto"), lymi mira cada cierto tiempo y comenta solo cuando aporta.
+- [ ] **Identificar lo que hay**: piezas, herramientas, cables, un numero de
+      serie, el texto de una etiqueta.
+- [ ] **Comparar con la referencia**: el plano, la foto del paso anterior o la
+      guia del proyecto. "Esto no va donde iba", "falta esta pieza".
+- [ ] **Vigilar con condicion de corte**: "avisame si la impresion se despega",
+      con tope de tiempo, de capturas y de tokens.
+- [ ] **Memoria del proyecto**: lo observado se anota como afirmacion (SIN
+      REVISAR) con su captura, para retomar donde quedaste la proxima vez.
+- [ ] **Manos libres**: se combina con la voz; preguntas hablando y responde
+      hablando, sin soltar la herramienta.
 
 Reglas propias:
 
-- **Nada de grabacion continua.** Una foto se toma cuando tu lo pides o cuando lo
-  pide una tarea que aprobaste, y queda en el ledger con su motivo.
-- **La camara tiene interruptor.** `lymi stop` la apaga; si el sistema operativo
-  muestra el indicador de camara, que se vea cuando lymi la usa.
-- **Una foto no se puede redactar.** La pasarela puede tapar un correo o una
-  clave en un texto; en una imagen no. Por eso el tier remoto es opt-in explicito.
+- **La sesion es explicita y tiene principio y fin.** No hay camara encendida
+  "por si acaso": tu la abres, lymi avisa que esta mirando, y se cierra sola al
+  llegar al tope de tiempo. Cada captura queda en el ledger con su motivo.
+- **Las capturas se guardan en tu maquina** y se borran con `lymi undo` o al
+  cerrar la sesion, segun lo que elijas.
+- **Una foto no se puede redactar.** La pasarela puede tapar una clave en un
+  texto; en una imagen no. Por eso el modelo de vision es local por defecto, y
+  mandar una captura a un remoto pide aprobacion, captura por captura.
+- **`lymi stop` apaga la camara.** Sin excepciones.
 
-**Puerta:** responder correctamente tres preguntas sobre objetos reales frente a
-la camara, con el modelo local, y que cada captura aparezca en el ledger.
+**Puerta:** acompanar un montaje real de principio a fin: reconocer el paso,
+avisar de un error que tu no habias visto, y que todo quede en el ledger con
+cero capturas enviadas fuera de la maquina.
 
 ## 11. Interfaz
 
