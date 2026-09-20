@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 
 from lymi.flows.schema import (
     AgenciaStep,
+    CalendarioStep,
     CodigoStep,
     CorreoStep,
     HttpStep,
@@ -73,6 +74,8 @@ def planificar(flujo: Workflow) -> list[FilaPlan]:
         elif isinstance(paso, HttpStep):
             host = urlparse(paso.url).hostname or "?"
             destino, costo = f"{paso.method} {host}", "externo"
+        elif isinstance(paso, CalendarioStep):
+            destino, costo = f"este PC: calendario {paso.dias} dias", "gratis"
         elif isinstance(paso, CorreoStep):
             destino, costo = f"este PC: correo {paso.op} {paso.carpeta}", (
                 "tokens remotos" if paso.op == "resumen" and paso.tier == "remote" else "gratis"

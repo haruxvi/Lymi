@@ -70,7 +70,10 @@ uv run --extra dev pytest -q
 node design/estilos/sincronizar.mjs --check
 ```
 
-Estado al 2026-09-19: **683 pruebas: 681 verdes, 1 omitida, 1 de rendimiento que falla por el disco; ruff limpio, estilos sincronizados.**
+Estado al 2026-09-19: **696 pruebas: 694 verdes, 1 omitida, 1 de rendimiento que falla por el disco; ruff limpio, estilos sincronizados.**
+
+El roadmap completo hacia "elite" (13 ejes con su puerta medible) esta en
+`docs/ELITE.md` y en el vault como `camino-a-elite`.
 La que falla es `test_perf.py::test_registro_de_llamadas_es_despreciable` y depende
 del disco: ese dia un commit de SQLite en crudo tardaba 10 ms por fila en esta
 maquina (el ledger, 2,3 ms; limite 1 ms). El codigo del ledger no cambio.
@@ -99,6 +102,8 @@ La CI (`.github/workflows/ci.yml`) corre lo mismo en cada push y PR.
 - Thunderbird guarda el correo en mbox; `mailbox` de la libreria estandar tarda 15 s
   en un buzon de 5.000 mensajes. Por eso el indice propio cuenta separadores y lee
   las cabeceras del mismo bloque que ya tiene en memoria.
+- RFC 5545: `COUNT` cuenta la ocurrencia aunque un `EXDATE` la excluya, y una
+  repeticion mensual desde un dia 31 SALTA los meses cortos (no se corre al 28).
 - En Git Bash, `/tmp` y el `C:\tmp` que ve Python NO son la misma carpeta: una
   prueba manual con rutas temporales puede leer una base vacia y parecer un bug.
 - Un `Message-ID` largo sin espacios no cabe en 78 caracteres y `email` lo codifica
@@ -134,6 +139,7 @@ src/lymi/
   agencia/     departamentos de agentes: definicion (YAML + roles .md), protocolo
                (una accion JSON por turno), motor (delegacion, ayudantes, topes,
                parada), enrutador. Las herramientas son pasos de workflow
+  calendario/  archivos .ics locales: eventos y repeticiones, sin conexiones
   correo/      buzon local de Thunderbird (mbox) de solo lectura y resumen anotado
   memoria/     afirmaciones de agentes y hechos promovidos por personas, en markdown
   codigo/      mapa del codigo (extraer con `ast`, indice SQLite fresco, formato

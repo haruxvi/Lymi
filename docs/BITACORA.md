@@ -418,6 +418,27 @@ programacion cada minuto en una agenda temporal y `lymi serve` durante 90 s.
 
 681 pruebas verdes y 1 omitida; la de rendimiento del disco sigue fallando. Ruff limpio.
 
+## [2026-09-19] codigo | Calendario local y roadmap a elite
+
+- `src/lymi/calendario/`: lector de `.ics` con la libreria estandar. Zonas horarias
+  por `TZID` (zoneinfo), duracion por `DTEND` o `DURATION`, cancelados fuera,
+  lineas plegadas y escapes, y repeticiones DAILY/WEEKLY/MONTHLY/YEARLY con
+  INTERVAL, COUNT, UNTIL, BYDAY y EXDATE. Lo que no se entiende se omite y se dice.
+- Dos defectos propios que encontraron las pruebas, los dos del estandar:
+  1. `COUNT` cuenta la ocurrencia aunque un `EXDATE` la excluya. Yo no la contaba,
+     y la serie se estiraba una semana de mas.
+  2. Una repeticion mensual que empieza un dia 31 **salta** los meses que no lo
+     tienen. Yo la corria al 28 de febrero, que es otra fecha.
+- `workflows/informe-del-dia.yml`: correo resumido + agenda del dia en una pagina,
+  cuatro pasos, cero tokens remotos, y solo el ultimo pide aprobacion.
+- `docs/ELITE.md`: roadmap completo por ejes, cada uno con su puerta medible, mas
+  dos ejes nuevos que pidio el usuario: **hardware y entorno** (luces, impresora
+  3D, sensores, todo local-first y con reglas propias para efectos fisicos) y
+  **vista por camara** (instantaneas bajo peticion; una foto no se puede redactar,
+  asi que mandarla a un remoto pide aprobacion foto por foto).
+
+694 pruebas verdes y 1 omitida; la de rendimiento del disco sigue fallando. Ruff limpio.
+
 ### Hilos abiertos al cierre
 
 - Bloqueante del usuario: primer commit (configurar correo noreply antes).
@@ -428,7 +449,7 @@ programacion cada minuto en una agenda temporal y `lymi serve` durante 90 s.
 - Medir el mapa de codigo en el bench (tarea `repo`) con puerta de correccion.
 - Verificar las `ruta:linea` que afirme un agente contra el indice de codigo.
 - Agencia en la app y con modelo remoto medido.
-- Correo: aviso al celular del resumen y calendario.
+- Correo y agenda: aviso al celular, y avisar de lo que viene en 15 minutos.
 - Que `lymi serve` arranque con Windows para que la agenda dispare sin recordarlo.
 - Revisar la latencia del disco antes de volver a correr `test_perf.py`.
 - Repetir `lymi bench snake` real con calentamiento cuando la suscripcion se restablezca.

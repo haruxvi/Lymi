@@ -314,6 +314,14 @@ class CorreoStep(_Paso):
         return self
 
 
+class CalendarioStep(_Paso):
+    """Eventos de tus calendarios `.ics` locales. Solo lectura, sin conexiones."""
+
+    type: Literal["calendario"]
+    dias: int = Field(1, ge=1, le=60)
+    carpeta: str | None = None
+
+
 class MemoriaStep(_Paso):
     """Busca en la memoria de lymi o anota algo en ella.
 
@@ -363,7 +371,7 @@ class AgenciaStep(_Paso):
 
 Step = Annotated[
     LlmStep | ToolStep | HttpStep | TransformStep | PcStep | WebStep | CodigoStep | MemoriaStep
-    | CorreoStep | AgenciaStep,
+    | CorreoStep | CalendarioStep | AgenciaStep,
     Field(discriminator="type"),
 ]
 

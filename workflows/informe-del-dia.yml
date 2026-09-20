@@ -1,0 +1,34 @@
+name: informe_del_dia
+description: >
+  El dia en una pagina: correo reciente resumido y agenda del dia. Todo local,
+  cero tokens remotos y cero conexiones. Pensado para correr solo cada manana con
+  `lymi schedule`.
+
+steps:
+  - id: correo
+    type: correo
+    op: resumen
+    dias: 1
+    n: 60
+    tier: local
+    timeout_s: 600
+
+  - id: agenda
+    type: calendario
+    dias: 1
+
+  - id: informe
+    type: transform
+    set:
+      texto: |
+        {{ steps.correo.output.texto }}
+
+        ## Agenda de hoy
+
+        {{ steps.agenda.output.texto }}
+
+  - id: guardar
+    type: pc
+    op: escribir
+    ruta: salidas/informe-del-dia.md
+    contenido: "{{ steps.informe.output.texto }}"

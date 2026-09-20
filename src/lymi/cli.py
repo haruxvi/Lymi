@@ -305,6 +305,10 @@ app.add_typer(memoria_app, name="memoria")
 from lymi.cli_correo import correo_app
 
 app.add_typer(correo_app, name="correo")
+
+from lymi.cli_calendario import calendario_app
+
+app.add_typer(calendario_app, name="calendario")
 app.command("serve")(servir)
 
 

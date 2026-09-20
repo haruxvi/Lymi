@@ -33,6 +33,7 @@ HERRAMIENTAS: dict[str, tuple[bool, str]] = {
     "correo.listar": (False, 'tus correos recientes. args: {"carpeta"?, "n"?, "dias"?}'),
     "correo.leer": (False, 'un correo completo. args: {"mensaje": <numero>, "carpeta"?}'),
     "correo.resumen": (False, 'resumen del correo reciente, anotado por el modelo. args: {"dias"?, "n"?}'),
+    "calendario.agenda": (False, 'tus eventos agendados. args: {"dias"?}'),
     "memoria.buscar": (False, 'busca en la memoria; marca lo SIN REVISAR. args: {"consulta"}'),
     "memoria.anotar": (
         False,

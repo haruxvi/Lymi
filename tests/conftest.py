@@ -37,6 +37,7 @@ def parada_aislada(tmp_path_factory, monkeypatch):
     monkeypatch.setenv("LYMI_TRAZAS", str(tmp_path_factory.mktemp("trazas")))
     monkeypatch.setenv("LYMI_MEMORIA", str(tmp_path_factory.mktemp("memoria")))
     monkeypatch.setenv("LYMI_CORREO_INDICE", str(tmp_path_factory.mktemp("correo")))
+    monkeypatch.setenv("LYMI_CALENDARIO", str(tmp_path_factory.mktemp("calendario")))
 
 
 @pytest.fixture

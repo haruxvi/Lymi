@@ -222,7 +222,14 @@ Ver `REFERENCIAS.md`. Cada una se mide en el ledger antes de declararla util.
       y la corrida quedo en el ledger con su origen (`agenda:<id>`).
 - [ ] Que `lymi serve` arranque con Windows (tarea programada del sistema), o el
       resumen no se dispara si nadie lo deja corriendo.
-- [ ] Calendario (`.ics` local o CalDAV de solo lectura).
+- [x] Calendario: archivos `.ics` locales (`src/lymi/calendario/`, `lymi calendario`,
+      paso `calendario`, herramienta `calendario.agenda`). Zonas horarias por `TZID`
+      y repeticiones DAILY/WEEKLY/MONTHLY/YEARLY con INTERVAL, COUNT, UNTIL, BYDAY
+      y EXDATE. Sin conexiones: no habla con Google.
+- [x] `workflows/informe-del-dia.yml`: correo + agenda en una pagina, 0 tokens remotos.
+- [ ] Calendario por CalDAV o por URL privada `.ics` (hoy: archivos que tu dejas
+      en la carpeta).
+- [ ] Eventos del calendario en el aviso proactivo ("tienes algo en 15 minutos").
 - [ ] Hilos: agrupar por `In-Reply-To`/`References` en vez de mensaje suelto.
 - [ ] Probar con un perfil que tenga varias cuentas y carpetas locales.
 

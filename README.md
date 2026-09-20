@@ -99,6 +99,8 @@ uv run lymi memoria pendientes                            # lo que anotaron los 
 uv run lymi correo carpetas                               # tu correo local de Thunderbird (solo lectura)
 uv run lymi correo resumen --dias 1                       # el dia en una pagina, con el modelo local
 uv run lymi correo borrador INBOX:57 --instruccion "..."  # propone la respuesta; la envias tu
+uv run lymi calendario hoy --dias 7                       # tu agenda, desde archivos .ics locales
+uv run lymi flow run workflows/informe-del-dia.yml        # correo + agenda en una pagina
 uv run lymi agencia correr agencias/startup.example.yml "@producto donde se valida una URL?"
 ```
 

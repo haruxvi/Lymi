@@ -27,6 +27,7 @@ import time
 from collections.abc import AsyncIterator, Callable, Mapping
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlparse
@@ -39,6 +40,7 @@ from lymi.ejecutor import CapacidadDenegada, Ejecutor, EjecutorError
 from lymi.flows import template
 from lymi.flows.schema import (
     AgenciaStep,
+    CalendarioStep,
     CodigoStep,
     CorreoStep,
     HttpIntegration,
@@ -772,6 +774,39 @@ async def ejecutar_codigo(paso: CodigoStep, contexto: Mapping[str, Any], r: Recu
     return salida
 
 
+async def ejecutar_calendario(paso: CalendarioStep, contexto: Mapping[str, Any], r: Recursos) -> Any:
+    from lymi.calendario import Calendario, CalendarioError
+
+    def trabajo() -> tuple[list[Any], list[str]]:
+        inicio = datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
+        calendario = Calendario(Path(paso.carpeta) if paso.carpeta else None)
+        return calendario.eventos(inicio, inicio + timedelta(days=paso.dias))
+
+    inicio = time.perf_counter()
+    try:
+        eventos, avisos = await asyncio.to_thread(trabajo)
+    except (CalendarioError, OSError) as exc:
+        r.rec.accion_local(
+            tipo="calendario", destino=f"{paso.dias} dias", proposito=f"flow:{paso.id}",
+            latencia_ms=int((time.perf_counter() - inicio) * 1000), ok=False, error=str(exc)[:300],
+        )
+        raise PasoError(str(exc), reintentable=False) from None
+    r.rec.accion_local(
+        tipo="calendario", destino=f"{paso.dias} dias", proposito=f"flow:{paso.id}",
+        latencia_ms=int((time.perf_counter() - inicio) * 1000),
+    )
+    salida = {
+        "texto": "\n".join(e.resumen() for e in eventos) or "nada agendado",
+        "datos": [
+            {"titulo": e.titulo, "inicio": e.inicio.isoformat(), "fin": e.fin.isoformat(),
+             "lugar": e.lugar, "todo_el_dia": e.todo_el_dia, "calendario": e.calendario}
+            for e in eventos
+        ],
+        "avisos": avisos,
+    }
+    return sanear_valor(salida)[0]
+
+
 def _leer_correo(paso: CorreoStep) -> Any:
     from lymi.correo import Buzon
 
@@ -935,6 +970,8 @@ async def ejecutar(paso: Any, contexto: Mapping[str, Any], r: Recursos, flujo: W
         return await ejecutar_memoria(paso, contexto, r)
     if isinstance(paso, CorreoStep):
         return await ejecutar_correo(paso, contexto, r)
+    if isinstance(paso, CalendarioStep):
+        return await ejecutar_calendario(paso, contexto, r)
     if isinstance(paso, CodigoStep):
         return await ejecutar_codigo(paso, contexto, r)
     if isinstance(paso, WebStep):
