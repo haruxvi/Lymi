@@ -20,8 +20,8 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator, Callable
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -201,8 +201,12 @@ async def salud(_request: Request) -> JSONResponse:
     return JSONResponse({"ok": True})
 
 
-def crear_app(config: ConfigServidor) -> Starlette:
-    """Aplicacion ASGI con webhooks, salud y el bucle de la agenda."""
+def ciclo_agenda(config: ConfigServidor) -> Callable[[Starlette], AbstractAsyncContextManager[None]]:
+    """Lifespan que abre los almacenes y revisa la agenda mientras la app viva.
+
+    Lo usan `lymi serve` y la app de escritorio: las programaciones corren igual
+    venga quien venga a levantarlas.
+    """
 
     @asynccontextmanager
     async def ciclo(app: Starlette) -> AsyncIterator[None]:
@@ -220,10 +224,15 @@ def crear_app(config: ConfigServidor) -> Starlette:
                     await bucle
             await cerrar_estado(estado)
 
+    return ciclo
+
+
+def crear_app(config: ConfigServidor) -> Starlette:
+    """Aplicacion ASGI con webhooks, salud y el bucle de la agenda."""
     return Starlette(
         routes=[
             Route("/salud", salud, methods=["GET"]),
             Route("/hooks/{nombre}", recibir_webhook, methods=["POST"]),
         ],
-        lifespan=ciclo,
+        lifespan=ciclo_agenda(config),
     )

@@ -281,6 +281,20 @@ def ui(
     uvicorn.run(crear_app_ui(config), host="127.0.0.1", port=puerto, log_level="warning")
 
 
+@app.command()
+def escritorio(
+    motor: Annotated[str | None, typer.Option(help="qt (por defecto) o edge (WebView2, envia diagnostico).")] = None,
+    verificar_red: Annotated[
+        float | None, typer.Option(help="Segundos vigilando con quien habla la ventana; informa al cerrar.")
+    ] = None,
+    cerrar_tras: Annotated[float | None, typer.Option(help="Cierra la ventana sola a los N segundos.")] = None,
+) -> None:
+    """Abre lymi en una ventana propia, con la agenda corriendo mientras este abierta."""
+    from lymi.escritorio import correr
+
+    raise typer.Exit(correr(motor, verificar_red, cerrar_tras))
+
+
 app.add_typer(flow_app, name="flow")
 app.add_typer(integ_app, name="integrations")
 app.add_typer(schedule_app, name="schedule")

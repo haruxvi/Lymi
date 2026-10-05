@@ -66,6 +66,17 @@ def carpeta(tmp_path) -> Path:
     return tmp_path
 
 
+@pytest.fixture
+def carpeta_proxima(tmp_path) -> Path:
+    """SIMPLE corrido a partir de manana: la CLI y el paso miran desde hoy, no desde 2026-09-20."""
+    base = datetime.now(UTC).date() + timedelta(days=1)
+    texto = SIMPLE
+    for i, fija in enumerate(("20260920", "20260921", "20260922")):
+        texto = texto.replace(fija, (base + timedelta(days=i)).strftime("%Y%m%d"))
+    (tmp_path / "personal.ics").write_text(texto, encoding="utf-8")
+    return tmp_path
+
+
 def ventana(dias: int = 30) -> tuple[datetime, datetime]:
     inicio = datetime(2026, 9, 20, tzinfo=UTC)
     return inicio, inicio + timedelta(days=dias)
@@ -136,9 +147,9 @@ class TestRepeticiones:
         assert expandir(self._bases(texto)[0], *ventana()) == []
 
 
-def test_cli(carpeta, monkeypatch) -> None:
-    monkeypatch.setenv("LYMI_CALENDARIO", str(carpeta))
-    salida = CliRunner().invoke(app, ["calendario", "hoy", "--dias", "40"])
+def test_cli(carpeta_proxima, monkeypatch) -> None:
+    monkeypatch.setenv("LYMI_CALENDARIO", str(carpeta_proxima))
+    salida = CliRunner().invoke(app, ["calendario", "hoy", "--dias", "5"])
     assert salida.exit_code == 0
     assert "Reunion con Ana" in salida.output and "Cancelada" not in salida.output
 
@@ -149,16 +160,16 @@ def test_cli_sin_carpeta(tmp_path, monkeypatch) -> None:
     assert salida.exit_code == 1 and "LYMI_CALENDARIO" in salida.output
 
 
-def test_paso_de_workflow_y_herramienta_de_agente(carpeta, tmp_path, monkeypatch) -> None:
+def test_paso_de_workflow_y_herramienta_de_agente(carpeta_proxima, tmp_path, monkeypatch) -> None:
     import asyncio
 
     from lymi.flows.engine import ejecutar_flujo
     from lymi.flows.schema import Workflow
     from lymi.ledger import Ledger
 
-    monkeypatch.setenv("LYMI_CALENDARIO", str(carpeta))
+    monkeypatch.setenv("LYMI_CALENDARIO", str(carpeta_proxima))
     flujo = Workflow.model_validate({"name": "agenda", "steps": [
-        {"id": "hoy", "type": "calendario", "dias": 40, "carpeta": str(carpeta)},
+        {"id": "hoy", "type": "calendario", "dias": 5, "carpeta": str(carpeta_proxima)},
     ]})
     ledger = Ledger(tmp_path / "l.sqlite3")
     try:

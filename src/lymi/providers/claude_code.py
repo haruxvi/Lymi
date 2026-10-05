@@ -137,9 +137,14 @@ def _resolver_binario(binario: str) -> str:
 
 def _ejecutar(cmd: list[str], *, timeout: int, cwd: Path | None = None) -> tuple[dict, int]:
     """Corre el CLI y devuelve (payload, latencia_ms)."""
+    # Sin telemetria, reporte de errores ni autoactualizacion: solo la llamada al
+    # modelo sale a Anthropic. Si la persona fijo otro valor, se respeta el suyo.
+    env = {**os.environ}
+    env.setdefault("CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC", "1")
     inicio = time.perf_counter()
     proc = subprocess.run(
-        cmd, capture_output=True, text=True, timeout=timeout, cwd=cwd, check=False
+        cmd, capture_output=True, text=True, timeout=timeout, cwd=cwd, check=False, env=env,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),  # la app de ventana no abre consolas
     )
     latencia = int((time.perf_counter() - inicio) * 1000)
 
