@@ -55,6 +55,26 @@ class Resumen:
     def total(self) -> int:
         return len(self.mensajes) + len(self.boletines)
 
+    def como_dict(self) -> dict[str, object]:
+        """Lo mismo que `render`, como datos: la interfaz lo dibuja sin volver a parsear markdown."""
+        mensajes = []
+        for m in self.mensajes:
+            anotacion = self.anotaciones.get(m.n, Anotacion())
+            mensajes.append({
+                "id": m.id, "carpeta": m.carpeta, "n": m.n, "de": _quien(m), "asunto": m.asunto,
+                "fecha": m.fecha.isoformat() if m.fecha else None, "leido": m.leido, "para_mi": m.para_mi,
+                "prioridad": anotacion.prioridad, "accion": anotacion.accion,
+                "anotado": m.n in self.anotaciones, "hilo": len(self.conversacion.get(m.n, [])),
+            })
+        return {
+            "desde": self.desde.isoformat() if self.desde else None,
+            "directos": len(self.mensajes),
+            "boletines": len(self.boletines),
+            "boletines_de": sorted({_quien(m) for m in self.boletines}),
+            "mensajes": mensajes,
+            "avisos": list(self.avisos),
+        }
+
 
 def _plural(n: int, singular: str, plural: str) -> str:
     return singular if n == 1 else plural

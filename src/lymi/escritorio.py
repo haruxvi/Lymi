@@ -22,6 +22,7 @@ Lo que se cuida aqui, ademas de lo que ya cuida la interfaz (host, token, CSP):
 from __future__ import annotations
 
 import contextlib
+import json
 import logging
 import os
 import shutil
@@ -134,8 +135,10 @@ class Servidor:
         self.hilo.join(espera)
 
 
-def crear_app_escritorio(datos: Path, puerto: int, *, local: Any = None, remoto: Any = None) -> Any:
-    """La interfaz de siempre, con la agenda corriendo en su ciclo de vida."""
+def crear_app_escritorio(
+    datos: Path, puerto: int, *, local: Any = None, remoto: Any = None, avisos: Any = None
+) -> Any:
+    """La interfaz de siempre, con la agenda corriendo en su ciclo de vida y los avisos compartidos."""
     from lymi.triggers.servidor import ConfigServidor, ciclo_agenda
     from lymi.ui.app import ConfigUI, crear_app_ui
 
@@ -146,6 +149,13 @@ def crear_app_escritorio(datos: Path, puerto: int, *, local: Any = None, remoto:
             workflows=datos / "workflows",
             memoria=runs / "aprobaciones.sqlite3",
             hosts=frozenset({f"127.0.0.1:{puerto}"}),
+            agencias=datos / "agencias",
+            agenda=runs / "agenda.sqlite3",
+            ganchos=runs / "ganchos.sqlite3",
+            sesiones=runs / "sesiones",
+            agenda_activa=True,
+            avisos=avisos,
+            avisos_nativos=avisos is not None,
         )
     )
     app.router.lifespan_context = ciclo_agenda(
@@ -155,6 +165,7 @@ def crear_app_escritorio(datos: Path, puerto: int, *, local: Any = None, remoto:
             ganchos=runs / "ganchos.sqlite3",
             local=local,
             remote=remoto,
+            avisos=avisos,
         )
     )
     return app
@@ -205,14 +216,103 @@ def elegir_motor(pedido: str | None = None) -> str:
     return motor
 
 
-def ventana(url: str, motor: str = "qt", *, cerrar_tras: float | None = None) -> None:
-    """Abre la ventana y bloquea hasta que se cierre. Debe correr en el hilo principal.
+ICONO = Path(__file__).resolve().parent / "ui" / "static" / "icono.png"
 
-    `cerrar_tras`: la cierra sola a los N segundos, para pruebas sin nadie delante.
+
+class Bandeja:
+    """lymi en la bandeja del sistema: sigue vivo con la ventana cerrada y avisa.
+
+    Cerrar la ventana la esconde: la agenda sigue corriendo y los avisos (una
+    programacion que termino, algo que espera tu aprobacion, un evento en 15
+    minutos) llegan como notificaciones del sistema. Salir de verdad es desde el
+    menu de la bandeja. Todo se crea y se usa en el hilo de Qt.
+    """
+
+    def __init__(self, avisos: Any, abrir: Any, salir: Any) -> None:
+        from qtpy.QtCore import QTimer
+        from qtpy.QtGui import QAction, QIcon
+        from qtpy.QtWidgets import QMenu, QSystemTrayIcon
+
+        self.avisos = avisos
+        self.abrir = abrir
+        self.cursor = avisos.ultimo() if avisos is not None else 0
+        self.ultimo_enlace = ""
+        self.avisado_de_bandeja = False
+        icono = QIcon(str(ICONO))
+        self.icono = QSystemTrayIcon(icono)
+        self.icono.setToolTip("lymi")
+        menu = QMenu()
+        self._acciones = []
+        for texto, funcion in (("Abrir lymi", lambda: abrir("")), ("Detener todo", self._detener), (None, None),
+                               ("Salir de lymi", salir)):
+            if texto is None:
+                menu.addSeparator()
+                continue
+            accion = QAction(texto, menu)
+            accion.triggered.connect(funcion)
+            menu.addAction(accion)
+            self._acciones.append(accion)
+        self._menu = menu
+        self.icono.setContextMenu(menu)
+        self.icono.activated.connect(self._activado)
+        self.icono.messageClicked.connect(lambda: abrir(self.ultimo_enlace))
+        self.icono.show()
+        self._reloj = QTimer()
+        self._reloj.timeout.connect(self._mirar)
+        self._reloj.start(3000)
+
+    @staticmethod
+    def disponible() -> bool:
+        from qtpy.QtWidgets import QSystemTrayIcon
+
+        return QSystemTrayIcon.isSystemTrayAvailable()
+
+    def _activado(self, razon: Any) -> None:
+        from qtpy.QtWidgets import QSystemTrayIcon
+
+        if razon in (QSystemTrayIcon.ActivationReason.Trigger, QSystemTrayIcon.ActivationReason.DoubleClick):
+            self.abrir("")
+
+    def _detener(self) -> None:
+        from lymi.control import detener
+
+        detener("detenido desde la bandeja")
+        self.notificar("lymi detenido", "Ninguna corrida hace otra llamada ni otro paso. Reanuda desde la app.", "")
+
+    def notificar(self, titulo: str, texto: str, enlace: str) -> None:
+        log.info("aviso en la bandeja: %s", titulo)
+        self.ultimo_enlace = enlace
+        self.icono.showMessage(titulo, texto or " ", self.icono.icon(), 8000)
+
+    def _mirar(self) -> None:
+        if self.avisos is None:
+            return
+        nuevos = self.avisos.despues_de(self.cursor)
+        if not nuevos:
+            return
+        self.cursor = nuevos[-1].id
+        ultimo = nuevos[-1]
+        extra = f" (+{len(nuevos) - 1} avisos mas)" if len(nuevos) > 1 else ""
+        self.notificar(ultimo.titulo, f"{ultimo.texto}{extra}", ultimo.enlace)
+
+    def se_escondio(self) -> None:
+        if not self.avisado_de_bandeja:
+            self.avisado_de_bandeja = True
+            self.notificar("lymi sigue aqui", "La agenda sigue corriendo y te aviso lo importante. "
+                           "Para salir, clic derecho en el icono.", "")
+
+
+def ventana(url: str, motor: str = "qt", *, cerrar_tras: float | None = None, avisos: Any = None) -> None:
+    """Abre la ventana y bloquea hasta salir de lymi. Debe correr en el hilo principal.
+
+    Con el motor Qt y bandeja disponible, cerrar la ventana la esconde (ver `Bandeja`).
+    `cerrar_tras`: sale sola a los N segundos, para pruebas sin nadie delante.
     """
     if motor == "qt":
         os.environ["QT_API"] = "pyside6"
-        os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = ARGUMENTOS_MOTOR
+        # Se suman a las que ya hubiera (en Linux a veces hacen falta las del sistema).
+        previas = os.environ.get("QTWEBENGINE_CHROMIUM_FLAGS", "")
+        os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = f"{previas} {ARGUMENTOS_MOTOR}".strip()
     else:
         log.warning(AVISO_EDGE)
         os.environ["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = ARGUMENTOS_MOTOR
@@ -225,8 +325,44 @@ def ventana(url: str, motor: str = "qt", *, cerrar_tras: float | None = None) ->
     vista = webview.create_window(
         TITULO, url, width=1360, height=860, min_size=(960, 620), background_color=FONDO, text_select=True
     )
+    estado = {"saliendo": False, "bandeja": None}
+
+    def salir() -> None:
+        estado["saliendo"] = True
+        if estado["bandeja"] is not None:
+            estado["bandeja"].icono.hide()
+        vista.destroy()
+
+    def abrir(enlace: str) -> None:
+        vista.show()
+        vista.restore()
+        if enlace.startswith("#/"):
+            vista.evaluate_js(f"location.hash = {json.dumps(enlace)}")
+
+    def al_cerrar() -> bool:
+        if estado["saliendo"] or estado["bandeja"] is None:
+            return True
+        vista.hide()
+        estado["bandeja"].se_escondio()
+        return False  # cancela el cierre: lymi sigue en la bandeja
+
+    vista.events.closing += al_cerrar
+
+    if motor == "qt":
+        from qtpy.QtGui import QIcon
+        from qtpy.QtWidgets import QApplication
+
+        # pywebview reutiliza esta QApplication: la bandeja nace en el hilo de Qt.
+        app = QApplication.instance() or QApplication(sys.argv)
+        app.setWindowIcon(QIcon(str(ICONO)))
+        app.setApplicationName("lymi")
+        if Bandeja.disponible():
+            estado["bandeja"] = Bandeja(avisos, abrir, salir)
+        else:
+            log.info("sin bandeja del sistema: cerrar la ventana sale de lymi")
+
     if cerrar_tras:
-        cierre = threading.Timer(cerrar_tras, vista.destroy)
+        cierre = threading.Timer(cerrar_tras, salir)
         cierre.daemon = True
         cierre.start()
     webview.start(gui="qt" if motor == "qt" else "edgechromium", private_mode=True, debug=False)
@@ -349,7 +485,12 @@ def correr(motor: str | None = None, verificar: float | None = None, cerrar_tras
         log.info("local: %s | remoto: %s", etiqueta_local or "no disponible", etiqueta_remota or "no disponible")
         toma, puerto = puerto_libre()
         try:
-            servidor = arrancar(crear_app_escritorio(datos, puerto, local=local, remoto=remoto), toma, puerto)
+            from lymi.avisos import Avisos
+
+            avisos = Avisos()
+            servidor = arrancar(
+                crear_app_escritorio(datos, puerto, local=local, remoto=remoto, avisos=avisos), toma, puerto
+            )
         except RuntimeError as exc:
             avisar(str(exc))
             return 1
@@ -358,7 +499,7 @@ def correr(motor: str | None = None, verificar: float | None = None, cerrar_tras
         vigia = Vigia(verificar) if verificar else None
         try:
             with vigia or contextlib.nullcontext():
-                ventana(servidor.url, motor, cerrar_tras=cerrar_tras)
+                ventana(servidor.url, motor, cerrar_tras=cerrar_tras, avisos=avisos)
         finally:
             with contextlib.suppress(OSError):
                 marca.unlink()

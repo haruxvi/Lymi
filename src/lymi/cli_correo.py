@@ -12,7 +12,7 @@ import typer
 from lymi.bench.runner import Recorder
 from lymi.correo import Buzon, CorreoError, render, resumir
 from lymi.ledger import Ledger
-from lymi.providers.base import Message
+from lymi.llamada import completador
 
 correo_app = typer.Typer(
     help="Tu correo, leido del buzon local de Thunderbird. Solo lectura: lymi no ve tus claves.",
@@ -135,20 +135,7 @@ def resumen(
     ledger = Ledger(db)
     try:
         with ledger.run("correo", "resumen", cliente.billing) as run:
-            rec = Recorder(run)
-
-            async def completar(sistema: str, texto: str) -> str:
-                enviados, sistema_final, redactor = rec.preparar(cliente, [Message("user", texto)], sistema)
-                completion = await asyncio.to_thread(
-                    cliente.complete, enviados, system=sistema_final, max_tokens=1500
-                )
-                if redactor is not None:
-                    completion.text = redactor.rehidratar(completion.text)
-                rec.registrar(
-                    completion, enviados, purpose="correo:resumen", system=sistema_final,
-                    redacciones=redactor.total if redactor is not None else 0,
-                )
-                return completion.text
+            completar = completador(Recorder(run), cliente, "correo:resumen", max_tokens=1500)
 
             informe = asyncio.run(resumir(
                 mensajes, completar, desde=datetime.now(UTC) - timedelta(days=dias), hasta=datetime.now(UTC)
@@ -214,20 +201,7 @@ def borrador(
     ledger = Ledger(db)
     try:
         with ledger.run("correo", "borrador", cliente.billing) as run:
-            rec = Recorder(run)
-
-            async def completar(sistema: str, texto: str) -> str:
-                enviados, sistema_final, redactor = rec.preparar(cliente, [Message("user", texto)], sistema)
-                completion = await asyncio.to_thread(
-                    cliente.complete, enviados, system=sistema_final, max_tokens=1200
-                )
-                if redactor is not None:
-                    completion.text = redactor.rehidratar(completion.text)
-                rec.registrar(
-                    completion, enviados, purpose="correo:borrador", system=sistema_final,
-                    redacciones=redactor.total if redactor is not None else 0,
-                )
-                return completion.text
+            completar = completador(Recorder(run), cliente, "correo:borrador", max_tokens=1200)
 
             cuerpo = asyncio.run(redactar(mensaje, completar, instruccion))
     finally:

@@ -90,7 +90,28 @@ def _tolerar(datos: dict[str, Any]) -> dict[str, Any]:
         for clave in _SINONIMOS_RESULTADO:
             if isinstance(datos.get(clave), str) and datos[clave].strip():
                 return {"accion": "terminar", "resultado": datos[clave]}
+        # Un unico campo de texto, se llame como se llame: no hay duda de que es la respuesta.
+        textos = [v for k, v in datos.items() if k != "accion" and isinstance(v, str) and v.strip()]
+        if len(textos) == 1:
+            return {"accion": "terminar", "resultado": textos[0]}
     return datos
+
+
+def _prosa_fuera_del_json(texto: str) -> str:
+    """El texto que el modelo escribio alrededor del objeto JSON, sin el objeto."""
+    import json
+
+    limpio = texto.strip()
+    decodificador = json.JSONDecoder()
+    for i, caracter in enumerate(limpio):
+        if caracter == "{":
+            try:
+                _, fin = decodificador.raw_decode(limpio, i)
+            except json.JSONDecodeError:
+                continue
+            resto = (limpio[:i] + "\n" + limpio[fin:]).replace("```json", "").replace("```", "")
+            return resto.strip()
+    return ""
 
 
 def interpretar(texto: str) -> Any:
@@ -103,6 +124,9 @@ def interpretar(texto: str) -> Any:
     if not isinstance(datos, dict):
         raise ProtocoloError("se esperaba un objeto JSON con la clave `accion`")
     datos = _tolerar(datos)
+    if datos.get("accion") == "terminar" and "resultado" not in datos and (prosa := _prosa_fuera_del_json(texto)):
+        # Modelos pequenos: `{"accion": "terminar"}` y la respuesta escrita fuera del JSON.
+        datos = {"accion": "terminar", "resultado": prosa}
     try:
         return _ADAPTADOR.validate_python(datos)
     except ValidationError as exc:

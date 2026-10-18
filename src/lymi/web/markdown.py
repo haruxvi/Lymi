@@ -125,9 +125,12 @@ class Documento:
 
 
 class _Render:
-    def __init__(self, base: str, omitir_header: bool) -> None:
+    def __init__(self, base: str, omitir_header: bool, correo: bool = False) -> None:
         self.base = base
         self.omitir_header = omitir_header
+        self.correo = correo
+        """Modo correo: las tablas son maquetacion (se leen como bloques) y las imagenes, logos
+        y pixeles de rastreo (no se escriben)."""
         self.enlaces: dict[str, None] = {}
 
     def absoluta(self, href: str) -> str | None:
@@ -177,6 +180,8 @@ class _Render:
                 self.enlaces[href] = None
             return f"[{texto}]({href})" if texto and href else texto
         if t == "img":
+            if self.correo:
+                return ""
             alt = " ".join(n.attrs.get("alt", "").split())
             src = self.absoluta(n.attrs.get("src", ""))
             return f"![{alt}]({src})" if alt and src else ""
@@ -186,7 +191,9 @@ class _Render:
             interior = limpiar(self.hijos(n))
             return "\n\n" + "\n".join(f"> {linea}" if linea else ">" for linea in interior.splitlines()) + "\n\n"
         if t == "table":
-            return self.tabla(n)
+            return f"\n\n{self.hijos(n).strip()}\n\n" if self.correo else self.tabla(n)
+        if self.correo and t in {"tr", "td", "th", "tbody", "thead", "tfoot"}:
+            return f"\n{self.hijos(n).strip()}\n"
         if t in _BLOQUES:
             return f"\n\n{self.hijos(n).strip()}\n\n"
         return self.hijos(n)
@@ -207,8 +214,20 @@ class _Render:
         return "\n\n" + "\n".join(lineas) + "\n\n" if lineas else ""
 
     def tabla(self, nodo: Nodo) -> str:
+        # Solo las filas de esta tabla: las de una tabla anidada son contenido de su celda,
+        # y buscarlas en todo el subarbol las duplicaba.
+        filas: list[Nodo] = []
+
+        def recorrer(padre: Nodo) -> None:
+            for hijo in padre.hijos:
+                if isinstance(hijo, Nodo) and hijo.tag == "tr":
+                    filas.append(hijo)
+                elif isinstance(hijo, Nodo) and hijo.tag in {"tbody", "thead", "tfoot"}:
+                    recorrer(hijo)
+
+        recorrer(nodo)
         matriz = []
-        for fila in _buscar(nodo, {"tr"}):
+        for fila in filas:
             celdas = [
                 " ".join(self.hijos(c).split()).replace("|", "\\|")
                 for c in fila.hijos
@@ -245,7 +264,7 @@ def limpiar(texto: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", "\n".join(salida)).strip()
 
 
-def html_a_markdown(html: str, base_url: str) -> Documento:
+def html_a_markdown(html: str, base_url: str, *, correo: bool = False) -> Documento:
     constructor = _Constructor()
     constructor.feed(html)
     constructor.close()
@@ -263,7 +282,7 @@ def html_a_markdown(html: str, base_url: str) -> Documento:
     idioma = htmls[0].attrs.get("lang") or None if htmls else None
 
     contenido = _raiz_de_contenido(raiz)
-    render = _Render(base_url, omitir_header=contenido.tag in {"body", "#documento"})
+    render = _Render(base_url, omitir_header=contenido.tag in {"body", "#documento"}, correo=correo)
     markdown = limpiar(render.hijos(contenido))
     if not titulo:
         h1 = _buscar(contenido, {"h1"})

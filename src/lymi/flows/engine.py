@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import time
 from collections.abc import Awaitable, Callable, Mapping
@@ -144,8 +145,21 @@ async def ejecutar_flujo(
     http_client: httpx.AsyncClient | None = None,
     variante: str = "flow",
     espera: Callable[[float], Awaitable[Any]] = asyncio.sleep,
+    avisar: Callable[[str, str, str], None] | None = None,
 ) -> ResultadoFlujo:
-    """Corre el workflow completo y devuelve el estado de cada paso."""
+    """Corre el workflow completo y devuelve el estado de cada paso.
+
+    `avisar(paso, estado, detalle)` se llama al empezar y al terminar cada paso:
+    la interfaz pinta el lienzo en vivo. Un fallo del aviso no detiene la corrida.
+    """
+
+    def aviso(paso_id: str, estado: str, detalle: str = "") -> None:
+        if avisar is not None:
+            try:
+                avisar(paso_id, estado, detalle)
+            except Exception:  # mirar la corrida no puede romperla
+                logging.getLogger("lymi.flows").exception("fallo el aviso de progreso de %s", paso_id)
+
     # Las entradas son texto ajeno (un correo, un webhook): se sanean antes de que
     # cualquier plantilla las lleve a un modelo.
     valores, _ = sanear_valor(preparar_inputs(flujo, inputs))
@@ -187,6 +201,7 @@ async def ejecutar_flujo(
         )
 
         def terminar_mal(estado: EstadoPaso) -> ResultadoFlujo:
+            aviso(estado.id, estado.status, estado.detalle)
             estados.append(estado)
             contexto["steps"][estado.id] = {"output": None, "status": estado.status}
             run.fail(f"{estado.id}: {estado.detalle}")
@@ -213,6 +228,7 @@ async def ejecutar_flujo(
                     except condition.ConditionError as exc:
                         return terminar_mal(EstadoPaso(paso.id, "fallo", str(exc)))
                     if not cumple:
+                        aviso(paso.id, "omitido", f"when falso: {paso.when}")
                         estados.append(EstadoPaso(paso.id, "omitido", f"when falso: {paso.when}"))
                         contexto["steps"][paso.id] = {"output": None, "status": "omitido"}
                         continue
@@ -224,10 +240,12 @@ async def ejecutar_flujo(
                     except (template.TemplateError, PasoError) as exc:
                         return terminar_mal(EstadoPaso(paso.id, "fallo", str(exc)))
                     solicitud = Solicitud(paso.id, paso.type, destino, metodo, vista)
+                    aviso(paso.id, "esperando", f"pide aprobacion para {destino}")
                     aprobado, motivo = await resolver_aprobacion(solicitud, aprobar, politica, tiempo_aprobacion)
                     if not aprobado:
                         return terminar_mal(EstadoPaso(paso.id, "rechazado", motivo))
 
+                aviso(paso.id, "en_curso")
                 intentos = 0
                 while True:
                     intentos += 1
@@ -251,6 +269,7 @@ async def ejecutar_flujo(
 
                 contexto["steps"][paso.id] = {"output": salida, "status": "ok"}
                 estados.append(EstadoPaso(paso.id, "ok", "", intentos, _ms(inicio)))
+                aviso(paso.id, "ok")
 
             hechos = sum(1 for e in estados if e.status == "ok")
             run.notes = f"{hechos} pasos ok, {len(estados) - hechos} omitidos"

@@ -1,0 +1,85 @@
+name: Instaladores
+
+# Construye lymi para Windows, Linux y macOS. PyInstaller no compila para otro sistema,
+# asi que cada uno se arma en su maquina. En Linux, ademas, el programa empaquetado se
+# abre de verdad y se vigila su red: si habla con alguien, el trabajo falla.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (ej. 0.1.0)"
+        required: true
+        default: "0.0.0"
+
+permissions:
+  contents: read
+
+jobs:
+  construir:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-24.04, macos-14]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      VERSION: ${{ github.event.inputs.version || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Bibliotecas del sistema para Qt WebEngine
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libegl1 libgl1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 \
+            libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 \
+            libxcb-xkb1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2t64 libdbus-1-3 \
+            libfontconfig1
+
+      - name: Dependencias (desde uv.lock)
+        run: uv sync --extra escritorio --extra empaquetar --locked
+
+      - name: PyInstaller
+        run: uv run pyinstaller empaquetado/lymi.spec --noconfirm
+
+      - name: "Linux: cero conexiones fuera de la maquina"
+        if: runner.os == 'Linux'
+        env:
+          LYMI_HOME: ${{ runner.temp }}/lymi-datos
+        # --verificar-red termina con codigo 3 si el programa o cualquiera de sus procesos
+        # hijos abre una conexion fuera de esta maquina. Es la prueba de "cero telemetria".
+        run: xvfb-run -a dist/lymi/lymi --verificar-red 40 --cerrar-tras 45
+
+      - name: "Windows: instalador (Inno Setup)"
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DVersion=$($env:VERSION.TrimStart('v'))" empaquetado\windows\lymi.iss
+
+      - name: "Linux: tar.gz con instalador sin root"
+        if: runner.os == 'Linux'
+        run: |
+          v="${VERSION#v}"
+          mkdir -p "dist/lymi-${v}-linux-x64"
+          cp -R dist/lymi "dist/lymi-${v}-linux-x64/"
+          cp empaquetado/linux/instalar.sh empaquetado/linux/desinstalar.sh empaquetado/lymi.png "dist/lymi-${v}-linux-x64/"
+          chmod +x "dist/lymi-${v}-linux-x64/"*.sh
+          tar -C dist -czf "dist/lymi-${v}-linux-x64.tar.gz" "lymi-${v}-linux-x64"
+
+      - name: "macOS: dmg"
+        if: runner.os == 'macOS'
+        run: sh empaquetado/macos/crear-dmg.sh "${VERSION#v}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lymi-${{ runner.os }}
+          path: |
+            dist/*.exe
+            dist/*.tar.gz
+            dist/*.dmg
+          if-no-files-found: error

@@ -56,6 +56,71 @@ cp .env.example .env
 Ninguna credencial es obligatoria: lymi corre con los proveedores que tengas
 configurados y omite los demas.
 
+### App de escritorio
+
+```bash
+uv sync --extra escritorio
+uv run lymi escritorio                     # ventana propia; la agenda corre mientras esta abierta
+uv run lymi escritorio --verificar-red 60  # mide con quien habla todo el arbol de procesos
+```
+
+La ventana usa Qt WebEngine (Chromium abierto, sin servicios de Google ni de
+Microsoft). Medido: **0 conexiones fuera de la maquina en 60 s**. WebView2, el
+motor de Windows, abre conexiones a Microsoft que ninguna bandera apaga: solo se
+usa con `--motor edge`, avisado. Los datos viven en `%LOCALAPPDATA%\lymi`
+(Windows) o `~/.local/share/lymi` (Linux), o donde diga `LYMI_HOME`.
+
+Que trae: **Hoy** (agenda, correo que importa, lo que espera tu decision), **Chat**
+con herramientas (asistente, debate entre agentes o una de tus agencias; modelo
+local o remoto, y tope de tokens por conversacion), **Correo** (Thunderbird, solo
+lectura, resumen por prioridad y borradores .eml), **Calendario**, **Agencia**
+(organigrama y corridas), **Workflows** con editor de nodos (paleta, lienzo,
+inspector, plan sin gastar un token, costo medido por nodo, ejecucion en vivo con
+aprobaciones), **Programaciones**, **Memoria**, **Codigo**, **Web**, **Tu PC**
+(diario con deshacer) y el ledger completo.
+
+Cerrar la ventana la deja en la **bandeja del sistema**: la agenda sigue
+corriendo y lymi avisa con notificaciones locales cuando una programacion
+termina, cuando algo espera tu aprobacion y 15 minutos antes de cada evento del
+calendario. Salir de verdad es desde el menu del icono.
+
+### Voz
+
+Boton de microfono en el chat: dicta y lymi transcribe con **whisper.cpp en tu
+equipo** (sin red, sin telemetria). Descarga `whisper-cli` de
+<https://github.com/ggml-org/whisper.cpp/releases> y un modelo de
+<https://huggingface.co/ggerganov/whisper.cpp> en la carpeta `voz/` de los datos
+(o `LYMI_WHISPER` / `LYMI_WHISPER_MODELO`). lymi sugiere el modelo segun tu RAM
+(tiny < 8 GB < base < 16 GB <= small) y siempre dice cual transcribio. Las
+respuestas se pueden leer en voz alta con la voz del sistema (SAPI en Windows,
+`say` en macOS, `espeak-ng` en Linux). El audio se borra al transcribirse.
+
+### Docker (servidor, sin escritorio)
+
+```bash
+docker build -t lymi .
+docker run -d --name lymi -v lymi-datos:/datos lymi
+```
+
+Corre `lymi serve`: la agenda y los webhooks, como usuario sin privilegios y con
+los datos en el volumen. La interfaz no va en la imagen a proposito (solo
+escucha en loopback). Los webhooks necesitan un almacen de claves del sistema;
+sin el, se rechazan (falla del lado seguro). El modelo local se busca en
+`host.docker.internal:11434`.
+
+### Instaladores
+
+`.github/workflows/instaladores.yml` los construye en cada sistema al publicar
+una etiqueta `v*` (o a mano): `.exe` (Inno Setup, por usuario, sin administrador),
+`.tar.gz` con `instalar.sh` sin root para Linux, y `.dmg` para macOS. En Linux el
+programa empaquetado se abre y se vigila su red: si habla con alguien, el
+trabajo falla. Para construir localmente:
+
+```bash
+uv sync --extra escritorio --extra empaquetar
+uv run pyinstaller empaquetado/lymi.spec --noconfirm   # dist/lymi/
+```
+
 ## Seguridad
 
 - El payload enviado a un proveedor **no se persiste**; solo su SHA-256 y su

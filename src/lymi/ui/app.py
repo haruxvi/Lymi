@@ -14,7 +14,6 @@ Solo escucha en loopback, y se defiende como si eso no bastara:
 from __future__ import annotations
 
 import hmac
-import json
 import re
 import secrets
 from collections.abc import Callable
@@ -36,12 +35,12 @@ from lymi.flows.engine import EntradaError
 from lymi.flows.plan import planificar, resumir
 from lymi.flows.schema import WorkflowError, cargar
 from lymi.ledger import Ledger
-from lymi.ui import datos, tema
+from lymi.ui import datos, editor, funciones, tema
+from lymi.ui.comun import ErrorApi, archivo_en, cuerpo, entero
 from lymi.ui.trabajos import TrabajoError, Trabajos
 
 ESTATICOS = Path(__file__).with_name("static")
 CABECERA_TOKEN = "x-lymi-token"
-LIMITE_CUERPO = 64_000
 ARCHIVO_WORKFLOW = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,80}\.ya?ml$")
 ID_CORRIDA = re.compile(r"^[0-9a-f]{12}$")
 ID_TRABAJO = re.compile(r"^[0-9a-f]{10}$")
@@ -65,12 +64,16 @@ class ConfigUI:
     cablear: Callable[[], Any] | None = None
     diagnosticar: Callable[..., Any] | None = None
     vencimiento: float = 300.0
-
-
-class ErrorApi(Exception):
-    def __init__(self, estado: int, mensaje: str) -> None:
-        super().__init__(mensaje)
-        self.estado = estado
+    agencias: Path = Path("agencias")
+    agenda: Path = Path("runs/agenda.sqlite3")
+    ganchos: Path = Path("runs/ganchos.sqlite3")
+    sesiones: Path = Path("runs/sesiones")
+    agenda_activa: bool = False
+    avisos: Any = None
+    """`lymi.avisos.Avisos` compartido con la agenda. Sin el, la interfaz crea uno propio."""
+    avisos_nativos: bool = False
+    """True en la app de escritorio: la bandeja muestra los avisos; la pagina no los repite."""
+    """True si este proceso revisa la agenda (la app de escritorio). `lymi ui` solo la muestra."""
 
 
 class Guardia:
@@ -117,49 +120,21 @@ class Guardia:
         await self.app(scope, receive, enviar)
 
 
-def _entero(valor: str | None, defecto: int, minimo: int, maximo: int) -> int:
-    try:
-        numero = int(valor) if valor is not None else defecto
-    except ValueError:
-        numero = defecto
-    return max(minimo, min(maximo, numero))
-
-
-async def _cuerpo(request: Request) -> dict[str, Any]:
-    crudo = b""
-    async for trozo in request.stream():
-        crudo += trozo
-        if len(crudo) > LIMITE_CUERPO:
-            raise ErrorApi(413, f"el cuerpo supera {LIMITE_CUERPO} bytes")
-    try:
-        valor = json.loads(crudo or b"{}")
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        raise ErrorApi(400, "el cuerpo no es JSON valido") from None
-    if not isinstance(valor, dict):
-        raise ErrorApi(400, "se esperaba un objeto JSON")
-    return valor
-
-
 def _ruta_workflow(carpeta: Path, nombre: str) -> Path | None:
-    """El archivo pedido, solo si es un YAML directamente dentro de la carpeta."""
-    if not ARCHIVO_WORKFLOW.match(nombre):
-        return None
-    ruta = carpeta / nombre
-    try:
-        if ruta.resolve().parent != carpeta.resolve() or not ruta.is_file():
-            return None
-    except OSError:
-        return None
-    return ruta
+    return archivo_en(carpeta, nombre)
 
 
 def crear_app_ui(config: ConfigUI) -> Starlette:
+    from lymi.avisos import Avisos
+
+    avisos = config.avisos if config.avisos is not None else Avisos()
     trabajos = Trabajos(
         ledger=config.ledger,
         memoria=config.memoria,
         proveedores=config.proveedores,
         cablear=config.cablear,
         vencimiento=config.vencimiento,
+        avisos=avisos,
     )
 
     def con_ledger(leer: Callable[[Ledger], Any]) -> Any:
@@ -180,17 +155,23 @@ def crear_app_ui(config: ConfigUI) -> Starlette:
     def api_resumen(_request: Request) -> JSONResponse:
         resumen, ultimas = con_ledger(lambda led: (datos.resumen(led), datos.corridas(led, 6)))
         return JSONResponse(
-            {**resumen, "ultimas": ultimas, "trabajos_activos": trabajos.activos(), "detenido": control.detenido()}
+            {**resumen, "ultimas": ultimas, "trabajos_activos": trabajos.activos(),
+             "esperando": len(trabajos.esperando()), "detenido": control.detenido()}
         )
 
     async def api_parar(request: Request) -> JSONResponse:
-        cuerpo = await _cuerpo(request)
-        motivo = str(cuerpo.get("motivo") or "detenido desde la interfaz")[:200]
+        datos_cuerpo = await cuerpo(request)
+        motivo = str(datos_cuerpo.get("motivo") or "detenido desde la interfaz")[:200]
         control.detener(motivo)
         return JSONResponse({"detenido": True, "aprobaciones_revocadas": trabajos.revocar_pendientes()})
 
     async def api_reanudar(_request: Request) -> JSONResponse:
         return JSONResponse({"detenido": False, "estaba_detenido": control.reanudar()})
+
+    def api_avisos(request: Request) -> JSONResponse:
+        desde = entero(request.query_params.get("desde"), 0, 0, 10**9)
+        return JSONResponse({"avisos": [a.como_dict() for a in avisos.despues_de(desde)],
+                             "ultimo": avisos.ultimo(), "nativos": config.avisos_nativos})
 
     def api_proveedores(request: Request) -> JSONResponse:
         probar = request.query_params.get("probar") == "1"
@@ -212,7 +193,7 @@ def crear_app_ui(config: ConfigUI) -> Starlette:
         )
 
     def api_corridas(request: Request) -> JSONResponse:
-        limite = _entero(request.query_params.get("limite"), 50, 1, 500)
+        limite = entero(request.query_params.get("limite"), 50, 1, 500)
         return JSONResponse(con_ledger(lambda led: datos.corridas(led, limite)))
 
     def api_corrida(request: Request) -> JSONResponse:
@@ -223,7 +204,7 @@ def crear_app_ui(config: ConfigUI) -> Starlette:
         return JSONResponse(detalle)
 
     def api_egress(request: Request) -> JSONResponse:
-        limite = _entero(request.query_params.get("limite"), 200, 1, 1000)
+        limite = entero(request.query_params.get("limite"), 200, 1, 1000)
         return JSONResponse(con_ledger(lambda led: datos.egress(led, limite)))
 
     def api_workflows(_request: Request) -> JSONResponse:
@@ -261,6 +242,7 @@ def crear_app_ui(config: ConfigUI) -> Starlette:
         return JSONResponse(
             {
                 "archivo": ruta.name,
+                "flujo": editor.como_datos(flujo),
                 "nombre": flujo.name,
                 "descripcion": flujo.description,
                 "yaml": texto,
@@ -277,20 +259,20 @@ def crear_app_ui(config: ConfigUI) -> Starlette:
         ruta = _ruta_workflow(config.workflows, request.path_params["archivo"])
         if ruta is None:
             raise ErrorApi(404, "workflow no encontrado")
-        cuerpo = await _cuerpo(request)
-        entradas = cuerpo.get("entradas", {})
+        datos_cuerpo = await cuerpo(request)
+        entradas = datos_cuerpo.get("entradas", {})
         if not isinstance(entradas, dict):
             raise ErrorApi(400, "entradas debe ser un objeto")
         return JSONResponse(trabajos.lanzar_workflow(ruta, entradas), status_code=202)
 
     async def api_bench(request: Request) -> JSONResponse:
-        cuerpo = await _cuerpo(request)
-        if cuerpo.get("tarea", "snake") != "snake":
+        datos_cuerpo = await cuerpo(request)
+        if datos_cuerpo.get("tarea", "snake") != "snake":
             raise ErrorApi(400, "por ahora solo esta la tarea snake")
         vista = trabajos.lanzar_bench(
-            demo=cuerpo.get("demo") is True,
-            calentar=cuerpo.get("calentar", True) is True,
-            confirmar=cuerpo.get("confirmar") is True,
+            demo=datos_cuerpo.get("demo") is True,
+            calentar=datos_cuerpo.get("calentar", True) is True,
+            confirmar=datos_cuerpo.get("confirmar") is True,
         )
         return JSONResponse(vista, status_code=202)
 
@@ -308,9 +290,9 @@ def crear_app_ui(config: ConfigUI) -> Starlette:
         trabajo_id = request.path_params["trabajo_id"]
         if not ID_TRABAJO.match(trabajo_id):
             raise ErrorApi(404, "trabajo no encontrado")
-        cuerpo = await _cuerpo(request)
+        datos_cuerpo = await cuerpo(request)
         try:
-            trabajos.decidir(trabajo_id, str(cuerpo.get("decision", "")))
+            trabajos.decidir(trabajo_id, str(datos_cuerpo.get("decision", "")))
         except KeyError:
             raise ErrorApi(404, "trabajo no encontrado") from None
         return JSONResponse({"ok": True})
@@ -323,8 +305,8 @@ def crear_app_ui(config: ConfigUI) -> Starlette:
         return JSONResponse({**actual, "ruta": str(tema.ruta_tema()), "presets": presets})
 
     async def api_guardar_tema(request: Request) -> JSONResponse:
-        cuerpo = await _cuerpo(request)
-        tema.escribir(tema.ruta_tema(), cuerpo.get("nombre"), cuerpo.get("tinta"))
+        datos_cuerpo = await cuerpo(request)
+        tema.escribir(tema.ruta_tema(), datos_cuerpo.get("nombre"), datos_cuerpo.get("tinta"))
         return JSONResponse(tema.leer(tema.ruta_tema()))
 
     # ------------------------------------------------------------ errores
@@ -344,6 +326,7 @@ def crear_app_ui(config: ConfigUI) -> Starlette:
         Route("/api/parar", api_parar, methods=["POST"]),
         Route("/api/reanudar", api_reanudar, methods=["POST"]),
         Route("/api/proveedores", api_proveedores, methods=["GET"]),
+        Route("/api/avisos", api_avisos, methods=["GET"]),
         Route("/api/corridas", api_corridas, methods=["GET"]),
         Route("/api/corridas/{run_id}", api_corrida, methods=["GET"]),
         Route("/api/egress", api_egress, methods=["GET"]),
@@ -356,6 +339,15 @@ def crear_app_ui(config: ConfigUI) -> Starlette:
         Route("/api/trabajos/{trabajo_id}/aprobacion", api_decidir, methods=["POST"]),
         Route("/api/tema", api_tema, methods=["GET"]),
         Route("/api/tema", api_guardar_tema, methods=["PUT"]),
+        *funciones.rutas(
+            funciones.Lugares(
+                ledger=config.ledger, workflows=config.workflows, agencias=config.agencias,
+                agenda=config.agenda, ganchos=config.ganchos, sesiones=config.sesiones,
+                agenda_activa=config.agenda_activa,
+            ),
+            trabajos,
+        ),
+        *editor.rutas(config.workflows, config.ledger),
         Mount("/static", app=StaticFiles(directory=ESTATICOS), name="static"),
     ]
     app = Starlette(
@@ -371,4 +363,5 @@ def crear_app_ui(config: ConfigUI) -> Starlette:
         },
     )
     app.state.trabajos = trabajos
+    app.state.avisos = avisos
     return app

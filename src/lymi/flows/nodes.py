@@ -775,12 +775,17 @@ async def ejecutar_codigo(paso: CodigoStep, contexto: Mapping[str, Any], r: Recu
 
 
 async def ejecutar_calendario(paso: CalendarioStep, contexto: Mapping[str, Any], r: Recursos) -> Any:
-    from lymi.calendario import Calendario, CalendarioError
+    from lymi.calendario import Calendario, CalendarioError, SinCalendarios
 
     def trabajo() -> tuple[list[Any], list[str]]:
         inicio = datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
         calendario = Calendario(Path(paso.carpeta) if paso.carpeta else None)
-        return calendario.eventos(inicio, inicio + timedelta(days=paso.dias))
+        try:
+            return calendario.eventos(inicio, inicio + timedelta(days=paso.dias))
+        except SinCalendarios as exc:
+            # Sin calendario configurado no hay nada que leer, no algo roto: un informe
+            # del dia sigue con el correo y lo dice, en vez de caerse entero.
+            return [], [str(exc)]
 
     inicio = time.perf_counter()
     try:
@@ -796,7 +801,9 @@ async def ejecutar_calendario(paso: CalendarioStep, contexto: Mapping[str, Any],
         latencia_ms=int((time.perf_counter() - inicio) * 1000),
     )
     salida = {
-        "texto": "\n".join(e.resumen() for e in eventos) or "nada agendado",
+        "texto": "\n".join(e.resumen() for e in eventos) or (
+            "sin calendario configurado" if any("no hay archivos .ics" in a for a in avisos) else "nada agendado"
+        ),
         "datos": [
             {"titulo": e.titulo, "inicio": e.inicio.isoformat(), "fin": e.fin.isoformat(),
              "lugar": e.lugar, "todo_el_dia": e.todo_el_dia, "calendario": e.calendario}
@@ -863,11 +870,7 @@ async def ejecutar_correo(paso: CorreoStep, contexto: Mapping[str, Any], r: Recu
             return completion.text
 
         resumen = await resumir(leido, completar)
-        salida = {
-            "texto": render(resumen),
-            "datos": {"directos": len(resumen.mensajes), "boletines": len(resumen.boletines),
-                      "avisos": resumen.avisos},
-        }
+        salida = {"texto": render(resumen), "datos": resumen.como_dict()}
     return sanear_valor(salida)[0]
 
 

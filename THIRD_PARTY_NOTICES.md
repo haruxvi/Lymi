@@ -22,6 +22,23 @@ incorporado al repositorio y la licencia que lo permite.
 Las dependencias declaradas en `pyproject.toml` se instalan desde PyPI y
 conservan sus propias licencias; no se vendorizan aqui.
 
+### Lo que viaja dentro de la app de escritorio (instaladores)
+
+Los instaladores (`empaquetado/`) si redistribuyen dependencias. Ademas de las
+permisivas de siempre, llevan:
+
+| Componente | Licencia | Como se cumple |
+|---|---|---|
+| pywebview | BSD-3-Clause | aviso de copyright en el paquete |
+| qtpy | MIT | aviso de copyright en el paquete |
+| PySide6 y Qt 6 (incluye Qt WebEngine) | LGPL-3.0 | se enlaza de forma dinamica: las bibliotecas de Qt van como archivos separados en la carpeta del programa y se pueden reemplazar por otra version; no se modifican |
+| Chromium (dentro de Qt WebEngine) | BSD-3-Clause y otras permisivas | avisos incluidos por Qt en sus archivos de licencia |
+| PyInstaller (cargador) | GPL-2.0 con excepcion de cargador | la excepcion permite distribuir el programa empaquetado con cualquier licencia |
+
+LGPL no es copyleft fuerte: no cambia la licencia de lymi mientras Qt se use sin
+modificar y reemplazable. WebView2 (Microsoft) no va en el paquete: se probo que
+abre conexiones a Microsoft que ninguna bandera apaga (ver `src/lymi/escritorio.py`).
+
 ## Codigo incorporado
 
 *(ninguno todavia)*

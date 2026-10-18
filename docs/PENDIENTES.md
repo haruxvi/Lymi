@@ -220,8 +220,9 @@ Ver `REFERENCIAS.md`. Cada una se mide en el ledger antes de declararla util.
 - [x] Cadena proactiva verificada de punta a punta: `lymi schedule add` +
       `lymi serve` dispararon el resumen sin nadie delante, escribieron el informe
       y la corrida quedo en el ledger con su origen (`agenda:<id>`).
-- [ ] Que `lymi serve` arranque con Windows (tarea programada del sistema), o el
-      resumen no se dispara si nadie lo deja corriendo.
+- [x] La agenda corre mientras la app de escritorio esta abierta, y el instalador
+      de Windows ofrece "Abrir lymi al iniciar sesion" (desmarcado: lo decide la
+      persona al instalar). En Linux: `instalar.sh --al-iniciar`.
 - [x] Calendario: archivos `.ics` locales (`src/lymi/calendario/`, `lymi calendario`,
       paso `calendario`, herramienta `calendario.agenda`). Zonas horarias por `TZID`
       y repeticiones DAILY/WEEKLY/MONTHLY/YEARLY con INTERVAL, COUNT, UNTIL, BYDAY
@@ -229,9 +230,25 @@ Ver `REFERENCIAS.md`. Cada una se mide en el ledger antes de declararla util.
 - [x] `workflows/informe-del-dia.yml`: correo + agenda en una pagina, 0 tokens remotos.
 - [ ] Calendario por CalDAV o por URL privada `.ics` (hoy: archivos que tu dejas
       en la carpeta).
-- [ ] Eventos del calendario en el aviso proactivo ("tienes algo en 15 minutos").
+- [x] Avisos proactivos (`src/lymi/avisos.py`): una programacion que termino, algo
+      que espera tu aprobacion, un trabajo listo y cada evento 15 minutos antes.
+      En el escritorio, notificaciones del sistema desde la bandeja (cerrar la
+      ventana la esconde y la agenda sigue); en el navegador, avisos en la pagina
+      y notificaciones locales si se permiten. Nada pasa por servicios de push.
 - [ ] Hilos: agrupar por `In-Reply-To`/`References` en vez de mensaje suelto.
 - [ ] Probar con un perfil que tenga varias cuentas y carpetas locales.
+
+## 4d. Voz
+
+- [x] Dictado con whisper.cpp como programa externo (`src/lymi/voz.py`, boton de
+      microfono en el chat): WAV de 16 kHz armado en la pagina, transcripcion local,
+      audio borrado al terminar. Modelo sugerido por la RAM y siempre declarado.
+- [x] Lectura en voz alta con la voz del sistema (SAPI / say / espeak-ng): el texto
+      va por la entrada estandar, nunca en la linea de comandos.
+- [ ] Probar el dictado real: descargar `whisper-cli` y `ggml-base.bin` en `voz/`
+      (requiere tu permiso para descargar) y medir latencia y aciertos en espanol.
+- [ ] Manos libres: palabra de activacion local y dictado continuo, para cuando
+      la camara acompane un proyecto (eje 10b de ELITE.md).
 
 ## 5. Oleadas 3-6
 
@@ -247,19 +264,40 @@ Mensajeria, conocimiento, interfaces y el resto: ver la matriz de
       corridas y detalle, workflows (plan, entradas, correr, aprobar desde el
       navegador), egress y apariencia.
 - [x] Editor de temas funcional sobre `~/.config/lymi/theme.toml` (en la app).
-- [ ] App: pantallas que aun son maqueta (mapa de costos, lienzo de nodos,
-      sesion de agente) llegan cuando exista lo que muestran.
-- [ ] App: fuentes de la risografia empaquetadas localmente (hoy usa las del
-      sistema para no pedir nada a internet).
+- [x] La app muestra todo lo que lymi sabe hacer (2026-10-04): Hoy, Chat
+      (asistente, debate, agencias; modelo y tope por conversacion), Correo,
+      Calendario, Agencia, Workflows con editor de nodos, Programaciones, Memoria,
+      Codigo, Web, Tu PC, corridas, egress, medir, proveedores y apariencia.
+      Estilo sobrio (la risografia neon quedo solo en las maquetas).
+- [ ] Mapa de costos del codigo (maqueta `Grafo.dc.html`): falta atribuir tokens a
+      archivos en el ledger; sin eso seria un grafo de colores, no una medida.
+- [ ] Chat: respuestas en streaming (hoy llega completa al terminar el turno).
+- [ ] Editor de nodos: ramas si/no dibujadas (hoy la condicion `when` va en el
+      inspector) y conservar comentarios del YAML al guardar (hoy se reescribe y
+      el anterior queda en `runs/workflows-anteriores/`).
 - [ ] Pasos de repeticion en workflows (`foreach` sobre una lista, con tope de
       iteraciones y presupuesto compartido): hoy un mapa de sitio se recorre
       dentro del nodo, no en el workflow.
-- [ ] Lienzo de nodos estilo n8n sobre el YAML, ida y vuelta sin perder
-      comentarios: posiciones en `meta.canvas`, paleta arrastrable, rama si/no.
-      El YAML sigue siendo la fuente de verdad. Diseno hecho (`Workflow.dc.html`).
+- [x] Lienzo de nodos estilo n8n sobre el YAML: paleta con busqueda (clic o
+      arrastre), orden de ejecucion de izquierda a derecha, aristas de datos
+      punteadas, inspector generado del esquema, validacion y plan en vivo, costo
+      medido por nodo (mediana del ledger), ejecucion con estado por nodo y
+      aprobaciones en el pie. Posiciones en el navegador (`localStorage`).
 
 ## 7. Distribucion
 
-- [ ] Docker / instalador para Windows, macOS y Linux.
+- [x] App de escritorio (`lymi escritorio`): ventana Qt WebEngine, 0 conexiones
+      medidas; WebView2 descartado por defecto (conecta a Microsoft, medido).
+- [x] Receta PyInstaller e instaladores: Windows (Inno Setup, por usuario),
+      Linux (tar.gz + instalar.sh sin root), macOS (.dmg). CI por sistema con
+      prueba de red en Linux (`.github/workflows/instaladores.yml`).
+- [ ] Correr el CI de instaladores por primera vez (etiqueta `v0.1.0` o a mano) y
+      probar cada instalador en una maquina limpia.
+- [ ] Firma de codigo (Windows: certificado; macOS: cuenta de desarrollador y
+      notarizacion). Sin firma, SmartScreen y Gatekeeper avisan al abrir.
+- [x] Docker para `lymi serve` (agenda y webhooks): usuario sin privilegios, datos
+      en volumen, sin la interfaz. Probado en el CI (construye, arranca y responde
+      en `/salud`); en este equipo no hay Docker para probarlo a mano.
+- [x] El CI de pruebas corre tambien en `master` (solo miraba `main`).
 - [ ] README de usuario final con los tres caminos: estudiante (solo local),
       suscripcion, API key.

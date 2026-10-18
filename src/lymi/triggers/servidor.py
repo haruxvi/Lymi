@@ -20,6 +20,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import time
 from collections.abc import AsyncIterator, Callable
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from dataclasses import dataclass, field
@@ -55,6 +56,8 @@ class ConfigServidor:
     local: LLMClient | None = None
     remote: LLMClient | None = None
     servicio_secretos: str = SERVICIO
+    avisos: Any = None
+    """`lymi.avisos.Avisos` donde contar que termino una programacion y que viene en el calendario."""
 
 
 @dataclass(slots=True)
@@ -113,8 +116,17 @@ def lanzar(
                 variante=origen,
             )
             log.info("%s: corrida %s %s", origen, resultado.run_id, "ok" if resultado.ok else resultado.detalle)
+            if estado.config.avisos is not None:
+                estado.config.avisos.publicar(
+                    "programacion" if resultado.ok else "error",
+                    f"{flujo.name}: {'listo' if resultado.ok else 'no termino'}",
+                    "corrio solo, por la agenda" if resultado.ok else resultado.detalle,
+                    f"#/corridas/{resultado.run_id}",
+                )
         except (WorkflowError, EntradaError) as exc:
             log.warning("%s: no se pudo correr %s: %s", origen, workflow, exc)
+            if estado.config.avisos is not None:
+                estado.config.avisos.publicar("error", f"{workflow.name} no se pudo correr", str(exc)[:300], "#/programaciones")
         except Exception:
             log.exception("%s: fallo inesperado", origen)
         finally:
@@ -141,11 +153,21 @@ async def revisar_agenda(estado: EstadoServidor, ahora: datetime | None = None) 
 
 
 async def _bucle_agenda(estado: EstadoServidor, intervalo: float) -> None:
+    ultima_mirada = 0.0
     while True:
         try:
             await revisar_agenda(estado)
         except Exception:
             log.exception("fallo revisando la agenda")
+        # Una vez por minuto, lo que empieza pronto en el calendario.
+        if estado.config.avisos is not None and time.monotonic() - ultima_mirada >= 60:
+            ultima_mirada = time.monotonic()
+            try:
+                from lymi.avisos import eventos_proximos
+
+                await asyncio.to_thread(eventos_proximos, estado.config.avisos)
+            except Exception:
+                log.exception("fallo mirando el calendario")
         await asyncio.sleep(intervalo)
 
 

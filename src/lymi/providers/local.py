@@ -69,6 +69,27 @@ def assert_loopback(url: str, *, allow_remote: bool = False) -> None:
             )
 
 
+CONTEXTOS = (8192, 16384)
+"""Tramos de contexto que se piden a Ollama. Pocos y fijos: cada cambio recarga el modelo.
+
+Sin pedirlo, Ollama usa 4096 y recorta en silencio el principio del prompt: el rol y
+las herramientas de un agente se pierden y el modelo deja de seguir el protocolo
+(medido con qwen2.5:3b y las 27 herramientas del chat). En qwen2.5:3b, 8k de contexto
+cuestan ~300 MB de VRAM.
+"""
+
+
+def contexto_necesario(system: str | None, messages: list[Message], max_tokens: int) -> int:
+    """El tramo mas chico donde caben el prompt (estimado en ~3 caracteres por token) y la respuesta."""
+    caracteres = len(system or "") + sum(len(m.content) for m in messages)
+    necesario = caracteres // 3 + max_tokens + 256
+    techo = int(os.getenv("LYMI_LOCAL_CTX_MAX", str(CONTEXTOS[-1])))
+    for tramo in CONTEXTOS:
+        if necesario <= tramo <= techo:
+            return tramo
+    return min(techo, CONTEXTOS[-1])
+
+
 class OllamaClient:
     """Cliente del tier local. Costo monetario cero; el costo real es latencia."""
 
@@ -113,7 +134,7 @@ class OllamaClient:
             ),
             "stream": True,
             "think": self.think,
-            "options": {"num_predict": max_tokens},
+            "options": {"num_predict": max_tokens, "num_ctx": contexto_necesario(system, messages, max_tokens)},
         }
         started = time.perf_counter()
         partes: list[str] = []

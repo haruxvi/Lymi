@@ -405,6 +405,8 @@ BUZONES_MASIVOS = frozenset({
     "notification", "updates", "marketing", "mailer", "mailer-daemon", "campaign", "bounce",
 })
 _DIRECCION = re.compile(r"[\w.+-]+@[\w.-]+")
+_CSS = re.compile(r"^\s*(@import|@font-face|@media)|[.#]?[\w-]+\s*\{\s*[\w-]+\s*:[^}]*\}", re.MULTILINE)
+"""Reglas de CSS al principio de un texto: no es el mensaje, es su hoja de estilos."""
 
 
 def _es_masivo(mensaje: EmailMessage) -> bool:
@@ -454,7 +456,9 @@ def _convertir(
         except (LookupError, UnicodeDecodeError, ValueError):
             continue
         if tipo == "text/html":
-            texto = html_a_markdown(texto, "").markdown
+            texto = html_a_markdown(texto, "", correo=True).markdown
+        elif _CSS.search(texto[:3000]):
+            continue  # un text/plain que es la hoja de estilos del HTML: generado mal por el remitente
         if not cuerpo or (tipo == "text/plain" and len(texto) > len(cuerpo)):
             cuerpo = texto
 

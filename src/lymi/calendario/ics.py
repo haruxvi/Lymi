@@ -32,6 +32,10 @@ class CalendarioError(ValueError):
     """No hay calendarios que leer."""
 
 
+class SinCalendarios(CalendarioError):
+    """No hay ningun .ics: falta configurarlo, no es un calendario roto."""
+
+
 @dataclass(frozen=True, slots=True)
 class Evento:
     titulo: str
@@ -261,7 +265,7 @@ class Calendario:
     def eventos(self, desde: datetime, hasta: datetime) -> tuple[list[Evento], list[str]]:
         archivos = self.archivos()
         if not archivos:
-            raise CalendarioError(
+            raise SinCalendarios(
                 f"no hay archivos .ics en {self.raiz}. Exporta tu calendario ahi, "
                 "o define LYMI_CALENDARIO con la carpeta que los tiene"
             )

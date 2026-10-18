@@ -455,3 +455,47 @@ programacion cada minuto en una agenda temporal y `lymi serve` durante 90 s.
 - Repetir `lymi bench snake` real con calentamiento cuando la suscripcion se restablezca.
 - Primera medicion real.
 - Editor de temas funcional sobre `theme.toml`.
+
+## [2026-10-04] codigo | App de escritorio, telemetria medida e interfaz completa
+
+- `lymi escritorio`: ventana propia (pywebview + Qt WebEngine), puerto loopback
+  efimero, instancia unica, agenda viva mientras esta abierta, datos en `LYMI_HOME`.
+- Medido con `--verificar-red` (tabla de conexiones del SO, arbol de procesos):
+  Qt 0 conexiones en 60 s; WebView2 conecta a 52.97.x.x:443 toda la sesion desde
+  codigo nativo que el net-log de Chromium no ve. Qt por defecto.
+- `vigia_red`: Windows (netstat + Toolhelp), Linux (/proc sin root), macOS (lsof).
+- `claude -p` con `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` y sin consola.
+- Critica del usuario: la app tenia 7 pantallas vacias de neon y nada de lo que
+  pidio. Cierto. Interfaz rehecha: Hoy, Chat (asistente / debate / agencia, modelo
+  y tope por conversacion), Correo, Calendario, Agencia, editor de nodos tipo n8n,
+  Programaciones, Memoria, Codigo, Web, Tu PC. Estilo sobrio claro/oscuro.
+- Probarla de verdad destapo: el contexto de Ollama (4096 por defecto) recortaba
+  en silencio el prompt del chat (ahora 8k/16k segun el prompt); modelos chicos
+  terminan sin `resultado` (se toma la prosa o el unico campo de texto); correos
+  HTML de maquetacion salian como tablas markdown (modo correo en el conversor);
+  text/plain que es CSS ganaba al HTML; tablas anidadas duplicadas en la web; un
+  informe del dia se caia entero sin calendario (ahora sigue y avisa).
+- Instaladores: PyInstaller (`empaquetado/lymi.spec`), Inno Setup, instalar.sh,
+  .dmg y CI por sistema. 735 pruebas.
+
+## [2026-10-18] codigo | Bandeja, avisos, Docker y CI en master
+
+- La app de escritorio vive en la bandeja: cerrar la ventana la esconde (probado
+  en la ventana real: proceso vivo, ventana oculta; "Salir" termina limpio).
+- Avisos locales: programacion terminada, aprobacion pendiente, trabajo listo y
+  eventos 15 minutos antes. Bandeja en el escritorio, avisos en la pagina y
+  notificaciones del navegador en `lymi ui`.
+- Dockerfile de servidor (agenda + webhooks) con prueba en el CI.
+- El CI de pruebas solo corria con pushes a `main`; la rama es `master`.
+- Un test del resumen de correo dependia de la fecha (correos de septiembre y
+  "ultimos 30 dias"): ahora el buzon de prueba se fecha relativo a hoy. 740 pruebas.
+
+## [2026-10-18] codigo | Voz local: dictado y lectura
+
+- `src/lymi/voz.py`: whisper.cpp externo (busca en LYMI_WHISPER, PATH o `voz/`),
+  modelo por RAM y declarado; lectura con SAPI/say/espeak-ng por stdin.
+- Interfaz: microfono en el compositor (grabacion visible con segundos, WAV de
+  16 kHz armado en la pagina), "Leer en voz alta" en el chat y estado en
+  Modelos y proveedores. pywebview concede el microfono a la pagina local.
+- Sin whisper instalado la app lo dice y explica de donde sacarlo. 751 pruebas.
+

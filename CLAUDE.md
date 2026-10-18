@@ -60,6 +60,13 @@ esta documentado y lo descubres, **documentalo** antes de terminar la sesion.
     sin entender por que ocurre.
 14. **Al cerrar una sesion:** actualizar `docs/BITACORA.md`, `docs/PENDIENTES.md` y
     el wiki del vault (`index.md`, `log.md`, pagina de sesion).
+15. **Una funcion sin pantalla no esta terminada.** El usuario usa la app, no la
+    terminal. Todo lo que se construya entra tambien en la interfaz (seccion, API y
+    prueba de la API) y se mira funcionando en el navegador antes de darlo por hecho.
+    Leccion del 2026-10-04: semanas de motor con comandos, y la app mostraba 7
+    pantallas vacias de neon; el usuario la abrio y no encontro nada de lo pedido.
+16. **Estilo sobrio.** Tipografia del sistema, un solo acento, claro u oscuro segun
+    el sistema. Nada de neon, grano, texto rotado ni MAYUSCULAS de adorno.
 
 ## Verificar
 
@@ -153,14 +160,27 @@ src/lymi/
   control.py   parada por archivo (`lymi stop|resume`) y presupuestos
   doctor.py    diagnostico de proveedores (`lymi setup`)
   cli*.py      comandos
-  ui/          `lymi ui`: app Starlette local (host + token + CSP), trabajos en
-               segundo plano con aprobaciones desde el navegador, tema;
-               static/ = index.html, app.js (sin dependencias), app.css, riso.css
-               (generado por design/estilos/sincronizar.mjs)
+  ui/          la interfaz (la sirven `lymi ui` y `lymi escritorio`): app Starlette
+               local (host + token + CSP). app.py (nucleo y ledger), funciones.py
+               (hoy, correo, calendario, chat, agencia, memoria, programaciones,
+               codigo, web, diario del PC), editor.py (esquema de nodos, validar,
+               guardar con copia, costo medido por nodo), sesiones.py (chat:
+               asistente y debate como agencias en memoria), trabajos.py (todo lo
+               que gasta tokens, sale a la red o actua corre aqui, por el motor,
+               con aprobaciones desde la pagina), tema.py, comun.py.
+               static/ = index.html, app.js (enrutador), app.css (sobrio, claro y
+               oscuro segun el sistema), js/<seccion>.js (modulos sin dependencias)
+  escritorio.py la app de escritorio: ventana Qt WebEngine (pywebview), puerto
+               loopback efimero, instancia unica, agenda viva, carpeta de datos
+  vigia_red.py con quien habla un arbol de procesos (Windows, Linux /proc, macOS)
+  llamada.py   una llamada a un modelo redactada y anotada en el ledger
 tests/         pruebas; tests/servidores/eco_mcp.py = servidor MCP real
+empaquetado/   PyInstaller (lymi.spec), instaladores (windows/lymi.iss, linux/*.sh,
+               macos/crear-dmg.sh) e icono.py; CI en .github/workflows/instaladores.yml
 workflows/     ejemplos
-design/        maquetas (*.dc.html) y sitio; estilos en design/estilos/ (riso.css +
-               pantallas/*.css), copiados a cada artboard por sincronizar.mjs
+design/        maquetas (*.dc.html) y sitio: referencia de contenido, no de estilo (la
+               app dejo el estilo risografia por uno sobrio); estilos de las maquetas
+               en design/estilos/, copiados a cada artboard por sincronizar.mjs
 docs/          CONTEXTO, PENDIENTES, BITACORA, ARQUITECTURA_AGENTE_SEGURO,
                METHODOLOGY, ROADMAP, PARIDAD_HERMES, REFERENCIAS
 ```

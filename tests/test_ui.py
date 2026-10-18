@@ -321,12 +321,20 @@ class TestParada:
 class TestTema:
     def test_por_defecto(self, cliente) -> None:
         datos = cliente.get("/api/tema").json()
-        assert datos["nombre"] == "riso-rosa-menta"
-        assert len(datos["presets"]) == 8
+        assert datos["nombre"] == "sistema"
+        assert len(datos["presets"]) == 9
+
+    def test_un_tema_retirado_cae_al_de_sistema_avisado(self, cliente, tmp_path, monkeypatch) -> None:
+        archivo = tmp_path / "viejo.toml"
+        archivo.write_text('name = "riso-rosa-menta"\n[tinta]\npapel = "#191324"\n', encoding="utf-8")
+        monkeypatch.setenv("LYMI_TEMA", str(archivo))
+        datos = cliente.get("/api/tema").json()
+        assert datos["nombre"] == "sistema" and "ya no existe" in datos["aviso"]
+        assert archivo.read_text(encoding="utf-8").startswith('name = "riso-rosa-menta"')  # no se pisa
 
     def test_guardar_y_leer(self, cliente) -> None:
         tinta = {"papel": "#1e1e2e", "panel": "#313244", "texto": "#cdd6f4",
-                 "remoto": "#fab387", "local": "#a6e3a1", "gris": "#9399b2"}
+                 "remoto": "#fab387", "local": "#a6e3a1", "gris": "#9399b2", "acento": "#89b4fa"}
         assert cliente.put("/api/tema", json={"nombre": "catppuccin-mocha", "tinta": tinta}).status_code == 200
         datos = cliente.get("/api/tema").json()
         assert datos["nombre"] == "catppuccin-mocha"
@@ -341,5 +349,5 @@ class TestTema:
     )
     def test_rechaza_valores_invalidos(self, cliente, nombre, cambio) -> None:
         tinta = {"papel": "#000000", "panel": "#111111", "texto": "#ffffff",
-                 "remoto": "#ff0000", "local": "#00ff00", "gris": "#888888", **cambio}
+                 "remoto": "#ff0000", "local": "#00ff00", "gris": "#888888", "acento": "#0000ff", **cambio}
         assert cliente.put("/api/tema", json={"nombre": nombre, "tinta": tinta}).status_code == 400

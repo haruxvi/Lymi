@@ -24,3 +24,9 @@ design/direcciones/direcciones-lymi.html
 
 # datos locales del desarrollador: rutas, cuentas, maquina
 CLAUDE.local.md
+
+# Empaquetado (PyInstaller e instaladores): se construyen, no se versionan.
+/dist/
+/build/
+# whisper.cpp y sus modelos (cientos de MB): se descargan, no se versionan.
+/voz/

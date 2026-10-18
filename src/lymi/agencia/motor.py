@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import time
 from collections.abc import AsyncIterator, Callable, Mapping
@@ -70,6 +71,9 @@ _ARGS_RESERVADOS = frozenset({"id", "type", "op", "when", "retries", "timeout_s"
 _PASO: TypeAdapter[Any] = TypeAdapter(Step)
 
 Aprobador = Callable[..., Any]
+
+
+log = logging.getLogger("lymi.agencia")
 
 
 class LimiteAgencia(RuntimeError):
@@ -128,6 +132,7 @@ class Tarea:
     def resumen(self) -> dict[str, Any]:
         return {
             "id": self.id, "agente": self.agente, "padre": self.padre, "origen": self.origen,
+            "descripcion": self.descripcion, "resultado": self.resultado,
             "paralela": self.paralela, "estado": self.estado, "turnos": self.turnos, "llamadas": self.llamadas,
             "tokens_remotos": self.tokens_remotos, "tokens_locales": self.tokens_locales,
             "segundos": round(self.segundos, 2), "error": self.error, "sin_respaldo": self.sin_respaldo,
@@ -146,7 +151,10 @@ class Orquestador:
         tiempo_aprobacion: float | None = None,
         ledger: Ledger | None = None,
         traza: Path | None = None,
+        avisar: Callable[[str], None] | None = None,
     ) -> None:
+        self.avisar = avisar
+        """Recibe cada evento en una linea, para quien mira la corrida en vivo (la interfaz)."""
         self.agencia = agencia
         self.lim = agencia.limites
         self.r = recursos
@@ -168,6 +176,11 @@ class Orquestador:
     # ------------------------------------------------------------ registro
 
     def _anotar(self, tarea: Tarea, evento: str, detalle: str = "") -> None:
+        if self.avisar is not None:
+            try:
+                self.avisar(f"{tarea.agente.split('.')[-1]}: {evento}{f' · {detalle[:140]}' if detalle else ''}")
+            except Exception:  # mirar la corrida no puede romperla
+                log.exception("fallo el aviso de progreso de la agencia")
         if self.traza is None:
             return
         self.traza.parent.mkdir(parents=True, exist_ok=True)
@@ -680,6 +693,7 @@ async def correr_agencia(
     entorno: Mapping[str, str] | None = None,
     http_client: httpx.AsyncClient | None = None,
     web: Any = None,
+    avisar: Callable[[str], None] | None = None,
 ) -> ResultadoAgencia:
     """Arma todo lo que necesita una corrida de la agencia y la ejecuta."""
     from lymi.ejecutor import Diario, Ejecutor, cargar_perfil, raiz_diario
@@ -710,7 +724,7 @@ async def correr_agencia(
             recursos = Recursos(rec, local, remote, pool, cliente, entorno, ejecutor, web, buscador)
             orquestador = Orquestador(
                 agencia, recursos, aprobar=aprobar, politica=politica, tiempo_aprobacion=tiempo_aprobacion,
-                ledger=ledger, traza=raiz_trazas() / f"{run.run_id}.jsonl",
+                ledger=ledger, traza=raiz_trazas() / f"{run.run_id}.jsonl", avisar=avisar,
             )
             raiz = await orquestador.correr(tarea, destino)
         finally:

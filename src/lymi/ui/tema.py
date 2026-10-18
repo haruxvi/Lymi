@@ -13,37 +13,41 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-CLAVES = ("papel", "panel", "texto", "remoto", "local", "gris")
+CLAVES = ("papel", "panel", "texto", "remoto", "local", "gris", "acento")
 _HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 _NOMBRE = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
 
-POR_DEFECTO = "riso-rosa-menta"
+POR_DEFECTO = "sistema"
+"""Sigue al sistema: claro u oscuro segun Windows/macOS/Linux. Lo resuelve la hoja de estilos."""
+
+OBSOLETOS = frozenset({"riso-rosa-menta", "riso-federal", "riso-naranja-lila", "riso-papel-claro"})
+"""Los temas neon de la primera interfaz. Un theme.toml que los nombre cae al de por defecto, avisado."""
+
+
+def _tinta(papel: str, panel: str, texto: str, remoto: str, local: str, gris: str, acento: str) -> dict[str, str]:
+    return {"papel": papel, "panel": panel, "texto": texto, "remoto": remoto, "local": local, "gris": gris,
+            "acento": acento}
+
 
 PRESETS: dict[str, dict[str, Any]] = {
-    "riso-rosa-menta": {"nombre": "Rosa + menta", "tinta": {
-        "papel": "#191324", "panel": "#221a31", "texto": "#f5eee0",
-        "remoto": "#ff48a0", "local": "#5ef2a8", "gris": "#a89cbd"}},
-    "riso-federal": {"nombre": "Amarillo + azul", "tinta": {
-        "papel": "#13162b", "panel": "#1c2140", "texto": "#f3efe4",
-        "remoto": "#ffd23f", "local": "#58c4ff", "gris": "#9aa3c7"}},
-    "riso-naranja-lila": {"nombre": "Naranja + lila", "tinta": {
-        "papel": "#1d1216", "panel": "#2a1a20", "texto": "#f6ede3",
-        "remoto": "#ff6c2f", "local": "#b7a4ff", "gris": "#b39aa4"}},
-    "riso-papel-claro": {"nombre": "Papel claro", "tinta": {
-        "papel": "#f1ebdf", "panel": "#e3d8c6", "texto": "#1b1422",
-        "remoto": "#e0245e", "local": "#0a8f5b", "gris": "#6c6272"}},
-    "catppuccin-mocha": {"nombre": "Catppuccin Mocha", "tinta": {
-        "papel": "#1e1e2e", "panel": "#313244", "texto": "#cdd6f4",
-        "remoto": "#fab387", "local": "#a6e3a1", "gris": "#9399b2"}},
-    "gruvbox-dark": {"nombre": "Gruvbox Dark", "tinta": {
-        "papel": "#282828", "panel": "#3c3836", "texto": "#ebdbb2",
-        "remoto": "#fe8019", "local": "#b8bb26", "gris": "#a89984"}},
-    "tokyo-night": {"nombre": "Tokyo Night", "tinta": {
-        "papel": "#1a1b26", "panel": "#24283b", "texto": "#c0caf5",
-        "remoto": "#ff9e64", "local": "#9ece6a", "gris": "#787c99"}},
-    "rose-pine": {"nombre": "Rosé Pine", "tinta": {
-        "papel": "#191724", "panel": "#26233a", "texto": "#e0def4",
-        "remoto": "#eb6f92", "local": "#9ccfd8", "gris": "#908caa"}},
+    "sistema": {"nombre": "Sistema", "tinta": _tinta(
+        "#f6f6f4", "#ffffff", "#1d1d1b", "#b45309", "#15803d", "#6b6b66", "#4f46e5")},
+    "claro": {"nombre": "Claro", "tinta": _tinta(
+        "#f6f6f4", "#ffffff", "#1d1d1b", "#b45309", "#15803d", "#6b6b66", "#4f46e5")},
+    "oscuro": {"nombre": "Oscuro", "tinta": _tinta(
+        "#141416", "#1c1c1f", "#e8e8e5", "#e3a35e", "#5cbf86", "#9a9a94", "#8b8ff5")},
+    "papel": {"nombre": "Papel", "tinta": _tinta(
+        "#f4f0e8", "#fffdf8", "#2b2620", "#a4561b", "#3f7d4f", "#7a7064", "#9a5b2f")},
+    "grafito": {"nombre": "Grafito", "tinta": _tinta(
+        "#1a1c20", "#22252a", "#e4e6ea", "#e3a35e", "#6cc08b", "#9aa0aa", "#7aa2f7")},
+    "nord": {"nombre": "Nord", "tinta": _tinta(
+        "#2e3440", "#3b4252", "#eceff4", "#ebcb8b", "#a3be8c", "#a3abba", "#88c0d0")},
+    "catppuccin-mocha": {"nombre": "Catppuccin Mocha", "tinta": _tinta(
+        "#1e1e2e", "#27273a", "#cdd6f4", "#fab387", "#a6e3a1", "#9399b2", "#89b4fa")},
+    "gruvbox-dark": {"nombre": "Gruvbox Dark", "tinta": _tinta(
+        "#282828", "#32302f", "#ebdbb2", "#fe8019", "#b8bb26", "#a89984", "#83a598")},
+    "tokyo-night": {"nombre": "Tokyo Night", "tinta": _tinta(
+        "#1a1b26", "#222436", "#c0caf5", "#ff9e64", "#9ece6a", "#787c99", "#7aa2f7")},
 }
 
 
@@ -75,6 +79,11 @@ def leer(ruta: Path) -> dict[str, Any]:
     except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as exc:
         return _defecto("por defecto", f"theme.toml ilegible ({exc}); se usa el tema por defecto")
 
+    nombre = crudo.get("name")
+    if nombre in OBSOLETOS:
+        return _defecto(
+            "por defecto", f"el tema {nombre} ya no existe; se usa {PRESETS[POR_DEFECTO]['nombre']}. Elige otro abajo"
+        )
     tinta = dict(PRESETS[POR_DEFECTO]["tinta"])
     colores = crudo.get("tinta")
     if isinstance(colores, dict):
@@ -82,7 +91,6 @@ def leer(ruta: Path) -> dict[str, Any]:
             valor = colores.get(clave)
             if isinstance(valor, str) and _HEX.match(valor):
                 tinta[clave] = valor.lower()
-    nombre = crudo.get("name")
     if not isinstance(nombre, str) or not _NOMBRE.match(nombre):
         nombre = "personalizado"
     return {"nombre": nombre, "tinta": tinta, "origen": str(ruta)}

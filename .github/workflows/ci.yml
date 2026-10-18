@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
 
 # Minimo privilegio: la CI solo lee el repositorio.
@@ -39,3 +39,21 @@ jobs:
 
       - name: Estilos de las maquetas sincronizados
         run: node design/estilos/sincronizar.mjs --check
+
+  docker:
+    # La imagen de servidor (agenda y webhooks): se construye, arranca y responde.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construir
+        run: docker build -t lymi:ci .
+      - name: Arranca y responde en /salud
+        run: |
+          docker run -d --name lymi -p 8765:8765 lymi:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/salud; then exit 0; fi
+            sleep 2
+          done
+          docker logs lymi
+          exit 1

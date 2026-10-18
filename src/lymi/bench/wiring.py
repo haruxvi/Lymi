@@ -33,7 +33,15 @@ class Cableado:
         return f"remoto: {self.remoto} · local: {tier}"
 
 
-def _remoto() -> tuple[LLMClient, str]:
+MODELOS_REMOTOS = {
+    "opus": "claude-opus-5-5",
+    "sonnet": "claude-sonnet-5-5",
+    "haiku": "claude-haiku-4-5-20251001",
+}
+"""Alias que entiende `claude -p` -> id de la API. La interfaz ofrece los alias."""
+
+
+def _remoto(modelo: str | None = None) -> tuple[LLMClient, str]:
     """Elige proveedor remoto. Orden: suscripcion, Anthropic, OpenAI.
 
     La suscripcion va primera porque no tiene costo marginal: es lo que permite
@@ -43,12 +51,13 @@ def _remoto() -> tuple[LLMClient, str]:
     from lymi.providers import claude_code
 
     if claude_code.disponible():
-        return claude_code.ClaudeCodeClient(model="opus"), "claude code (suscripcion)"
+        alias = modelo or "opus"
+        return claude_code.ClaudeCodeClient(model=alias), f"claude code ({alias}, suscripcion)"
 
     if os.getenv("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_AUTH_TOKEN"):
         from lymi.providers.anthropic_client import AnthropicClient
 
-        cliente = AnthropicClient()
+        cliente = AnthropicClient(MODELOS_REMOTOS.get(modelo, modelo)) if modelo else AnthropicClient()
         return cliente, f"anthropic api ({cliente.model})"
 
     raise SinProveedorRemotoError(
@@ -59,7 +68,7 @@ def _remoto() -> tuple[LLMClient, str]:
     )
 
 
-def _local() -> tuple[LLMClient, str] | tuple[None, None]:
+def _local(modelo: str | None = None) -> tuple[LLMClient, str] | tuple[None, None]:
     """Devuelve el tier local si esta utilizable. Nunca falla la corrida por su
     ausencia: sin el, lymi corre con la palanca de cache y lo declara."""
     import httpx
@@ -67,7 +76,7 @@ def _local() -> tuple[LLMClient, str] | tuple[None, None]:
     from lymi.providers.local import OllamaClient
 
     try:
-        cliente = OllamaClient()
+        cliente = OllamaClient(model=modelo)
         # Comprobar que responde: un cliente que no conecta convertiria cada
         # destilacion en una excepcion a mitad de corrida.
         httpx.get(f"{cliente.url}/api/tags", timeout=3.0).raise_for_status()
@@ -89,16 +98,18 @@ def cablear() -> Cableado:
     )
 
 
-def proveedores() -> tuple[LLMClient | None, str | None, LLMClient | None, str | None]:
+def proveedores(
+    modelo_local: str | None = None, modelo_remoto: str | None = None
+) -> tuple[LLMClient | None, str | None, LLMClient | None, str | None]:
     """Local y remoto disponibles, sin exigir ninguno.
 
     A diferencia de `cablear`, no falla si falta el remoto: un workflow que solo
     usa pasos locales o integraciones no lo necesita, y si algun paso si, el motor
     lo reporta en ese paso con el arreglo.
     """
-    local, etiqueta_local = _local()
+    local, etiqueta_local = _local(modelo_local)
     try:
-        remoto, etiqueta_remota = _remoto()
+        remoto, etiqueta_remota = _remoto(modelo_remoto)
     except SinProveedorRemotoError:
         remoto, etiqueta_remota = None, None
     return local, etiqueta_local, remoto, etiqueta_remota

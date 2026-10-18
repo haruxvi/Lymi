@@ -38,6 +38,9 @@ def parada_aislada(tmp_path_factory, monkeypatch):
     monkeypatch.setenv("LYMI_MEMORIA", str(tmp_path_factory.mktemp("memoria")))
     monkeypatch.setenv("LYMI_CORREO_INDICE", str(tmp_path_factory.mktemp("correo")))
     monkeypatch.setenv("LYMI_CALENDARIO", str(tmp_path_factory.mktemp("calendario")))
+    # Sin esto, una prueba de la interfaz leeria el Thunderbird real de quien corre la suite.
+    monkeypatch.setenv("LYMI_CORREO", str(tmp_path_factory.mktemp("sin-correo")))
+    monkeypatch.setenv("LYMI_OLLAMA_URL", "http://127.0.0.1:9")
 
 
 @pytest.fixture
